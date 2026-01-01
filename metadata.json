@@ -1,0 +1,5 @@
+{
+  "name": "Sovereign Cognitive OS: Agent Forge",
+  "description": "A secure, client-side architecting tool that ingests documentation to construct sovereign AI agent identities, enforcing strict epistemic boundaries and security constraints.",
+  "requestFramePermissions": []
+}
