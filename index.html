@@ -4,27 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sovereign Agent Forge</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            colors: {
-              'void': '#09090b',
-              'void-light': '#18181b',
-              'cognitive': '#3b82f6',
-              'immune': '#ef4444',
-              'sovereign': '#10b981',
-            }
-          }
-        }
-      }
-    </script>
     <style>
       body { background-color: #050505; color: #e4e4e7; }
       /* Custom scrollbar for the "Book of Scars" feel */
@@ -47,5 +27,6 @@
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

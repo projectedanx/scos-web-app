@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Shield, HardDrive, Key, ChevronLeft, Trash2, Download, Upload } from 'lucide-react';
+import { User, Shield, HardDrive, Key, ChevronLeft, Trash2, Download, Upload, LogIn, LogOut, CloudUpload } from 'lucide-react';
 import { generateCommanderKeys, CommanderKeyPair } from './services/cryptoService';
 import { SovereignAgentManifest, SovereignVault, ProvenanceIndexEntry, ViewMode, ScarEntry } from './types';
 import { Sidebar } from './components/Layout/Sidebar';
@@ -9,6 +9,10 @@ import { CapsuleLabView } from './views/CapsuleLabView';
 import { RegistryView } from './views/RegistryView';
 import { AgentLibraryView } from './views/AgentLibraryView';
 import { WordMapperView } from './views/WordMapperView';
+import { useAuth } from './components/Auth/AuthProvider';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from './services/firebase';
+import { migrateVaultToFirestore } from './services/migration';
 
 function App() {
   // Navigation State
@@ -28,6 +32,8 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [scars, setScars] = useState<ScarEntry[]>([]);
 
+  const { user, signInWithGoogle, logout } = useAuth();
+
   // --- Initialization ---
   useEffect(() => {
     const initKeys = async () => {
@@ -42,6 +48,24 @@ function App() {
     };
     initKeys();
   }, []);
+
+  // --- Profile Sync ---
+  useEffect(() => {
+      const syncProfile = async () => {
+          if (user && commanderKeys) {
+              try {
+                  await setDoc(doc(db, 'users', user.uid), {
+                      commanderPublicKey: commanderKeys.publicKey,
+                      lastLogin: Date.now()
+                  }, { merge: true });
+                  console.log("Commander keys synced to Firestore.");
+              } catch (e) {
+                  console.error("Failed to sync commander keys", e);
+              }
+          }
+      };
+      syncProfile();
+  }, [user, commanderKeys]);
 
   // --- Vault Logic ---
 
@@ -130,6 +154,18 @@ function App() {
     }
   };
 
+  const handleMigrate = async () => {
+      if (!user || vault.length === 0) return;
+      if (confirm(`Migrate ${vault.length} agents to your cloud vault?`)) {
+          const success = await migrateVaultToFirestore(user.uid, vault);
+          if (success) {
+              alert("Migration complete.");
+          } else {
+              alert("Migration failed. Check console for details.");
+          }
+      }
+  };
+
   return (
     <div className="min-h-screen bg-void text-zinc-100 font-sans selection:bg-sovereign/30 selection:text-sovereign-light overflow-x-hidden relative flex">
       
@@ -159,7 +195,11 @@ function App() {
         <div className="p-4 border-b border-zinc-800 bg-black/20">
            <div className="flex items-center space-x-3 mb-2">
               <div className="p-2 bg-zinc-800 rounded-full">
-                 <User className="w-4 h-4 text-zinc-400" />
+                 {user?.photoURL ? (
+                   <img src={user.photoURL} alt="User" className="w-4 h-4 rounded-full" />
+                 ) : (
+                   <User className="w-4 h-4 text-zinc-400" />
+                 )}
               </div>
               <div className="overflow-hidden">
                  <p className="text-xs text-zinc-500 font-mono uppercase">Commander</p>
@@ -170,6 +210,30 @@ function App() {
                  />
               </div>
            </div>
+           
+            {/* Auth Button */}
+            <div className="mb-4 space-y-2">
+               {user ? (
+                   <>
+                       <button onClick={logout} className="w-full flex items-center justify-center space-x-2 bg-zinc-800/50 hover:bg-zinc-800 text-xs py-1.5 rounded border border-zinc-700/50 transition-colors text-zinc-400">
+                           <LogOut className="w-3 h-3" />
+                           <span>LOGOUT</span>
+                       </button>
+                       {vault.length > 0 && (
+                           <button onClick={handleMigrate} className="w-full flex items-center justify-center space-x-2 bg-purple-900/30 hover:bg-purple-800/50 text-purple-300 text-xs py-1.5 rounded border border-purple-700/50 transition-colors">
+                               <CloudUpload className="w-3 h-3" />
+                               <span>MIGRATE TO CLOUD</span>
+                           </button>
+                       )}
+                   </>
+               ) : (
+                   <button onClick={signInWithGoogle} className="w-full flex items-center justify-center space-x-2 bg-sovereign/10 hover:bg-sovereign/20 text-sovereign text-xs py-1.5 rounded border border-sovereign/30 transition-colors">
+                       <LogIn className="w-3 h-3" />
+                       <span>LOGIN (SYNC)</span>
+                   </button>
+               )}
+            </div>
+
            <div className="flex justify-between text-[10px] text-zinc-600 font-mono mt-2">
               <span>AGENTS: {vault.length}</span>
               <button onClick={handleRegenerateKeys} className="flex items-center space-x-1 hover:text-red-400">
@@ -257,6 +321,9 @@ function App() {
                <span className="text-sm font-bold text-white tracking-tight">{viewMode}</span>
             </div>
             <div className="flex items-center space-x-4 text-xs font-mono text-zinc-600">
+              {user && (
+                  <span className="text-[10px] text-zinc-500 mr-2">LOGGED IN AS: {user.email}</span>
+              )}
               {commanderKeys && (
                 <div className="flex items-center space-x-2 px-3 py-1 bg-zinc-900 rounded border border-zinc-800 text-sovereign/60">
                   <Key className="w-3 h-3" />

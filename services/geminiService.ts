@@ -2,7 +2,13 @@ import { GoogleGenAI, Type, Schema, Chat } from "@google/genai";
 import { SovereignAgentManifest, ContextCapsule } from "../types";
 
 // Initialize the Epistemic Engine
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not defined. Please check your .env file or environment variables.");
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 const SYSTEM_INSTRUCTION = `SCOS-ARCHON-01-STRICT ARCHITECTURE: PDL v1.0 (Prompt Description Language) ROLE: Component: ARCHON-01 (Ontological Architect) GOAL: Transmute raw documentation into verified Sovereign Agent Identities (OASF Manifests).
 +++ContextLock(invariants=["PetzoldLoop", "SovereignBoundary", "NoLeapConstraint"])
@@ -484,7 +490,7 @@ function repairJson(jsonString: string): any {
  */
 export const researchTopic = async (topic: string): Promise<string> => {
   try {
-    const modelId = "gemini-3-pro-preview";
+    const modelId = "gemini-2.0-flash";
     
     // --- STEP 1: Strategic Planning ---
     // Ask the model to decompose the topic into vectors of inquiry.
@@ -590,7 +596,7 @@ export const fabricateAgent = async (
 ): Promise<Omit<SovereignAgentManifest, 'provenance'>> => {
   
   try {
-    const modelId = "gemini-3-pro-preview";
+    const modelId = "gemini-2.0-flash";
     // If useSearch is true, we allow the fabricator to search AGAIN. 
     // Usually redundant if coming from researchTopic, but useful for URL/Text modes.
     const tools = useSearch ? [{ googleSearch: {} }] : [];
@@ -643,7 +649,7 @@ export const fabricateAgent = async (
  */
 export const distillCapsule = async (context: string): Promise<ContextCapsule> => {
   try {
-    const modelId = "gemini-3-pro-preview";
+    const modelId = "gemini-2.0-flash";
     
     const prompt = `
       SOURCE CONTENT:
@@ -679,7 +685,7 @@ export const distillCapsule = async (context: string): Promise<ContextCapsule> =
 };
 
 export const createDiscoveryChat = (context: string, useSearch: boolean): Chat => {
-  const modelId = "gemini-3-pro-preview";
+  const modelId = "gemini-2.0-flash";
   const tools = useSearch ? [{ googleSearch: {} }] : [];
 
   return ai.chats.create({
@@ -709,7 +715,7 @@ export interface ContextAnalysisResult {
 
 export const analyzeDocument = async (context: string): Promise<ContextAnalysisResult> => {
   try {
-    const modelId = "gemini-3-flash-preview"; // Faster model for metadata extraction
+    const modelId = "gemini-2.0-flash"; // Faster model for metadata extraction
     const prompt = `
       Analyze the following document context. 
       Identify the overall sentiment (Technical/Neutral is 'NEUTRAL', Marketing/Hype is 'POSITIVE', Warning/Error logs is 'NEGATIVE').
