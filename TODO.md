@@ -1,3 +1,4 @@
+
 # 📝 Implementation Roadmap
 
 ## Phase 1: Foundation (Firebase Setup)
@@ -5,22 +6,42 @@
 - [x] **Config:** Add `firebaseConfig` to `src/services/firebase.ts`.
 - [x] **Auth Wrapper:** Create `AuthProvider.tsx` context to handle Login/Logout and loading states.
 - [x] **Profile Sync:** Create logic to upload the local "Commander Public Key" to Firestore upon first login.
-- [x] **Migration Script:** Create a utility to read `localStorage` ("The Vault") and batch-write existing agents to Firestore `users/{uid}/manifests`.
+- [x] **Migration Script:** (Done via `App.tsx` Legacy Migration Utility).
 
-## Phase 2: Local Backend Uplink (Developer Workflow)
-- [x] **Python Server:** Create a simple FastAPI server in `backend/` with dependencies in `requirements.txt`.
-- [x] **Endpoint Logic:** Implement a `/uplink` endpoint in `main.py` to receive agent manifests.
-- [x] **File Writer:** Save the received manifest to a local `backend/manifests/` directory.
-- [x] **Frontend Integration:** Add an "Uplink" button and the corresponding `fetch` logic to `views/AgentForgeView.tsx`.
-- [x] **Documentation:** Create a `backend/README.md` explaining how to set up and run the local server.
+## Phase 1.5: Semantic Cartography (Completed)
+- [x] **Tactical Engine:** Implement `WordMapperService` with specialized prompting strategies.
+- [x] **External APIs:** Integrate Datamuse and ConceptNet for non-LLM grounding.
+- [x] **Visualization:** Build `WordMapperView` with dimensional filtering and interactive nodes.
+- [x] **Provenance:** Connect Word Mapper exports to the Registry (`ProvenanceIndex`).
 
-## Phase 3: The Secure Proxy (Cloud Functions)
+## Phase 1.6: Metacognition & Economics (Completed)
+- [x] **Internal Tools Schema:** Update manifest to support `internalTools` (metacognition).
+- [x] **Budgeting Logic:** Implement `BudgetConfig` and Drift Allowance calculations.
+- [x] **Visualization:** Update `ManifestDisplay` to show Metacognition and Budget bars.
+- [x] **Spec Export:** Implement Markdown generator for human-readable agent specs.
+
+## Phase 1.9: Epistemic Matrix & Telemetry (Completed)
+- [x] **Schema Upgrade:** Implement DRP-2026 (`epistemicMatrix`, `cognitiveProtocol`).
+- [x] **Token Telemetry:** Track and display token usage in all generative views.
+- [x] **Goal Hierarchy:** UI for Primary Goals vs Anti-Goals.
+
+## Phase 1.9.5: Prompt Engineering (Completed)
+- [x] **Prompt Forge:** Create `PromptForgeView` with meta-prompt engines (DRP, PRP, etc.).
+- [x] **Prompt Library:** Create `PromptLibraryView` for saving and organizing prompts.
+- [x] **Agent Linking:** Allow linking specific prompts to agents in the library.
+
+## Phase 1.9.7: System Resilience (Completed)
+- [x] **Retry Service:** Implement `executeWithRetry` with exponential backoff.
+- [x] **Integration:** Wrap Gemini, Datamuse, and ConceptNet calls with retry logic.
+- [x] **Error Handling:** Graceful fallback for non-critical analysis features.
+
+## Phase 2: The Secure Proxy & Conductor Bridge
 - [ ] **Environment:** Set up `functions/` directory (TypeScript).
 - [ ] **Secrets:** Store `GEMINI_API_KEY` in Google Cloud Secret Manager.
-- [ ] **Port Logic:** Move `fabricateAgent` and `researchTopic` from `geminiService.ts` to a generic `onCall` Cloud Function.
-- [ ] **Update Frontend:** Update `geminiService.ts` to call `httpsCallable` instead of using the direct SDK.
+- [ ] **Conductor Schema Check:** Validate that `SovereignAgentManifest` maps correctly to Conductor's tool definitions.
+- [ ] **Skill Transformer:** Write a utility to export `sovereign-agent-[name].json` as a Gemini Skill folder structure (`ConductorExportModal`).
 
-## Phase 4: The Python Swarm Uplink (`scos-core`)
+## Phase 3: The Python Swarm Uplink (`scos-core`)
 This is the creation of the Python runner that executes the agents designed in the web app.
 
 ### A. Python Package Structure
@@ -33,25 +54,21 @@ This is the creation of the Python runner that executes the agents designed in t
     -   Connects to Firestore.
     -   Downloads JSON manifest.
     -   **Crucial:** Verifies the `provenance.signature` using the stored Public Key to ensure the agent hasn't been tampered with.
+    -   **Enforcement:** Validate that the runtime environment (swarm) respects the `tokenBudget` and `driftAllowance` defined in the manifest.
 
 ### C. Tool Mapping System
 - [ ] Create a `@tool` decorator in Python.
 - [ ] Write logic that maps the JSON `tools[].name` to decorated Python functions.
-    *   *Example:* If Manifest has tool `web_search`, Python must have a function `@tool("web_search")` registered.
-- [ ] Implement a "Safe Executor" that checks the `riskLevel` from the JSON before running the Python function.
+- [ ] **Internal Loop:** Implement logic to execute `internalTools` (metacognition) *before* external tools if triggers are met.
 
 ### D. The Loop
 - [ ] Implement a Firestore Snapshot Listener in Python on the `swarm_queue` collection.
 - [ ] When a new doc appears:
     1.  Lock the doc.
-    2.  Run the Agent Loop (Thought -> Tool -> Observation).
+    2.  Run the Agent Loop (Think -> Write -> Code).
     3.  Update the doc with the Result.
 
-## Phase 5: Frontend "Live Link"
-- [ ] **Live Status:** Update `AgentForgeView` to show if a Python Swarm node is currently "Online" (connected to Firestore).
-- [ ] **Remote Execute:** Add a "Run in Swarm" button to the UI that pushes a job to `swarm_queue`.
-- [ ] **Terminal Stream:** Create a real-time log viewer in the web UI that streams stdout from the Python script via Firestore.
-
-## Phase 6: The "Capsule" Market
-- [ ] Update `CapsuleLabView` to save capsules to a public `capsules` collection.
-- [ ] Add a "Browse" view to download capsules created by other Architects.
+## Phase 4: Frontend "Live Link"
+- [ ] **Live Status:** Update `AgentForgeView` to show if a Python Swarm node is currently "Online".
+- [ ] **Remote Execute:** Add a "Run in Swarm" button to the UI.
+- [ ] **Terminal Stream:** Create a real-time log viewer in the web UI.

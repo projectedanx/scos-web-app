@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Database, Loader2, AlertTriangle, Search, FileText, MessageSquare, History, ChevronLeft, ChevronRight, Clock, RotateCcw, Trash2, Sparkles, GitCommit, Archive, Save, Globe, Check, ShieldCheck, Cpu, Network } from 'lucide-react';
-import { fabricateAgent, analyzeDocument, researchTopic } from '../services/geminiService';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Database, Loader2, AlertTriangle, Search, FileText, MessageSquare, History, ChevronLeft, ChevronRight, Clock, RotateCcw, Trash2, Sparkles, GitCommit, Archive, Save, Globe, Check, ShieldCheck, Cpu, Network, Upload, Bot, Zap, Users, Shield, Terminal, BookOpen, Crown, Palette, Download, RefreshCw, Plus } from 'lucide-react';
+import { fabricateAgent, analyzeDocument, researchTopic, councilDiscovery, councilSynthesis, councilCritique, councilFinalize } from '../services/geminiService';
 import { hashContent, signData, CommanderKeyPair } from '../services/cryptoService';
 import { ManifestDisplay } from '../components/ManifestDisplay';
 import { ChatInterface } from '../components/ChatInterface';
-import { FabricationStatus, SovereignAgentManifest, ScarEntry, ManifestVersion, ProvenanceIndexEntry } from '../types';
+import { FabricationStatus, SovereignAgentManifest, ScarEntry, ManifestVersion, ProvenanceIndexEntry, TokenUsage, FabricationMode, CouncilMemberType, CouncilFeedback, CouncilSessionLog } from '../types';
 
 interface AgentForgeViewProps {
   commanderKeys: CommanderKeyPair | null;
@@ -21,12 +22,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
   restoredAgent, 
   onAgentRestored 
 }) => {
-  const [status, setStatus] = useState<FabricationStatus>(FabricationStatus.IDLE);
-  const [inputValue, setInputValue] = useState('');
-  const [inputType, setInputType] = useState<'URL' | 'TEXT' | 'SEARCH'>('TEXT');
-  const [isSigning, setIsSigning] = useState(false);
-  
-  // Initialize versions from localStorage
+  // 1. Initialize History (Moved to top to allow derived status initialization)
   const [versions, setVersions] = useState<ManifestVersion[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -37,16 +33,29 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
     }
   });
 
-  // Initialize index based on stored history
+  // Initialize index based on versions state
   const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      const parsed = saved ? JSON.parse(saved) : [];
-      return parsed.length > 0 ? parsed.length - 1 : -1;
-    } catch {
-      return -1;
-    }
+    return versions.length > 0 ? versions.length - 1 : -1;
   });
+
+  // 2. Initialize Status based on whether we have history
+  const [status, setStatus] = useState<FabricationStatus>(() => {
+    return versions.length > 0 ? FabricationStatus.MANIFESTED : FabricationStatus.IDLE;
+  });
+
+  const [mode, setMode] = useState<FabricationMode>(FabricationMode.STANDARD);
+  
+  const [inputValue, setInputValue] = useState('');
+  const [agentName, setAgentName] = useState('');
+  const [inputType, setInputType] = useState<'URL' | 'TEXT' | 'SEARCH'>('TEXT');
+  const [isSigning, setIsSigning] = useState(false);
+  
+  // Council State
+  const [councilLog, setCouncilLog] = useState<CouncilSessionLog | null>(null);
+  const [councilStep, setCouncilStep] = useState<'IDLE' | 'DISCOVERY' | 'SYNTHESIS' | 'CRITIQUE' | 'FINALIZATION'>('IDLE');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const councilConsoleRef = useRef<HTMLDivElement>(null);
   
   const [scars, setScars] = useState<ScarEntry[]>([]);
   const [isChatting, setIsChatting] = useState(false);
@@ -55,22 +64,6 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
   }, [versions]);
-
-  // Keyboard Navigation for History
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (status === FabricationStatus.MANIFESTED && !isChatting) {
-        if (e.key === 'ArrowLeft') {
-          setCurrentVersionIndex(prev => Math.max(0, prev - 1));
-        } else if (e.key === 'ArrowRight') {
-          setCurrentVersionIndex(prev => Math.min(versions.length - 1, prev + 1));
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [status, isChatting, versions.length]);
 
   // Handle agent restoration from Vault
   useEffect(() => {
@@ -87,9 +80,31 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       setVersions(prev => [...prev, restoredVersion]);
       setCurrentVersionIndex(prev => prev + 1);
       setStatus(FabricationStatus.MANIFESTED);
+      setAgentName(restoredAgent.identity.name);
       onAgentRestored(); // Clear the prop in parent
     }
   }, [restoredAgent, onAgentRestored]);
+
+  // Auto-scroll console
+  useEffect(() => {
+    if (councilConsoleRef.current) {
+        councilConsoleRef.current.scrollTop = councilConsoleRef.current.scrollHeight;
+    }
+  }, [councilLog, councilStep]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setInputValue(text);
+    };
+    reader.readAsText(file);
+    
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleFabricate = async () => {
     if (!inputValue.trim()) return;
@@ -99,68 +114,162 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       try {
         new URL(inputValue);
       } catch (e) {
-        const newScar: ScarEntry = {
-          timestamp: Date.now(),
-          code: 'ERR_MALFORMED_VECTOR',
-          message: 'Invalid URL. Protocol required.',
-          context: inputType
-        };
-        setScars(prev => [newScar, ...prev]);
-        setStatus(FabricationStatus.FAILED);
-        return;
-      }
-    } else if (inputType === 'TEXT') {
-      const MIN_LENGTH = 50;
-      if (inputValue.trim().length < MIN_LENGTH) {
-        const newScar: ScarEntry = {
-          timestamp: Date.now(),
-          code: 'ERR_INSUFFICIENT_MATTER',
-          message: `Input too sparse (${inputValue.trim().length} chars).`,
-          context: inputType
-        };
-        setScars(prev => [newScar, ...prev]);
-        setStatus(FabricationStatus.FAILED);
+        setScars(prev => [{ timestamp: Date.now(), code: 'ERR_MALFORMED_VECTOR', message: 'Invalid URL.', context: inputValue }, ...prev]);
         return;
       }
     }
 
+    if (mode === FabricationMode.COUNCIL) {
+       await runCouncilProcess();
+    } else {
+       await runStandardProcess();
+    }
+  };
+
+  const runStandardProcess = async () => {
     setStatus(FabricationStatus.INGESTING);
     setIsSigning(false);
     
     try {
-      // 1. Provenance Pre-Processing
-      let sourceId = '';
-      if (inputType === 'URL') {
-        sourceId = inputValue;
-      } else if (inputType === 'SEARCH') {
-        sourceId = `SEARCH_TOPIC:${inputValue}`;
-      } else {
-        sourceId = `SHA-256:${await hashContent(inputValue)}`;
-      }
-
-      // 2. Context Preparation (The Loop)
+      let sourceId = inputType === 'URL' ? inputValue : inputType === 'SEARCH' ? `SEARCH_TOPIC:${inputValue}` : `SHA-256:${await hashContent(inputValue)}`;
       let fabricationContext = inputValue;
       let useSearchInFabrication = inputType === 'URL';
+      let accumulatedUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
       if (inputType === 'SEARCH') {
          setStatus(FabricationStatus.RESEARCHING);
-         // Perform the Search RAG Loop
-         fabricationContext = await researchTopic(inputValue);
-         // We turn off search for the final fabrication because the context is already rich
+         const researchResult = await researchTopic(inputValue);
+         fabricationContext = researchResult.data;
+         accumulatedUsage = researchResult.usage;
          useSearchInFabrication = false; 
       }
 
       setStatus(FabricationStatus.DISTILLING);
 
-      // 3. Fabrication
-      const analysisPromise = inputType === 'TEXT' ? analyzeDocument(inputValue) : Promise.resolve(null);
-      const manifestPromise = fabricateAgent(fabricationContext, useSearchInFabrication);
+      const analysisPromise = inputType === 'TEXT' ? analyzeDocument(inputValue) : Promise.resolve({ data: null, usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }});
+      const manifestPromise = fabricateAgent(fabricationContext, useSearchInFabrication, agentName);
 
-      const [analysisResult, baseManifest] = await Promise.all([analysisPromise, manifestPromise]);
+      const [analysisResult, manifestResult] = await Promise.all([analysisPromise, manifestPromise]);
+      const baseManifest = manifestResult.data;
       
-      // 4. Construct Provenance
+      // Sum usage
+      accumulatedUsage.promptTokens += (analysisResult.usage.promptTokens + manifestResult.usage.promptTokens);
+      accumulatedUsage.completionTokens += (analysisResult.usage.completionTokens + manifestResult.usage.completionTokens);
+      accumulatedUsage.totalTokens += (analysisResult.usage.totalTokens + manifestResult.usage.totalTokens);
+      
+      await finalizeAndStore(baseManifest, sourceId, fabricationContext, accumulatedUsage, analysisResult.data);
+
+    } catch (error: any) {
+      handleError(error);
+    }
+  };
+
+  const runCouncilProcess = async () => {
+    setStatus(FabricationStatus.COUNCIL_DELIBERATING);
+    let accumulatedUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+    let sourceId = inputType === 'URL' ? inputValue : inputType === 'SEARCH' ? `SEARCH_TOPIC:${inputValue}` : `SHA-256:${await hashContent(inputValue)}`;
+    
+    // Initialize Local Session Log (Critical for ensuring data passes to finalizeAndStore)
+    let currentSessionLog: CouncilSessionLog = {
+      sessionId: crypto.randomUUID(),
+      startedAt: Date.now(),
+      discovery: [],
+      critiques: []
+    };
+    
+    // Sync UI State
+    setCouncilLog(currentSessionLog);
+    setCouncilStep('IDLE');
+
+    try {
+      // 1. DISCOVERY PHASE
+      setCouncilStep('DISCOVERY');
+      const members: CouncilMemberType[] = ['PLANNER', 'SECURITY', 'STYLE', 'PERFORMANCE', 'SOVEREIGN'];
+      
+      const discoveryPromises = members.map(m => councilDiscovery(inputValue, m));
+      const discoveryResults = await Promise.all(discoveryPromises);
+      
+      const discoveries = discoveryResults.map(r => r.data);
+      discoveryResults.forEach(r => accumulatedUsage = sumUsage(accumulatedUsage, r.usage));
+      
+      // Update Log
+      currentSessionLog.discovery = discoveries;
+      setCouncilLog({ ...currentSessionLog });
+
+      // 2. SYNTHESIS PHASE
+      setCouncilStep('SYNTHESIS');
+      const synthesisResult = await councilSynthesis(inputValue, discoveries, agentName);
+      accumulatedUsage = sumUsage(accumulatedUsage, synthesisResult.usage);
+      const draftManifest = synthesisResult.data;
+      
+      // Update Log
+      currentSessionLog.synthesis = JSON.stringify(draftManifest);
+      setCouncilLog({ ...currentSessionLog });
+
+      // 3. CRITIQUE PHASE
+      setCouncilStep('CRITIQUE');
+      const critiquePromises = members.map(m => councilCritique(draftManifest, m));
+      const critiqueResults = await Promise.all(critiquePromises);
+      
+      const critiques = critiqueResults.map(r => r.data);
+      critiqueResults.forEach(r => accumulatedUsage = sumUsage(accumulatedUsage, r.usage));
+      
+      // Update Log
+      currentSessionLog.critiques = critiques;
+      setCouncilLog({ ...currentSessionLog });
+
+      // 4. FINALIZATION PHASE
+      setCouncilStep('FINALIZATION');
+      const finalResult = await councilFinalize(draftManifest, critiques);
+      accumulatedUsage = sumUsage(accumulatedUsage, finalResult.usage);
+      const finalManifest = finalResult.data;
+
+      // Analysis for Indexing
+      const analysisResult = await analyzeDocument(inputValue);
+      accumulatedUsage = sumUsage(accumulatedUsage, analysisResult.usage);
+
+      // Pass the fully constructed local log to storage
+      await finalizeAndStore(finalManifest, sourceId, inputValue, accumulatedUsage, analysisResult.data, currentSessionLog);
+
+    } catch (error: any) {
+      handleError(error);
+    }
+  };
+
+  // Helper to sum usage locally
+  const sumUsage = (u1: TokenUsage, u2: TokenUsage): TokenUsage => ({
+    promptTokens: u1.promptTokens + u2.promptTokens,
+    completionTokens: u1.completionTokens + u2.completionTokens,
+    totalTokens: u1.totalTokens + u2.totalTokens
+  });
+
+  // Helper to determine member status text
+  const getMemberStatus = (member: CouncilMemberType, step: string) => {
+    if (member === 'PLANNER') {
+        if (step === 'SYNTHESIS') return 'SYNTHESIZING';
+        if (step === 'FINALIZATION') return 'FINALIZING';
+        return 'CHAIRING';
+    }
+    // For specialists
+    if (step === 'DISCOVERY') return 'DISCOVERING';
+    if (step === 'CRITIQUE') return 'CRITIQUING';
+    return 'OBSERVING';
+  };
+
+  const finalizeAndStore = async (
+    baseManifest: Omit<SovereignAgentManifest, 'provenance'>, 
+    sourceId: string, 
+    fabricationContext: string, 
+    usage: TokenUsage,
+    analysisData: any,
+    councilSession?: CouncilSessionLog
+  ) => {
       const timestamp = Date.now();
-      const manifestWithProvenance: SovereignAgentManifest = {
+      
+      // 1. Prepare Canonical Manifest (Clean Payload)
+      // We purposefully EXCLUDE the councilLog from the object to be signed.
+      // This ensures the signature represents the Identity, not the Fabrication History.
+      const manifestPayload: SovereignAgentManifest = {
         ...baseManifest,
         provenance: {
           details: {
@@ -169,38 +278,51 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
             ingestedAt: timestamp,
             inputSize: fabricationContext.length
           }
+          // Note: councilLog is NOT included here
         }
       };
 
-      // 5. Signing
       setIsSigning(true);
-      
-      // Artificial delay for visual effect of the signing step
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 800)); // Visual delay
 
       if (commanderKeys) {
-         const signatureHex = await signData(manifestWithProvenance, commanderKeys.privateKey);
-         manifestWithProvenance.provenance!.signature = {
-           signature: signatureHex,
-           signerPublicKey: JSON.stringify(commanderKeys.publicKey),
-           algorithm: "ECDSA-P256-SHA256",
-           signedAt: Date.now()
-         };
+         // Sign the CLEAN payload
+         const signatureHex = await signData(manifestPayload, commanderKeys.privateKey);
+         
+         if (manifestPayload.provenance) {
+             manifestPayload.provenance.signature = {
+               signature: signatureHex,
+               signerPublicKey: JSON.stringify(commanderKeys.publicKey),
+               algorithm: "ECDSA-P256-SHA256",
+               signedAt: Date.now()
+             };
+         }
       }
 
-      // 6. Indexing (If Raw Document)
+      // 2. Attach Council Log for Local Storage
+      // We re-attach the log here so it can be viewed in the dashboard/forge,
+      // but it is not part of the cryptographic envelope of the identity.
+      const manifestForStorage: SovereignAgentManifest = {
+          ...manifestPayload,
+          provenance: {
+              ...manifestPayload.provenance!,
+              councilLog: councilSession
+          }
+      };
+
+      // Indexing
       let indexEntry: ProvenanceIndexEntry | undefined;
-      if (inputType === 'TEXT' && analysisResult) {
+      if (inputType !== 'SEARCH' && analysisData) {
         indexEntry = {
           hash: sourceId.replace('SHA-256:', ''),
           agentName: baseManifest.identity.name,
           timestamp: timestamp,
-          sourceType: 'RAW_DOCUMENT',
+          sourceType: inputType === 'URL' ? 'URL' : 'RAW_DOCUMENT',
           snippet: inputValue.substring(0, 100),
           analysis: {
             wordCount: inputValue.trim().split(/\s+/).length,
-            sentiment: analysisResult.sentiment,
-            topics: analysisResult.topics
+            sentiment: analysisData.sentiment,
+            topics: analysisData.topics
           }
         };
       } else if (inputType === 'SEARCH') {
@@ -213,15 +335,15 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
         };
       }
 
-      // Update Local View State
       const isRefinement = versions.length > 0;
       const newVersion: ManifestVersion = {
         id: crypto.randomUUID(),
-        manifest: manifestWithProvenance,
+        manifest: manifestForStorage,
         timestamp: Date.now(),
-        inputContext: inputValue, // Keep original input (the topic or url)
+        inputContext: inputValue,
         label: `v${versions.length + 1}`,
-        sourceType: isRefinement ? 'REFINED' : 'FABRICATED'
+        sourceType: isRefinement ? 'REFINED' : 'FABRICATED',
+        usage: usage
       };
 
       setVersions(prev => {
@@ -232,128 +354,205 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       
       setStatus(FabricationStatus.MANIFESTED);
       setIsSigning(false);
+      onAddToVault(manifestForStorage, indexEntry);
+  };
 
-      // Update Global App State
-      onAddToVault(manifestWithProvenance, indexEntry);
-
-    } catch (error: any) {
+  const handleError = (error: any) => {
       console.error(error);
       const rawMessage = error instanceof Error ? error.message : String(error);
-      const newScar: ScarEntry = {
+      setScars(prev => [{
         timestamp: Date.now(),
         code: 'ERR_FABRICATION_ABORTED',
         message: rawMessage,
-        context: inputType
-      };
-      setScars(prev => [newScar, ...prev]);
+        context: `${inputType} :: ${inputValue.slice(0, 60)}...`
+      }, ...prev]);
       setStatus(FabricationStatus.FAILED);
       setIsSigning(false);
-    }
   };
 
   const handleClearHistory = () => {
-    if (confirm('Purge active workspace?')) {
+    if (confirm('Purge active workspace? This will reset the Forge to input mode.')) {
       setVersions([]);
       setCurrentVersionIndex(-1);
       setStatus(FabricationStatus.IDLE);
       setInputValue('');
+      setAgentName('');
+      setCouncilLog(null);
       localStorage.removeItem(STORAGE_KEY);
     }
   };
 
+  // Safe reset for corrupted state
+  const handleEmergencyReset = () => {
+    setVersions([]);
+    setCurrentVersionIndex(-1);
+    setStatus(FabricationStatus.IDLE);
+    setInputValue('');
+    setCouncilLog(null);
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
+  };
+
+  const handleDownloadCouncilLog = () => {
+    const log = currentManifest?.provenance?.councilLog;
+    if (!log) return;
+
+    let md = `# Council Deliberation Log\n`;
+    md += `> **Agent:** ${currentManifest.identity.name}\n`;
+    md += `> **Session ID:** ${log.sessionId}\n`;
+    md += `> **Date:** ${new Date(log.startedAt).toLocaleString()}\n\n`;
+    md += `> **Input Context:**\n> ${currentVersion?.inputContext?.slice(0, 200).replace(/\n/g, ' ')}...\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 1. Discovery Phase\n`;
+    md += `*Parallel analysis by independent specialists.*\n\n`;
+    log.discovery.forEach(d => {
+      md += `### 👤 ${d.member}\n${d.content}\n\n`;
+    });
+
+    md += `---\n\n`;
+
+    if (log.synthesis) {
+      md += `## 2. Synthesis (Draft Manifest)\n`;
+      md += `*Planner aggregates discoveries into a cohesive identity.*\n\n`;
+      md += `\`\`\`json\n${log.synthesis}\n\`\`\`\n\n`;
+    }
+
+    md += `---\n\n`;
+
+    if (log.critiques && log.critiques.length > 0) {
+      md += `## 3. Council Critique\n`;
+      md += `*Specialists review the draft for drift, security risks, and alignment.*\n\n`;
+      log.critiques.forEach(c => {
+        md += `### 🛡️ ${c.member}\n${c.content}\n\n`;
+      });
+    }
+
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `council-log-${currentManifest.identity.name.toLowerCase().replace(/\s+/g, '-')}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const currentManifest = versions[currentVersionIndex]?.manifest;
   const currentVersion = versions[currentVersionIndex];
+  const isLoading = status !== FabricationStatus.IDLE && status !== FabricationStatus.MANIFESTED && status !== FabricationStatus.FAILED;
 
-  const isLoading = status === FabricationStatus.INGESTING || status === FabricationStatus.DISTILLING || status === FabricationStatus.RESEARCHING;
+  // --- Council Visualization ---
+  const CouncilMemberIcon = ({ type, isActive, status }: { type: CouncilMemberType, isActive: boolean, status: string }) => {
+     let Icon = Users;
+     let color = "text-zinc-500";
+     
+     switch(type) {
+       case 'PLANNER': Icon = Network; color = isActive ? "text-blue-400" : "text-zinc-600"; break;
+       case 'SECURITY': Icon = Shield; color = isActive ? "text-red-400" : "text-zinc-600"; break;
+       case 'STYLE': Icon = Palette; color = isActive ? "text-purple-400" : "text-zinc-600"; break;
+       case 'PERFORMANCE': Icon = Zap; color = isActive ? "text-yellow-400" : "text-zinc-600"; break;
+       case 'SOVEREIGN': Icon = Crown; color = isActive ? "text-sovereign" : "text-zinc-600"; break;
+     }
 
-  // --- Checklist Render Logic ---
-  const renderChecklistItem = (label: string, active: boolean, completed: boolean, icon: React.ElementType) => {
-    const Icon = icon;
-    return (
-      <div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-500 ${
-        completed ? 'bg-sovereign/5 border-sovereign/20' : 
-        active ? 'bg-zinc-800 border-zinc-700 shadow-lg' : 
-        'bg-zinc-900/20 border-zinc-800/50 opacity-50'
-      }`}>
-        <div className="flex items-center space-x-3">
-          <div className={`p-1.5 rounded-full ${
-            completed ? 'bg-sovereign/20 text-sovereign' :
-            active ? 'bg-zinc-700 text-white animate-pulse' :
-            'bg-zinc-800 text-zinc-500'
-          }`}>
-            <Icon className="w-4 h-4" />
+     return (
+       <div className={`flex flex-col items-center gap-2 transition-all duration-500 ${isActive ? 'scale-110' : 'opacity-50'}`}>
+          <div className={`p-3 rounded-full border bg-zinc-950 ${isActive ? `border-${color.split('-')[1]}-500/50 shadow-[0_0_15px_rgba(0,0,0,0.5)]` : 'border-zinc-800'}`}>
+             <Icon className={`w-6 h-6 ${color}`} />
           </div>
-          <span className={`text-sm font-mono ${completed || active ? 'text-zinc-200' : 'text-zinc-500'}`}>
-            {label}
-          </span>
-        </div>
-        {completed ? (
-          <Check className="w-4 h-4 text-sovereign" />
-        ) : active ? (
-          <Loader2 className="w-4 h-4 text-sovereign animate-spin" />
-        ) : (
-          <div className="w-4 h-4" />
-        )}
-      </div>
-    );
+          <span className={`text-[10px] font-mono font-bold uppercase ${isActive ? 'text-white' : 'text-zinc-600'}`}>{type}</span>
+          <span className="text-[9px] text-zinc-500 font-mono">{status}</span>
+       </div>
+     );
   };
+
+  // Check for corrupted state (Manifested but no manifest data)
+  if (status === FabricationStatus.MANIFESTED && !currentManifest) {
+     return (
+        <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+           <AlertTriangle className="w-16 h-16 text-red-500 mb-6" />
+           <h2 className="text-2xl font-bold text-white mb-2">Manifest Render Failure</h2>
+           <p className="text-zinc-400 max-w-md mb-8">
+              The Forge encountered a corrupted state in the local workspace. 
+              This typically happens when a Council session is interrupted or saves incomplete data.
+           </p>
+           <button 
+             onClick={handleEmergencyReset}
+             className="px-6 py-3 bg-red-900/50 hover:bg-red-800 border border-red-500/50 rounded-lg text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-900/20"
+           >
+              <RefreshCw className="w-5 h-5" />
+              RESET WORKSPACE
+           </button>
+        </div>
+     );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 animate-fade-in-up">
-        {(status === FabricationStatus.IDLE || status === FabricationStatus.FAILED || isLoading) && !isChatting && (
-          <div className="max-w-2xl mx-auto mb-16">
+        {(!currentManifest && !isChatting) && (
+          <div className="max-w-3xl mx-auto mb-16">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold mb-4">Initialize Cognitive Construction</h2>
-              <p className="text-zinc-400">
+              <h2 className="text-3xl font-bold mb-4 text-white">Initialize Cognitive Construction</h2>
+              <p className="text-zinc-400 max-w-xl mx-auto">
                 Ingest documentation to construct a unique Sovereign Identity.
-                Provide raw context, a target vector (URL), or a research topic.
+                Select your fabrication protocol below.
               </p>
             </div>
 
-            <div className="flex justify-center mb-6 space-x-2">
-              <button 
-                onClick={() => setInputType('TEXT')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
-                  inputType === 'TEXT' 
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-lg shadow-black/50' 
-                    : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                <span className="text-sm font-semibold">Raw Documentation</span>
-              </button>
-              <button 
-                 onClick={() => setInputType('URL')}
-                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
-                  inputType === 'URL' 
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-lg shadow-black/50' 
-                    : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <Search className="w-4 h-4" />
-                <span className="text-sm font-semibold">URL / Library Name</span>
-              </button>
-              <button 
-                 onClick={() => setInputType('SEARCH')}
-                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
-                  inputType === 'SEARCH' 
-                    ? 'bg-zinc-800 border-zinc-600 text-white shadow-lg shadow-black/50' 
-                    : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <Globe className="w-4 h-4" />
-                <span className="text-sm font-semibold">Topic Research</span>
-              </button>
+            {/* Mode Switcher */}
+            <div className="flex justify-center mb-8">
+               <div className="bg-zinc-900 p-1 rounded-lg border border-zinc-800 flex gap-1">
+                  <button 
+                    onClick={() => setMode(FabricationMode.STANDARD)}
+                    className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${mode === FabricationMode.STANDARD ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  >
+                     Standard Forge
+                  </button>
+                  <button 
+                    onClick={() => setMode(FabricationMode.COUNCIL)}
+                    className={`px-4 py-2 text-sm font-bold rounded-md transition-all flex items-center gap-2 ${mode === FabricationMode.COUNCIL ? 'bg-indigo-900/30 text-indigo-300 shadow border border-indigo-500/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  >
+                     <Users className="w-4 h-4" />
+                     The Council
+                  </button>
+               </div>
             </div>
 
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-sovereign to-cognitive rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+              <div className={`absolute -inset-0.5 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000 ${mode === FabricationMode.COUNCIL ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500' : 'bg-gradient-to-r from-sovereign to-cognitive'}`}></div>
               <div className="relative bg-void-light rounded-xl border border-zinc-800 p-2">
+                
+                {/* Input Type Selectors */}
+                <div className="flex gap-2 mb-2 px-2 pt-2">
+                   {['TEXT', 'URL', 'SEARCH'].map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setInputType(t as any)}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded transition-colors ${inputType === t ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      >
+                         {t === 'TEXT' ? 'RAW TEXT' : t === 'URL' ? 'URL VECTOR' : 'RESEARCH TOPIC'}
+                      </button>
+                   ))}
+                </div>
+
+                <div className="mb-2 relative group/name px-2">
+                   <div className="bg-zinc-950/50 border border-zinc-800 rounded-lg flex items-center px-3 py-2 focus-within:border-sovereign/50 transition-colors">
+                      <Bot className="w-5 h-5 text-zinc-500 mr-3 shrink-0" />
+                      <input
+                        type="text"
+                        value={agentName}
+                        onChange={(e) => setAgentName(e.target.value)}
+                        placeholder="Agent Designation (Optional)"
+                        className="bg-transparent border-none outline-none text-white w-full font-mono text-sm placeholder:text-zinc-600"
+                      />
+                   </div>
+                </div>
+
                 {inputType === 'TEXT' ? (
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Paste documentation content, API reference, or markdown here..."
+                    placeholder="Paste context here..."
                     className="w-full bg-transparent text-sm font-mono text-zinc-300 p-4 min-h-[200px] outline-none resize-y placeholder:text-zinc-700"
                   />
                 ) : (
@@ -361,115 +560,111 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={
-                      inputType === 'URL' 
-                        ? "e.g., https://api.example.com/docs or 'React Query Documentation'"
-                        : "e.g., 'Rust Async Runtime' or 'Stripe Connect Patterns'"
-                    }
+                    placeholder={inputType === 'URL' ? "https://..." : "e.g. 'Quantum Error Correction'"}
                     className="w-full bg-transparent text-sm font-mono text-zinc-300 p-4 outline-none placeholder:text-zinc-700"
                   />
                 )}
                 
                 <div className="flex justify-between items-center px-4 py-3 border-t border-zinc-800 bg-black/20">
-                  <span className="text-xs text-zinc-600 font-mono uppercase">
-                    {inputType === 'TEXT' ? `${inputValue.length} characters` : inputType === 'URL' ? 'Search vector active' : 'Research Agent Ready'}
-                  </span>
+                  <div className="flex items-center space-x-4">
+                     {inputType === 'TEXT' && (
+                       <button onClick={() => fileInputRef.current?.click()} className="flex items-center space-x-2 text-xs text-zinc-400 hover:text-white transition-colors">
+                           <Upload className="w-3 h-3" />
+                           <span>UPLOAD</span>
+                       </button>
+                     )}
+                     <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                  </div>
                   
                   <div className="flex space-x-3">
                     <button
                       disabled={isLoading || !inputValue}
-                      onClick={() => setIsChatting(true)}
-                      className="flex items-center space-x-2 bg-transparent hover:bg-zinc-800 text-zinc-300 border border-zinc-700 px-4 py-2 rounded-lg font-bold text-sm transition-all"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>DISCUSS AGENT</span>
-                    </button>
-
-                    <button
-                      disabled={isLoading || !inputValue}
                       onClick={handleFabricate}
-                      className="flex items-center space-x-2 bg-zinc-100 hover:bg-white text-black px-5 py-2 rounded-lg font-bold text-sm transition-all shadow-lg shadow-white/5"
+                      className={`flex items-center space-x-2 text-white px-6 py-2 rounded-lg font-bold text-sm transition-all shadow-lg ${
+                         mode === FabricationMode.COUNCIL 
+                           ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20' 
+                           : 'bg-zinc-100 hover:bg-white text-black shadow-white/5'
+                      }`}
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>
-                            {status === FabricationStatus.RESEARCHING ? 'RESEARCHING...' : 'DISTILLING...'}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Database className="w-4 h-4" />
-                          <span>FABRICATE AGENT</span>
-                        </>
-                      )}
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+                      <span>{isLoading ? 'FABRICATING...' : mode === FabricationMode.COUNCIL ? 'CONVENE COUNCIL' : 'FABRICATE'}</span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Dynamic Fabrication Checklist */}
-            {isLoading && (
-              <div className="mt-8 space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700 px-2">
-                 {renderChecklistItem(
-                   'Context Ingestion & Analysis', 
-                   status === FabricationStatus.INGESTING, 
-                   status === FabricationStatus.RESEARCHING || status === FabricationStatus.DISTILLING,
-                   Network
-                 )}
-                 
-                 {inputType === 'SEARCH' && renderChecklistItem(
-                   'Deep Research Loop', 
-                   status === FabricationStatus.RESEARCHING, 
-                   status === FabricationStatus.DISTILLING,
-                   Globe
-                 )}
+            {/* Visualization Area */}
+            {isLoading && mode === FabricationMode.COUNCIL && (
+               <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  <div className="flex justify-center gap-8 mb-8">
+                     <CouncilMemberIcon type="PLANNER" isActive={true} status={getMemberStatus('PLANNER', councilStep)} />
+                     <CouncilMemberIcon type="SECURITY" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('SECURITY', councilStep)} />
+                     <CouncilMemberIcon type="STYLE" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('STYLE', councilStep)} />
+                     <CouncilMemberIcon type="PERFORMANCE" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('PERFORMANCE', councilStep)} />
+                     <CouncilMemberIcon type="SOVEREIGN" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('SOVEREIGN', councilStep)} />
+                  </div>
+                  
+                  {/* Console Output */}
+                  <div ref={councilConsoleRef} className="bg-black/50 border border-zinc-800 rounded-lg p-4 font-mono text-xs text-zinc-400 h-64 overflow-y-auto custom-scrollbar space-y-2">
+                     <div className="text-zinc-600 italic mb-4">>>> COUNCIL SESSION {councilLog?.sessionId.substring(0,8)} INITIATED</div>
+                     
+                     {councilLog?.discovery?.map((d, i) => (
+                        <div key={`d-${i}`} className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2 mb-2">
+                           <div className="flex items-center gap-2">
+                              <span className="text-blue-400 font-bold">[{d.member}]:</span>
+                              <span className="text-zinc-500 text-[10px]">DISCOVERY FILED</span>
+                           </div>
+                           <p className="text-zinc-300 pl-4 border-l border-blue-500/30">{d.content.substring(0, 120)}...</p>
+                        </div>
+                     ))}
 
-                 {renderChecklistItem(
-                   'Cognitive Distillation (Identity/Tools)', 
-                   status === FabricationStatus.DISTILLING && !isSigning, 
-                   isSigning,
-                   Cpu
-                 )}
+                     {councilStep === 'DISCOVERY' && (councilLog?.discovery || []).length < 5 && (
+                        <div className="text-blue-500/50 animate-pulse">>>> GATHERING INTELLIGENCE VECTORS...</div>
+                     )}
 
-                 {renderChecklistItem(
-                   'Cryptographic Attestation', 
-                   isSigning, 
-                   false,
-                   ShieldCheck
-                 )}
-              </div>
-            )}
-            
-            {status === FabricationStatus.FAILED && (
-              <div className="mt-4 p-4 bg-red-900/10 border border-red-900/30 rounded text-red-400 text-sm flex items-start space-x-3 animate-pulse">
-                 <AlertTriangle className="w-5 h-5 shrink-0" />
-                 <div>
-                   <p className="font-bold uppercase tracking-tight">{scars[0]?.code || 'FABRICATION_FAILURE'}</p>
-                   <p className="opacity-80 mt-1">{scars[0]?.message}</p>
-                 </div>
-              </div>
-            )}
+                     {/* Synthesis */}
+                     {councilLog?.synthesis && (
+                        <div className="flex flex-col gap-1 text-yellow-400 animate-in fade-in slide-in-from-left-2 my-4 pt-4 border-t border-zinc-900/50">
+                           <div className="flex gap-2">
+                              <span className="font-bold">[CHAIR]:</span>
+                              <span>Draft Manifest Synthesized.</span>
+                           </div>
+                           <div className="pl-4 text-zinc-500 italic">Distributing for Council Critique...</div>
+                        </div>
+                     )}
 
-            {versions.length > 0 && (status === FabricationStatus.IDLE || status === FabricationStatus.FAILED) && (
-               <div className="flex justify-center mt-6 animate-in fade-in duration-500">
-                  <button 
-                    onClick={() => {
-                       setStatus(FabricationStatus.MANIFESTED);
-                       setInputValue(versions[versions.length-1].inputContext || '');
-                    }}
-                    className="flex items-center space-x-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white px-5 py-2 rounded-lg border border-zinc-800 hover:border-sovereign/30 transition-all shadow-lg shadow-black/50"
-                  >
-                    <History className="w-4 h-4" />
-                    <span className="text-sm font-mono font-bold">RESTORE AUTOSAVED SESSION ({versions.length})</span>
-                    <div className="h-1.5 w-1.5 rounded-full bg-sovereign animate-pulse"></div>
-                  </button>
+                     {councilStep === 'SYNTHESIS' && !councilLog?.synthesis && (
+                        <div className="text-yellow-500/50 animate-pulse mt-4">>>> PLANNER IS SYNTHESIZING DRAFT...</div>
+                     )}
+
+                     {/* Critiques */}
+                     {councilLog?.critiques?.map((c, i) => (
+                        <div key={`c-${i}`} className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2 mb-2">
+                           <div className="flex items-center gap-2">
+                              <span className="text-red-400 font-bold">[{c.member}]:</span>
+                              <span className="text-zinc-500 text-[10px]">CRITIQUE FILED</span>
+                           </div>
+                           <p className="text-zinc-300 pl-4 border-l border-red-500/30">{c.content}</p>
+                        </div>
+                     ))}
+
+                     {councilStep === 'CRITIQUE' && (councilLog?.critiques || []).length < 5 && councilLog?.synthesis && (
+                        <div className="text-red-500/50 animate-pulse">>>> DELIBERATING DRAFT MANIFEST...</div>
+                     )}
+
+                     {councilStep === 'FINALIZATION' && (
+                        <div className="text-sovereign/50 animate-pulse mt-4 pt-4 border-t border-zinc-900/50">>>> FINALIZING IDENTITY MATRIX...</div>
+                     )}
+                     
+                     <div className="animate-pulse text-zinc-600">_</div>
+                  </div>
                </div>
             )}
           </div>
         )}
 
+        {/* Existing Chat Interface & Manifest Display Logic (Preserved) */}
         {isChatting && (
           <div className="animate-fade-in-up">
             <ChatInterface 
@@ -487,32 +682,11 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                    <h2 className="text-2xl font-bold text-white">Manifested Identity</h2>
                    {versions.length > 1 && (
                      <div className="flex items-center space-x-2 bg-zinc-900/80 p-1 rounded-lg border border-zinc-800">
-                        <button
-                          onClick={() => setCurrentVersionIndex(prev => Math.max(0, prev - 1))}
-                          disabled={currentVersionIndex === 0}
-                          className="p-1 hover:bg-zinc-800 rounded disabled:opacity-30 text-zinc-300"
-                        >
+                        <button onClick={() => setCurrentVersionIndex(prev => Math.max(0, prev - 1))} disabled={currentVersionIndex === 0} className="p-1 hover:bg-zinc-800 rounded disabled:opacity-30 text-zinc-300">
                           <ChevronLeft className="w-4 h-4" />
                         </button>
-                        
-                        <div className="px-3 min-w-[120px] text-center flex items-center justify-center space-x-2">
-                           {currentVersion.sourceType === 'RESTORED' && <Archive className="w-3 h-3 text-purple-400" />}
-                           {currentVersion.sourceType === 'FABRICATED' && <Sparkles className="w-3 h-3 text-sovereign" />}
-                           {currentVersion.sourceType === 'REFINED' && <GitCommit className="w-3 h-3 text-cognitive" />}
-                           
-                           <span className={`text-xs font-mono font-bold ${
-                             currentVersion.sourceType === 'RESTORED' ? 'text-purple-400' :
-                             currentVersion.sourceType === 'REFINED' ? 'text-cognitive' : 'text-sovereign'
-                           }`}>
-                             {currentVersion.label}
-                           </span>
-                        </div>
-                        
-                        <button
-                          onClick={() => setCurrentVersionIndex(prev => Math.min(versions.length - 1, prev + 1))}
-                          disabled={currentVersionIndex === versions.length - 1}
-                          className="p-1 hover:bg-zinc-800 rounded disabled:opacity-30 text-zinc-300"
-                        >
+                        <span className="px-3 text-xs font-mono font-bold text-sovereign">{currentVersion.label}</span>
+                        <button onClick={() => setCurrentVersionIndex(prev => Math.min(versions.length - 1, prev + 1))} disabled={currentVersionIndex === versions.length - 1} className="p-1 hover:bg-zinc-800 rounded disabled:opacity-30 text-zinc-300">
                           <ChevronRight className="w-4 h-4" />
                         </button>
                      </div>
@@ -520,48 +694,74 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                 </div>
 
                 <div className="flex items-center space-x-4">
-                   {currentVersion && (
-                     <div className="flex items-center space-x-2 text-xs text-zinc-500 font-mono">
-                        <Clock className="w-3 h-3" />
-                        <span>{new Date(currentVersion.timestamp).toLocaleTimeString()}</span>
-                     </div>
-                   )}
-                   <div className="h-4 w-px bg-zinc-800 mx-2 hidden md:block"></div>
-                   <button 
-                     onClick={() => {
-                       setStatus(FabricationStatus.IDLE);
-                       setInputValue(currentVersion?.inputContext || '');
-                     }}
-                     className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-sovereign transition-colors"
-                   >
-                     <RotateCcw className="w-4 h-4" />
-                     <span className="font-mono text-xs uppercase">Refine Context</span>
-                   </button>
+                   {/* Explicit NEW IDENTITY Button */}
                    <button 
                      onClick={handleClearHistory}
-                     className="p-1 text-zinc-600 hover:text-red-400 transition-colors"
-                     title="Purge Active Workspace & History"
+                     className="flex items-center space-x-2 bg-zinc-100 hover:bg-white text-black px-4 py-2 rounded-lg font-bold text-xs transition-all shadow-lg hover:scale-105"
                    >
+                      <Plus className="w-4 h-4" />
+                      <span>NEW IDENTITY</span>
+                   </button>
+
+                   {currentVersion?.usage && (
+                      <div className="flex items-center space-x-2 px-3 py-1 bg-zinc-900/50 rounded-full border border-zinc-800 text-xs font-mono text-zinc-400 hidden sm:flex" title="Token Telemetry">
+                        <Zap className="w-3 h-3 text-yellow-500" />
+                        <span>{currentVersion.usage.totalTokens.toLocaleString()} TKN</span>
+                      </div>
+                   )}
+                   <button onClick={handleClearHistory} className="p-2 text-zinc-600 hover:text-red-400 transition-colors rounded hover:bg-zinc-900">
                      <Trash2 className="w-4 h-4" />
                    </button>
                 </div>
              </div>
-             <ManifestDisplay manifest={currentManifest} />
-          </div>
-        )}
-
-        {scars.length > 0 && !isChatting && (
-          <div className="mt-24 border-t border-zinc-900 pt-8">
-            <h3 className="text-xs font-mono text-zinc-600 uppercase mb-4 tracking-widest">Chronicle of System Fractures</h3>
-            <div className="font-mono text-xs text-zinc-500 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
-              {scars.map((scar, idx) => (
-                <div key={idx} className="flex space-x-4 py-1 hover:bg-zinc-900/30 px-2 rounded">
-                  <span className="text-zinc-800">{new Date(scar.timestamp).toLocaleTimeString()}</span>
-                  <span className="text-immune font-bold min-w-[120px]">{scar.code}</span>
-                  <span className="flex-1 italic">{scar.message}</span>
+             
+             {/* Council Log Summary if available */}
+             {currentManifest.provenance?.councilLog && (
+                <div className="bg-indigo-950/20 border border-indigo-900/50 p-4 rounded-lg mb-6 relative">
+                   <div className="flex justify-between items-start mb-4">
+                       <h3 className="text-xs font-bold text-indigo-400 uppercase flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Council Deliberation Record
+                       </h3>
+                       <button 
+                         onClick={handleDownloadCouncilLog}
+                         className="flex items-center gap-1 text-[10px] font-bold bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 px-2 py-1 rounded border border-indigo-500/30 transition-colors"
+                         title="Export Deliberation Log to Markdown"
+                       >
+                          <Download className="w-3 h-3" />
+                          SAVE LOG
+                       </button>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-zinc-400 font-mono">
+                      <div className="bg-black/20 p-2 rounded">
+                         <p className="text-indigo-300 mb-1">Discovery Phase</p>
+                         <ul className="list-disc pl-4 space-y-1">
+                            {(currentManifest.provenance.councilLog.discovery || []).length > 0 ? (
+                               currentManifest.provenance.councilLog.discovery.map((d, i) => (
+                                  <li key={i}>{d.member}: Analysis Logged</li>
+                               ))
+                            ) : (
+                               <li className="text-zinc-600 italic">No records found.</li>
+                            )}
+                         </ul>
+                      </div>
+                      <div className="bg-black/20 p-2 rounded">
+                         <p className="text-red-300 mb-1">Critique & Refinement</p>
+                         <ul className="list-disc pl-4 space-y-1">
+                            {(currentManifest.provenance.councilLog.critiques || []).length > 0 ? (
+                               currentManifest.provenance.councilLog.critiques.map((c, i) => (
+                                  <li key={i} title={c.content}>{c.member}: {c.content.substring(0, 40)}...</li>
+                               ))
+                            ) : (
+                               <li className="text-zinc-600 italic">No records found.</li>
+                            )}
+                         </ul>
+                      </div>
+                   </div>
                 </div>
-              ))}
-            </div>
+             )}
+
+             <ManifestDisplay manifest={currentManifest} />
           </div>
         )}
     </div>

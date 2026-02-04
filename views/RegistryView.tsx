@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo } from 'react';
 import { ProvenanceIndexEntry } from '../types';
-import { Network, Search, RefreshCw, FileText, Link, Globe, Hash, Calendar, Activity, Database, AlertCircle } from 'lucide-react';
+import { Network, Search, RefreshCw, FileText, Link, Globe, Hash, Calendar, Activity, Database, AlertCircle, GitGraph } from 'lucide-react';
 
 interface RegistryViewProps {
   index: ProvenanceIndexEntry[];
@@ -8,7 +9,7 @@ interface RegistryViewProps {
 
 export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'ALL' | 'RAW_DOCUMENT' | 'URL' | 'RESEARCH_TOPIC'>('ALL');
+  const [typeFilter, setTypeFilter] = useState<'ALL' | 'RAW_DOCUMENT' | 'URL' | 'RESEARCH_TOPIC' | 'CONSTELLATION'>('ALL');
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<number>(Date.now());
 
@@ -75,7 +76,7 @@ export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
             <div className="text-2xl font-bold text-white">{index.length}</div>
          </div>
          <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-lg">
-            <div className="text-zinc-500 text-[10px] font-mono uppercase mb-1">Unique Agents</div>
+            <div className="text-zinc-500 text-[10px] font-mono uppercase mb-1">Unique Sources/Strategies</div>
             <div className="text-2xl font-bold text-white">{stats.uniqueAgents}</div>
          </div>
          <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-lg">
@@ -94,36 +95,42 @@ export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input 
                type="text" 
-               placeholder="Search by hash, agent name, or topic..."
+               placeholder="Search by hash, agent/strategy name, or topic..."
                value={searchQuery}
                onChange={(e) => setSearchQuery(e.target.value)}
                className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg py-2 pl-10 pr-4 text-sm text-zinc-200 focus:border-cognitive outline-none transition-colors"
             />
          </div>
-         <div className="flex items-center space-x-2 bg-zinc-900/50 border border-zinc-800 rounded-lg p-1">
+         <div className="flex items-center space-x-2 bg-zinc-900/50 border border-zinc-800 rounded-lg p-1 overflow-x-auto">
             <button 
                onClick={() => setTypeFilter('ALL')}
-               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${typeFilter === 'ALL' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors whitespace-nowrap ${typeFilter === 'ALL' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
                ALL
             </button>
             <button 
                onClick={() => setTypeFilter('RAW_DOCUMENT')}
-               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${typeFilter === 'RAW_DOCUMENT' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors whitespace-nowrap ${typeFilter === 'RAW_DOCUMENT' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
                DOCS
             </button>
             <button 
                onClick={() => setTypeFilter('URL')}
-               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${typeFilter === 'URL' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors whitespace-nowrap ${typeFilter === 'URL' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
                URLS
             </button>
             <button 
                onClick={() => setTypeFilter('RESEARCH_TOPIC')}
-               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${typeFilter === 'RESEARCH_TOPIC' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors whitespace-nowrap ${typeFilter === 'RESEARCH_TOPIC' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
                TOPICS
+            </button>
+            <button 
+               onClick={() => setTypeFilter('CONSTELLATION')}
+               className={`px-3 py-1.5 text-xs font-bold rounded transition-colors whitespace-nowrap ${typeFilter === 'CONSTELLATION' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+               CONSTELLATIONS
             </button>
          </div>
       </div>
@@ -136,8 +143,8 @@ export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
                   <tr className="bg-zinc-900/80 border-b border-zinc-800">
                      <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider w-12">Type</th>
                      <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">Vector Hash / Source</th>
-                     <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">Agent Manifest</th>
-                     <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">Semantic Analysis</th>
+                     <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">Entity / Strategy</th>
+                     <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">Semantic Analysis / Nodes</th>
                      <th className="p-4 text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider text-right">Timestamp</th>
                   </tr>
                </thead>
@@ -149,6 +156,7 @@ export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
                               {entry.sourceType === 'URL' && <Link className="w-4 h-4 text-blue-400" />}
                               {entry.sourceType === 'RAW_DOCUMENT' && <FileText className="w-4 h-4 text-emerald-400" />}
                               {entry.sourceType === 'RESEARCH_TOPIC' && <Globe className="w-4 h-4 text-purple-400" />}
+                              {entry.sourceType === 'CONSTELLATION' && <GitGraph className="w-4 h-4 text-amber-400" />}
                            </td>
                            <td className="p-4">
                               <div className="flex flex-col">
@@ -158,14 +166,14 @@ export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
                                  </div>
                                  {entry.snippet && (
                                     <span className="text-[10px] text-zinc-500 truncate max-w-[200px] mt-1 italic">
-                                       "{entry.snippet}"
+                                       {entry.sourceType === 'CONSTELLATION' ? `Seeds: ${entry.snippet}` : `"${entry.snippet}"`}
                                     </span>
                                  )}
                               </div>
                            </td>
                            <td className="p-4">
                               <div className="flex items-center space-x-2">
-                                 <Database className="w-3 h-3 text-zinc-600" />
+                                 {entry.sourceType === 'CONSTELLATION' ? <GitGraph className="w-3 h-3 text-zinc-600" /> : <Database className="w-3 h-3 text-zinc-600" />}
                                  <span className="text-sm font-bold text-white group-hover:text-cognitive transition-colors">
                                     {entry.agentName}
                                  </span>
@@ -183,7 +191,7 @@ export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
                                              entry.analysis.sentiment === 'COMPLEX' ? 'bg-purple-900/20 text-purple-400 border-purple-900/50' :
                                              'bg-zinc-800 text-zinc-400 border-zinc-700'
                                           }`}>
-                                             {entry.analysis.sentiment}
+                                             {entry.sourceType === 'CONSTELLATION' ? `${entry.analysis.wordCount} NODES` : entry.analysis.sentiment}
                                           </span>
                                        </div>
                                        <div className="flex flex-wrap gap-1">

@@ -1,5 +1,5 @@
 {
-  "name": "Sovereign Cognitive OS: Agent Forge",
-  "description": "A secure, client-side architecting tool that ingests documentation to construct sovereign AI agent identities, enforcing strict epistemic boundaries and security constraints.",
+  "name": "Context.Locker: Sovereign Cognitive OS",
+  "description": "Architect sovereign AI identities using the DRP-2026 Epistemic Matrix. Features Agent Forge (Identity), Capsule Lab (Knowledge), and Word Mapper (Semantics). Enforces Think-Write-Code protocols and client-side cryptographic attestation.",
   "requestFramePermissions": []
 }

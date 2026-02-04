@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
-import { Shield, Activity, Zap, Lock, Terminal, Box, FileJson, GitBranch, Info, Copy, Check, X, Code, ChevronDown, ChevronRight, Anchor, Hash, Globe, FileText, Filter } from 'lucide-react';
-import { SovereignAgentManifest, AgentConstraint, AgentTool } from '../types';
+import { Shield, Activity, Zap, Lock, Terminal, Box, FileJson, GitBranch, Info, Copy, Check, X, Code, ChevronDown, ChevronRight, Anchor, Hash, Globe, FileText, Filter, Microscope, DollarSign, Layers, Network, BrainCircuit, Target, AlertOctagon, MessageSquareCode } from 'lucide-react';
+import { SovereignAgentManifest, AgentConstraint, AgentTool, InternalTool } from '../types';
+import { ConductorExportModal } from './ConductorExportModal';
 
 interface ManifestDisplayProps {
   manifest: SovereignAgentManifest;
@@ -13,11 +15,100 @@ const RISK_DESCRIPTIONS = {
   CRITICAL: "Danger. Destructive capabilities or full system access. Requires strict immunity."
 };
 
+/**
+ * Helper to produce a clean manifest for export (removing heavy logs)
+ */
+const getCleanManifest = (manifest: SovereignAgentManifest): SovereignAgentManifest => {
+  if (!manifest.provenance?.councilLog) return manifest;
+  const { councilLog, ...cleanProvenance } = manifest.provenance;
+  return {
+    ...manifest,
+    provenance: cleanProvenance
+  };
+};
+
+/**
+ * Generates a structured Markdown System Specification from the Manifest
+ */
+const generateMarkdownDocumentation = (manifest: SovereignAgentManifest): string => {
+  const date = new Date().toISOString().split('T')[0];
+  const budget = manifest.budget;
+  const protocol = manifest.protocol;
+  const matrix = manifest.epistemicMatrix;
+  
+  return `# SOVEREIGN AGENT IDENTITY: ${manifest.identity.name.toUpperCase()}
+> **Designation:** ${manifest.identity.designation}  
+> **Role:** ${protocol?.role || 'UNASSIGNED'} (DRP-2025)
+> **Date:** ${date}  
+> **Status:** OPERATIONAL  
+
+---
+
+## 1. EPISTEMIC MATRIX (DRP-2026)
+
+### Goal Orientation ($G)
+- **Primary Goal (Invariant):** ${matrix?.goals?.primary || 'Undefined'}
+- **Constraints (Anti-Goals):**
+${matrix?.goals?.antiGoals?.map(g => `  - [REFUSAL] ${g}`).join('\n') || '  - None'}
+
+### Cognitive Protocol
+- **Thinking Budget:** ${matrix?.cognitive?.thinkingBudget || 0} tokens
+- **Think Instruction:** "${matrix?.cognitive?.thinkingInstruction}"
+
+### Output Fidelity ($O)
+- **Format:** ${matrix?.output?.format}
+- **Strict Constraints:** ${matrix?.output?.constraints.join(', ')}
+
+---
+
+## 2. CORE PHILOSOPHY
+${manifest.identity.corePhilosophy}
+
+---
+
+## 3. IMMUNOLOGICAL CONSTRAINTS (POLICY)
+${manifest.constraints.map(c => `- **[${c.type}]** ${c.description} *(Enforcement: ${c.enforcementMechanism})*`).join('\n')}
+
+---
+
+## 4. TOOLING & CAPABILITIES
+
+### External Action Space
+${manifest.tools.map(t => `#### 🔧 ${t.name}
+- **Risk Level:** ${t.riskLevel}
+- **Description:** ${t.description}
+- **Input Schema:** \`${t.inputSchema}\`
+`).join('\n')}
+
+### Internal Diagnostics (Metacognition)
+${manifest.internalTools?.map(t => `#### 🔬 ${t.name}
+- **Trigger:** ${t.usageCondition}
+- **Recovery:** ${t.recoveryStrategy}
+`).join('\n') || '_No internal diagnostic tools defined._'}
+
+---
+
+## 5. TOKEN ECONOMICS
+${budget ? `- **Total Budget:** ${budget.tokenBudget.toLocaleString()} tokens` : '- _Not specified_'}
+${budget ? `- **Drift Allowance:** ${(budget.driftAllowance * 100).toFixed(1)}%` : ''}
+
+---
+
+## 6. PROVENANCE & ANCHORS
+**Anchors (Dependencies):**
+${manifest.anchors.map(a => `- ${a.name}: ${a.description}`).join('\n')}
+
+**Digital Signature:**
+\`${manifest.provenance?.signature?.signature || 'UNSIGNED_DRAFT'}\`
+`;
+};
+
 export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) => {
   const [activeDep, setActiveDep] = useState<{ name: string; sourceId: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [selectedTool, setSelectedTool] = useState<AgentTool | null>(null);
   const [collapsedDeps, setCollapsedDeps] = useState<Set<number>>(new Set());
+  const [showConductorModal, setShowConductorModal] = useState(false);
   
   // Risk Filtering State
   const [riskFilter, setRiskFilter] = useState<Set<string>>(new Set(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']));
@@ -83,11 +174,36 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
 
   const handleCopyJson = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(JSON.stringify(manifest, null, 2)).then(() => {
+    const clean = getCleanManifest(manifest);
+    navigator.clipboard.writeText(JSON.stringify(clean, null, 2)).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
+  const handleDownloadMarkdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const md = generateMarkdownDocumentation(manifest);
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${manifest.identity.name.toLowerCase().replace(/\s+/g, '-')}-spec.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // --- Budget Calculations ---
+  const tokenBudget = manifest.budget?.tokenBudget || 0;
+  const driftAllowance = manifest.budget?.driftAllowance || 0;
+  // Rule: Penalty = Drift% + 5%
+  const penaltyRate = driftAllowance + 0.05;
+  const lostTokens = Math.floor(tokenBudget * penaltyRate);
+  const effectiveBudget = tokenBudget - lostTokens;
+  const driftTokens = Math.floor(tokenBudget * driftAllowance);
+
+  // --- Epistemic Matrix Shortcuts ---
+  const matrix = manifest.epistemicMatrix;
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 animate-fade-in-up" onClick={() => setActiveDep(null)}>
@@ -135,58 +251,199 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
             <p className="text-zinc-300 text-sm leading-relaxed">{manifest.identity.corePhilosophy}</p>
         </div>
       </div>
-      
-      {/* Provenance & Digital Certificate */}
-      {manifest.provenance && (
-        <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-4 flex flex-col md:flex-row gap-4 text-xs font-mono">
-           <div className="flex-1 space-y-2">
-             <h4 className="text-zinc-500 uppercase flex items-center gap-2">
-               <Globe className="w-3 h-3" />
-               Source Provenance
-             </h4>
-             <div className="p-3 bg-black/40 rounded border border-zinc-800 space-y-1">
-                <div className="flex justify-between">
-                   <span className="text-zinc-500">ORIGIN:</span>
-                   <span className="text-zinc-300">{manifest.provenance.details.origin}</span>
-                </div>
-                <div className="flex justify-between items-center group">
-                   <span className="text-zinc-500">SOURCE:</span>
-                   <span className="text-zinc-300 truncate max-w-[200px] md:max-w-[300px]" title={manifest.provenance.details.source}>
-                      {manifest.provenance.details.source}
-                   </span>
-                </div>
-                <div className="flex justify-between">
-                   <span className="text-zinc-500">INGESTED:</span>
-                   <span className="text-zinc-300">{new Date(manifest.provenance.details.ingestedAt).toLocaleString()}</span>
-                </div>
-             </div>
+
+      {/* DRP-2026 EPISTEMIC MATRIX (NEW VISUALIZATION) */}
+      {matrix && (
+        <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-6 relative overflow-hidden">
+           <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2 relative z-10">
+              <div className="flex items-center space-x-2">
+                 <BrainCircuit className="w-5 h-5 text-purple-400" />
+                 <h3 className="text-lg font-semibold text-white">Epistemic Matrix (DRP-2026)</h3>
+              </div>
+              <span className="text-[10px] font-mono text-zinc-500 uppercase">Architecture: Recursive Identity Field</span>
            </div>
 
-           <div className="flex-1 space-y-2">
-             <h4 className="text-zinc-500 uppercase flex items-center gap-2">
-               <Hash className="w-3 h-3" />
-               Cryptographic Chain
-             </h4>
-             <div className="p-3 bg-black/40 rounded border border-zinc-800 space-y-1">
-                {manifest.provenance.signature ? (
-                  <>
-                     <div className="flex justify-between">
-                        <span className="text-zinc-500">ALGORITHM:</span>
-                        <span className="text-sovereign/80">{manifest.provenance.signature.algorithm}</span>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+              
+              {/* Dimension $G: Goal Architecture */}
+              <div className="bg-zinc-950/50 p-4 rounded border border-zinc-800 flex flex-col h-full">
+                 <div className="flex items-center gap-2 mb-3">
+                    <Target className="w-4 h-4 text-emerald-500" />
+                    <h4 className="text-xs font-mono text-emerald-400 uppercase font-bold">Goal Architecture ($G)</h4>
+                 </div>
+                 
+                 <div className="space-y-3">
+                    <div>
+                       <span className="text-[10px] text-zinc-500 uppercase block mb-1">Primary Invariant</span>
+                       <div className="p-2 bg-emerald-900/10 border border-emerald-900/30 rounded text-sm text-emerald-100">
+                          {matrix.goals?.primary}
+                       </div>
+                    </div>
+                    
+                    {matrix.goals?.antiGoals?.length > 0 && (
+                       <div>
+                          <span className="text-[10px] text-zinc-500 uppercase block mb-1">Anti-Goals (Strict Constraints)</span>
+                          <ul className="space-y-1">
+                             {matrix.goals.antiGoals.map((ag, i) => (
+                                <li key={i} className="flex items-start gap-2 text-xs text-red-200/80 bg-red-900/10 p-1.5 rounded border border-red-900/20">
+                                   <AlertOctagon className="w-3 h-3 text-red-500 shrink-0 mt-0.5" />
+                                   {ag}
+                                </li>
+                             ))}
+                          </ul>
+                       </div>
+                    )}
+                 </div>
+              </div>
+
+              {/* Dimension Cognitive: Protocol */}
+              <div className="bg-zinc-900/50 p-4 rounded border border-zinc-800 flex flex-col h-full">
+                 <div className="flex items-center gap-2 mb-3">
+                    <MessageSquareCode className="w-4 h-4 text-blue-400" />
+                    <h4 className="text-xs font-mono text-blue-400 uppercase font-bold">Cognitive Protocol</h4>
+                 </div>
+
+                 <div className="flex items-center justify-between mb-3 text-xs bg-black/30 p-2 rounded">
+                    <span className="text-zinc-500">Think Budget:</span>
+                    <span className="text-blue-300 font-mono">{matrix.cognitive?.thinkingBudget} Tokens</span>
+                 </div>
+
+                 <div className="space-y-4 relative">
+                    {/* The Loop Visualization */}
+                    <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-zinc-800"></div>
+                    
+                    <div className="relative pl-6">
+                       <div className="absolute left-0 top-1 w-3.5 h-3.5 rounded-full bg-zinc-900 border border-blue-500/50 flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                       </div>
+                       <p className="text-[10px] uppercase text-zinc-500 font-bold mb-1">Phase 1: THINK</p>
+                       <p className="text-xs text-zinc-400 italic">"{matrix.cognitive?.thinkingInstruction}"</p>
+                    </div>
+
+                    <div className="relative pl-6">
+                       <div className="absolute left-0 top-1 w-3.5 h-3.5 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></div>
+                       </div>
+                       <p className="text-[10px] uppercase text-zinc-500 font-bold mb-1">Phase 2: WRITE</p>
+                       <p className="text-xs text-zinc-400 italic">Tone: {matrix.communication?.tone}</p>
+                    </div>
+
+                    <div className="relative pl-6">
+                       <div className="absolute left-0 top-1 w-3.5 h-3.5 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></div>
+                       </div>
+                       <p className="text-[10px] uppercase text-zinc-500 font-bold mb-1">Phase 3: CODE</p>
+                       <p className="text-xs text-zinc-400 italic">Format: {matrix.output?.format}</p>
+                    </div>
+                 </div>
+              </div>
+
+           </div>
+        </div>
+      )}
+
+      {/* Internal Tools (Metacognition) */}
+      {manifest.internalTools && manifest.internalTools.length > 0 && (
+         <div className="bg-zinc-900/20 border border-zinc-800/50 rounded-lg p-6 relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+            
+            <div className="flex items-center space-x-2 mb-4 border-b border-zinc-800 pb-2 relative z-10">
+               <Microscope className="w-5 h-5 text-indigo-400" />
+               <h3 className="text-lg font-semibold text-white">Diagnostics & Metacognition</h3>
+               <span className="text-[10px] bg-indigo-900/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded font-mono uppercase ml-2">Internal Only</span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 relative z-10">
+               {manifest.internalTools.map((tool, idx) => (
+                  <div key={idx} className="bg-zinc-950/50 border border-zinc-800 p-4 rounded-lg flex flex-col md:flex-row gap-4 hover:border-indigo-500/30 transition-colors">
+                     <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                           <Terminal className="w-3 h-3 text-indigo-500" />
+                           <h4 className="text-sm font-bold text-indigo-200 font-mono">{tool.name}</h4>
+                        </div>
+                        <p className="text-xs text-zinc-400 leading-relaxed">{tool.description}</p>
                      </div>
-                     <div className="flex justify-between">
-                        <span className="text-zinc-500">SIGNATURE:</span>
-                        <span className="text-zinc-600 truncate max-w-[150px]">{manifest.provenance.signature.signature.substring(0, 24)}...</span>
+                     <div className="w-px bg-zinc-800 hidden md:block"></div>
+                     <div className="flex-1 space-y-2">
+                        <div>
+                           <span className="text-[10px] text-zinc-500 font-mono uppercase block mb-0.5">Trigger Condition</span>
+                           <p className="text-xs text-zinc-300 bg-zinc-900 px-2 py-1 rounded border border-zinc-800/50">{tool.usageCondition}</p>
+                        </div>
+                        <div>
+                           <span className="text-[10px] text-zinc-500 font-mono uppercase block mb-0.5">Recovery Strategy</span>
+                           <p className="text-xs text-zinc-300 bg-zinc-900 px-2 py-1 rounded border border-zinc-800/50">{tool.recoveryStrategy}</p>
+                        </div>
                      </div>
-                     <div className="flex justify-between">
-                        <span className="text-zinc-500">SIGNED AT:</span>
-                        <span className="text-zinc-300">{new Date(manifest.provenance.signature.signedAt).toLocaleTimeString()}</span>
+                  </div>
+               ))}
+            </div>
+         </div>
+      )}
+
+      {/* Token Economics / Budget */}
+      {manifest.budget && (
+        <div className="bg-zinc-900/20 border border-zinc-800 rounded-lg p-6">
+           <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+              <div className="flex items-center space-x-2">
+                 <DollarSign className="w-5 h-5 text-emerald-500" />
+                 <h3 className="text-lg font-semibold text-white">Token Economics</h3>
+              </div>
+              <div className="text-[10px] font-mono bg-zinc-900 border border-zinc-700 px-2 py-1 rounded text-zinc-400">
+                 DRIFT_PENALTY = {(penaltyRate * 100).toFixed(0)}%
+              </div>
+           </div>
+           
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-zinc-950/50 p-4 rounded border border-zinc-800 flex flex-col">
+                 <span className="text-xs font-mono text-zinc-500 uppercase mb-1">Total Allocated</span>
+                 <span className="text-2xl font-bold text-white">{tokenBudget.toLocaleString()}</span>
+                 <span className="text-[10px] text-zinc-600">Base Estimate</span>
+              </div>
+              <div className="bg-zinc-950/50 p-4 rounded border border-zinc-800 flex flex-col">
+                 <span className="text-xs font-mono text-zinc-500 uppercase mb-1">Drift Allowance</span>
+                 <span className="text-2xl font-bold text-yellow-500">{(driftAllowance * 100).toFixed(1)}%</span>
+                 <span className="text-[10px] text-zinc-600">~{driftTokens.toLocaleString()} tokens deviation</span>
+              </div>
+              <div className="bg-emerald-900/10 p-4 rounded border border-emerald-900/30 flex flex-col">
+                 <span className="text-xs font-mono text-emerald-600 uppercase mb-1">Effective Budget</span>
+                 <span className="text-2xl font-bold text-emerald-400">{effectiveBudget.toLocaleString()}</span>
+                 <span className="text-[10px] text-emerald-600/70">After Stability Tax</span>
+              </div>
+           </div>
+
+           {/* Visual Bar */}
+           <div className="space-y-2">
+              <div className="flex justify-between text-xs text-zinc-500 font-mono">
+                 <span>0</span>
+                 <span>Total Capacity: {tokenBudget.toLocaleString()}</span>
+              </div>
+              <div className="h-4 bg-zinc-800 rounded-full overflow-hidden flex relative">
+                 {/* Safe Zone */}
+                 <div 
+                   className="h-full bg-emerald-600 relative group" 
+                   style={{ width: `${((effectiveBudget) / tokenBudget) * 100}%` }}
+                 >
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] font-bold text-black bg-emerald-400 transition-opacity">
+                       SAFE ZONE
+                    </div>
+                 </div>
+                 
+                 {/* Drift Zone (Taxed) */}
+                 <div 
+                   className="h-full bg-red-900/50 relative border-l border-zinc-900 group"
+                   style={{ width: `${(lostTokens / tokenBudget) * 100}%` }}
+                 >
+                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] font-bold text-red-200 bg-red-900/80 transition-opacity">
+                       TAX
                      </div>
-                  </>
-                ) : (
-                  <span className="text-red-500 italic">UNSIGNED MANIFEST</span>
-                )}
-             </div>
+                 </div>
+
+                 {/* Remaining (Implicitly the penalty eats into the total, so maybe visualize the "Cost" vs "Value") */}
+              </div>
+              <p className="text-[10px] text-zinc-600 italic">
+                 *The drift allowance incurs a stability tax (Drift% + 5%), reducing the guaranteed effective budget to ensure reliable execution.
+              </p>
            </div>
         </div>
       )}
@@ -439,7 +696,7 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
       </div>
 
        {/* Download / Export */}
-       <div className="flex justify-end pt-4 space-x-3">
+       <div className="flex flex-wrap justify-end pt-4 gap-3">
          <button 
             className="flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white px-4 py-2 rounded transition-colors text-sm font-mono border border-zinc-800"
             onClick={handleCopyJson}
@@ -452,7 +709,9 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
             className="flex items-center space-x-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded transition-colors text-sm font-mono border border-zinc-700"
             onClick={(e) => {
               e.stopPropagation();
-              const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+              // Get clean manifest (no council log)
+              const clean = getCleanManifest(manifest);
+              const blob = new Blob([JSON.stringify(clean, null, 2)], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
@@ -461,7 +720,26 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
             }}
          >
            <FileJson className="w-4 h-4" />
-           <span>EXPORT MANIFEST_JSON</span>
+           <span>EXPORT MANIFEST</span>
+         </button>
+         
+         <button 
+            className="flex items-center space-x-2 bg-blue-900/20 hover:bg-blue-900/40 text-blue-300 px-4 py-2 rounded transition-colors text-sm font-mono border border-blue-900/50"
+            onClick={(e) => {
+               e.stopPropagation();
+               setShowConductorModal(true);
+            }}
+         >
+           <Network className="w-4 h-4" />
+           <span>EXPORT TO SWARM</span>
+         </button>
+
+         <button 
+            className="flex items-center space-x-2 bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-200 px-4 py-2 rounded transition-colors text-sm font-mono border border-indigo-900/50"
+            onClick={handleDownloadMarkdown}
+         >
+           <FileText className="w-4 h-4" />
+           <span>GENERATE DOCS (.MD)</span>
          </button>
        </div>
 
@@ -520,6 +798,14 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
                  </div>
             </div>
         </div>
+      )}
+
+      {/* Conductor Export Modal */}
+      {showConductorModal && (
+         <ConductorExportModal 
+            agent={manifest} 
+            onClose={() => setShowConductorModal(false)} 
+         />
       )}
     </div>
   );

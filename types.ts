@@ -7,35 +7,197 @@ export enum FabricationStatus {
   RESEARCHING = 'RESEARCHING', // New RAG Loop Step
   INGESTING = 'INGESTING', // Scraping/Reading
   DISTILLING = 'DISTILLING', // LLM Processing
+  COUNCIL_DELIBERATING = 'COUNCIL_DELIBERATING', // New Council Phase
   MANIFESTED = 'MANIFESTED', // Complete
   FAILED = 'FAILED' // Scars
 }
 
+export enum FabricationMode {
+  STANDARD = 'STANDARD', // Single-shot / RAG
+  COUNCIL = 'COUNCIL'    // Multi-agent Consensus
+}
+
 export enum ViewMode {
   DASHBOARD = 'DASHBOARD',
+  COLLABORATOR = 'COLLABORATOR', // New Co-Mind Space
   FORGE = 'FORGE',
   CAPSULE_LAB = 'CAPSULE_LAB',
   REGISTRY = 'REGISTRY',
   AGENTS = 'AGENTS',
-  WORD_MAPPER = 'WORD_MAPPER'
+  WORD_MAPPER = 'WORD_MAPPER',
+  PROMPT_FORGE = 'PROMPT_FORGE',
+  PROMPT_LIBRARY = 'PROMPT_LIBRARY',
+  CONTRACTS = 'CONTRACTS'
+}
+
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+// --- Council Types ---
+
+export type CouncilMemberType = 'PLANNER' | 'SECURITY' | 'PERFORMANCE' | 'STYLE' | 'SOVEREIGN';
+
+export interface CouncilFeedback {
+  member: CouncilMemberType;
+  step: 'DISCOVERY' | 'CRITIQUE';
+  content: string;
+  timestamp: number;
+}
+
+export interface CouncilSessionLog {
+  sessionId: string;
+  startedAt: number;
+  discovery: CouncilFeedback[];
+  synthesis?: string; // The Draft JSON string
+  critiques: CouncilFeedback[];
+  finalization?: string; // The Final Polish notes
+}
+
+// --- Cognitive Contracts Types ---
+
+export enum ContractStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  TERMINATED = 'TERMINATED'
+}
+
+export type AnchorType = 'GOAL' | 'CONSTRAINT' | 'INVARIANT' | 'RED_TEAM';
+
+export interface ProjectAnchor {
+  id: string;
+  type: AnchorType;
+  description: string;
+}
+
+export interface CognitiveContract {
+  id: string;
+  title: string;
+  missionStatement: string;
+  status: ContractStatus;
+  anchors: ProjectAnchor[];
+  assignedAgentNames: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+// --- Prompt Forge Types ---
+
+export type PromptEngineType = 'DRP' | 'PRP' | 'SSP' | 'PIP' | 'CPP' | 'SDP';
+
+export interface PromptEngineConfig {
+  id: string;
+  type: PromptEngineType;
+  name: string;
+  description: string;
+  icon: string; // Icon name reference
+  metaSystemPrompt: string; // The instruction for the AI generating the prompt
+  knowledgeContext: string; // Uploaded research or methodology
+  outputTemplate?: string; // Optional output format structure
+}
+
+export interface GeneratedPrompt {
+  id: string;
+  engineId: string;
+  intent: string;
+  content: string;
+  timestamp: number;
+  usage?: TokenUsage;
+}
+
+// --- Sovereign Prompt Library Types ---
+
+export interface SovereignPrompt {
+  id: string;
+  title: string;
+  content: string;
+  description?: string;
+  category: string;
+  subcategory?: string;
+  tags: string[];
+  linkedAgentNames: string[]; // Names of agents this prompt is optimized for
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+}
+
+/**
+ * DRP-2026: The Epistemic Matrix
+ * Decomposing Persona into Vector Space ($G, $O, $C, $T)
+ */
+
+// Dimension 1: Goal Orientation ($G)
+export interface GoalArchitecture {
+  primary: string; // The Invariant (e.g. "Ensure Code Security")
+  secondary: string[]; // Contextual (e.g. "Explain clearly")
+  antiGoals: string[]; // Constraints (e.g. "Do not execute unverified code")
+}
+
+// Dimension 2: Output Fidelity ($O)
+export interface OutputFidelity {
+  format: string; // JSON, Markdown, Python
+  schema: string; // Pydantic/JSON Schema reference
+  constraints: string[]; // e.g. "No first-person narrative"
+}
+
+// Dimension 3: Communication Style ($C)
+export interface CommunicationStyle {
+  tone: string; // e.g. "Objective, Critical"
+  epistemicMarkers: string; // e.g. "Use 'suggests' instead of 'is'"
+  verbosity: 'CONCISE' | 'DETAILED' | 'ADAPTIVE';
+}
+
+// Cognitive Architecture (Think -> Write -> Code)
+export interface CognitiveProtocol {
+  thinkingBudget: number; // Token budget for Phase 1
+  thinkingInstruction: string; // e.g. "Identify ambiguity, edge cases..."
+  synthesisInstruction: string; // Phase 2 instruction
+  executionInstruction: string; // Phase 3 instruction
 }
 
 /**
  * Core Agent Identity Structure
  */
 export interface AgentIdentity {
-  name: string; // The primary name of the agent
-  aliases?: string[]; // Alternative names or CLI hooks
-  designation: string; // e.g., "Sovereign-Class Architect"
-  primeDirective: string;
+  name: string;
+  aliases?: string[];
+  designation: string;
+  primeDirective: string; // Summary of the Primary Goal
   corePhilosophy: string;
 }
 
 export interface AgentTool {
   name: string;
   description: string;
-  inputSchema: string; // JSON description of input
+  inputSchema: string;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+}
+
+export interface InternalTool {
+  name: string;
+  description: string;
+  usageCondition: string;
+  recoveryStrategy: string;
+}
+
+export interface BudgetConfig {
+  tokenBudget: number;
+  driftAllowance: number;
+}
+
+export interface ProtocolConfig {
+  standard: "DRP-MULTI-AGENT-PROTOCOL-2025";
+  role: "ARCHITECT" | "PLANNER" | "CODER" | "VALIDATOR" | "USER_PROXY" | "SPECIALIST";
+  communicationScheme: "AGENT_PACKET_V1";
+}
+
+export interface EpistemicPolicy {
+  readScopes: string[];
+  writeScopes: string[];
+  contextKeys: string[];
 }
 
 export interface AgentWorkflow {
@@ -58,67 +220,67 @@ export interface AgentAbility {
   dependencies: string[];
 }
 
-/**
- * Anchors represent fixed points of reference or external dependencies
- * required to ground the agent's reality.
- */
 export interface AgentAnchor {
   name: string;
   description: string;
   dependencies: string[];
 }
 
-/**
- * Provenance & Security Data
- */
 export interface ProvenanceDetails {
   origin: 'URL' | 'RAW_DOCUMENT' | 'RESEARCH_TOPIC';
-  source: string; // URL string or "SHA-256:<hash>"
-  ingestedAt: number; // Timestamp
-  inputSize: number; // bytes/chars
+  source: string;
+  ingestedAt: number;
+  inputSize: number;
 }
 
 export interface CryptographicSignature {
-  signature: string; // Hex string
-  signerPublicKey: string; // PEM or JWK exported string
-  algorithm: string; // "ECDSA-P256-SHA256"
+  signature: string;
+  signerPublicKey: string;
+  algorithm: string;
   signedAt: number;
 }
 
 export interface ProvenanceData {
   details: ProvenanceDetails;
   signature?: CryptographicSignature;
+  councilLog?: CouncilSessionLog; // NEW: Track the deliberation history
 }
 
 /**
- * The Complete Manifest generated by the Cognitive Engine
+ * The Complete Manifest (Updated for DRP-2026)
  */
 export interface SovereignAgentManifest {
   identity: AgentIdentity;
+  // The Epistemic Matrix
+  epistemicMatrix: {
+    goals: GoalArchitecture;
+    output: OutputFidelity;
+    communication: CommunicationStyle;
+    cognitive: CognitiveProtocol;
+  };
+  protocol?: ProtocolConfig;
+  epistemicPolicy?: EpistemicPolicy;
   tools: AgentTool[];
+  internalTools: InternalTool[];
+  budget: BudgetConfig;
   workflows: AgentWorkflow[];
   abilities: AgentAbility[];
   anchors: AgentAnchor[];
   constraints: AgentConstraint[];
   architecturalNotes: string;
-  provenance?: ProvenanceData; // Optional during generation, Required after signing
+  provenance?: ProvenanceData;
 }
 
-/**
- * Version History Wrapper
- */
 export interface ManifestVersion {
   id: string;
   manifest: SovereignAgentManifest;
   timestamp: number;
-  inputContext: string; // Storing the original input for context
+  inputContext: string;
   label: string;
   sourceType?: 'FABRICATED' | 'RESTORED' | 'REFINED';
+  usage?: TokenUsage;
 }
 
-/**
- * UI/Error Types
- */
 export interface ScarEntry {
   timestamp: number;
   code: string;
@@ -126,9 +288,6 @@ export interface ScarEntry {
   context?: string;
 }
 
-/**
- * Chat Types
- */
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
@@ -136,9 +295,6 @@ export interface ChatMessage {
   timestamp: number;
 }
 
-/**
- * Vault Identity Types
- */
 export interface VaultMetadata {
   commanderName: string;
   designation: string;
@@ -157,19 +313,12 @@ export interface ProvenanceIndexEntry {
   hash: string;
   agentName: string;
   timestamp: number;
-  sourceType: 'RAW_DOCUMENT' | 'URL' | 'RESEARCH_TOPIC';
-  snippet?: string; // First 100 chars for identification
+  sourceType: 'RAW_DOCUMENT' | 'URL' | 'RESEARCH_TOPIC' | 'CONSTELLATION' | 'PROMPT_TEMPLATE' | 'CONTEXT_CAPSULE' | 'CONTRACT';
+  snippet?: string;
   analysis?: ContentAnalysis;
 }
 
-export interface SovereignVault {
-  metadata: VaultMetadata;
-  agents: SovereignAgentManifest[];
-  provenanceIndex: ProvenanceIndexEntry[];
-}
-
 // --- Context Capsule Types ---
-
 export interface CapsuleMeta {
   id: string;
   title: string;
@@ -181,6 +330,8 @@ export interface CapsuleMeta {
   status: 'draft' | 'published';
   hero_cta_label: string;
   hero_cta_target: string;
+  created_at?: number;
+  research_date?: string; // New: Tracks the temporal provenance (Accessed Date)
 }
 
 export interface CapsuleSummaryCard {
@@ -295,4 +446,12 @@ export interface ContextCapsule {
     metrics?: CapsuleMetrics;
     checklist?: CapsuleChecklist;
   };
+}
+
+export interface SovereignVault {
+  metadata: VaultMetadata;
+  agents: SovereignAgentManifest[];
+  capsules: ContextCapsule[];
+  contracts: CognitiveContract[];
+  provenanceIndex: ProvenanceIndexEntry[];
 }

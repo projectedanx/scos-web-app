@@ -1,3 +1,4 @@
+
 import { ContextCapsule } from '../types';
 
 /**
@@ -106,13 +107,21 @@ function renderCapsuleHeader(meta: any, sections: any): string {
   const ctaLabel = meta.hero_cta_label || "Start Implementing";
   const ctaTarget = meta.hero_cta_target || "#checklist";
   const primary = meta.primary_pill || "";
+  const researchDate = meta.research_date;
 
   return `
   <header class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 supports-[backdrop-filter]:bg-slate-950/60">
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4 min-w-0">
         <div class="flex flex-col min-w-0">
-          <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold leading-none mb-1">${escapeHtml(primary)}</span>
+          <div class="flex items-center gap-2 mb-1">
+             <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold leading-none">${escapeHtml(primary)}</span>
+             ${researchDate ? `
+                <span class="text-[9px] font-mono text-indigo-400 bg-indigo-950/50 border border-indigo-900/50 px-1.5 py-0.5 rounded leading-none whitespace-nowrap" title="State of Mind: Research Effective Date">
+                   TEMPORAL LOCK: ${escapeHtml(researchDate)}
+                </span>
+             ` : ''}
+          </div>
           <h1 class="text-lg font-bold text-white truncate leading-none">${escapeHtml(meta.title || meta.id || "Capsule")}</h1>
         </div>
       </div>
@@ -407,6 +416,7 @@ ${renderChecklist(sections.checklist)}
        <div class="text-right">
           <p class="text-xs text-slate-600 font-mono mb-1">ID: ${escapeHtml(meta.id || "")}</p>
           <p class="text-xs text-slate-600 font-mono">Worldview: ${escapeHtml(meta.worldview_ref || "UNBOUND")}</p>
+          ${meta.research_date ? `<p class="text-xs text-indigo-400 font-mono mt-1">State of Mind: ${escapeHtml(meta.research_date)}</p>` : ''}
        </div>
     </div>
   </footer>

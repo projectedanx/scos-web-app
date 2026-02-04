@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Terminal, Database, HardDrive, LayoutGrid, Network, Bot, GitGraph } from 'lucide-react';
+import { Terminal, Database, HardDrive, LayoutGrid, Network, Bot, GitGraph, Sparkles, BookTemplate, MessageSquareCode, Briefcase } from 'lucide-react';
 import { ViewMode } from '../../types';
 
 interface SidebarProps {
@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentMode, onSwitch, onToggl
         </div>
         <div>
           <h1 className="text-sm font-bold text-white tracking-tight">SCOS FORGE</h1>
-          <p className="text-xs text-zinc-600 font-mono">v1.4.0 // ARCHITECT</p>
+          <p className="text-xs text-zinc-600 font-mono">v1.9.9 // SOVEREIGN</p>
         </div>
       </div>
 
@@ -46,6 +46,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentMode, onSwitch, onToggl
         <div className="mb-6">
           <p className="text-[10px] text-zinc-600 font-mono uppercase mb-3 pl-2">Operations</p>
           <NavItem mode={ViewMode.DASHBOARD} icon={LayoutGrid} label="Dashboard" />
+          <NavItem mode={ViewMode.COLLABORATOR} icon={MessageSquareCode} label="Co-Mind" />
+          <NavItem mode={ViewMode.CONTRACTS} icon={Briefcase} label="Contracts" />
+          <div className="my-2 border-t border-zinc-900/50"></div>
+          <NavItem mode={ViewMode.PROMPT_FORGE} icon={Sparkles} label="Prompt Forge" />
+          <NavItem mode={ViewMode.PROMPT_LIBRARY} icon={BookTemplate} label="Prompt Library" />
           <NavItem mode={ViewMode.AGENTS} icon={Bot} label="Agent Library" />
           <NavItem mode={ViewMode.FORGE} icon={Terminal} label="Agent Forge" />
           <NavItem mode={ViewMode.CAPSULE_LAB} icon={Database} label="Capsule Lab" />

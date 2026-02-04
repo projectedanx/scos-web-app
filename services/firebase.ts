@@ -1,18 +1,32 @@
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+// --- FIREBASE CONFIGURATION ---
+// 1. Go to console.firebase.google.com
+// 2. Create a project -> Add Web App
+// 3. Enable Authentication (Google Provider)
+// 4. Enable Firestore Database (Start in Test Mode)
+// 5. Paste the config object below.
 
-// Placeholder configuration - replace with your actual Firebase project config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDynJhyt2D1_CzMiVEGjZ-3dd5WVyJA8HA",
+  authDomain: "context-locker.firebaseapp.com",
+  projectId: "context-locker",
+  storageBucket: "context-locker.firebasestorage.app",
+  messagingSenderId: "351411713378",
+  appId: "1:351411713378:web:0500d3b168bf6fc7fae83b"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Export Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Helper to check if config is missing (Offline Mode)
+export const isFirebaseConfigured = () => {
+  // Checks if the API Key has been changed from the default placeholder
+  return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("AIzaSy...");
+};
