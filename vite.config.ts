@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => {
     // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
     const env = loadEnv(mode, process.cwd(), '');
 
+    const API_KEY = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || env.API_KEY || env.VITE_API_KEY;
+
     return {
       server: {
         port: 3000,
@@ -14,11 +16,12 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
-        // We support multiple ways to define the key for compatibility
-        // 1. VITE_GEMINI_API_KEY (Standard Vite)
-        // 2. GEMINI_API_KEY (Internal Convention)
-        // 3. API_KEY (Legacy / README)
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || env.API_KEY),
+        // Expose to process.env for legacy code
+        'process.env.GEMINI_API_KEY': JSON.stringify(API_KEY),
+        'process.env.API_KEY': JSON.stringify(API_KEY),
+        // Expose to import.meta.env for Vite code
+        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(API_KEY),
+        'import.meta.env.VITE_API_KEY': JSON.stringify(API_KEY),
       },
       resolve: {
         alias: {
