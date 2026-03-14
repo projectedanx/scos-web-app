@@ -27,6 +27,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 
+import { useDialog } from '../contexts/DialogContext';
+
 interface ContractBuilderViewProps {
   contracts: CognitiveContract[];
   agents: SovereignAgentManifest[];
@@ -44,6 +46,7 @@ export const ContractBuilderView: React.FC<ContractBuilderViewProps> = ({
 }) => {
   const [selectedContract, setSelectedContract] = useState<CognitiveContract | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const { confirm } = useDialog();
   
   // Search state for list view
   const [searchQuery, setSearchQuery] = useState('');
@@ -262,10 +265,10 @@ export const ContractBuilderView: React.FC<ContractBuilderViewProps> = ({
                      {editForm.id && (
                         <button 
                            onClick={() => {
-                              if(confirm('Delete Contract?')) {
+                              confirm('Delete Contract?', async () => {
                                  onDeleteContract(editForm.id!);
                                  setIsEditing(false);
-                              }
+                              });
                            }}
                            className="flex items-center gap-2 px-4 py-2 bg-red-950/30 text-red-400 border border-red-900/50 rounded hover:bg-red-900/50 transition-colors"
                         >

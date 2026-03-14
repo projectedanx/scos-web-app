@@ -9,6 +9,7 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from '../services/firebase';
 import { CommanderKeyPair } from '../services/cryptoService';
+import { useToast } from './ToastContext';
 
 interface AuthContextType {
   user: User | null;
@@ -34,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const isConfigured = isFirebaseConfigured();
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (!isConfigured) {
@@ -51,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     if (!isConfigured) {
-      alert("Firebase is not configured in this environment.");
+      addToast("Firebase is not configured in this environment.", 'error');
       return;
     }
     const provider = new GoogleAuthProvider();

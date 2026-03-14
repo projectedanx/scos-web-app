@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { GitGraph, Search, Zap, Clock, Globe, Heart, Eye, Layers, Hexagon, Plus, ArrowRight, Sparkles, Filter, BrainCircuit, Share2, BookOpen, Loader2, ShieldAlert, Crosshair, Network, FileCode, AlertTriangle, CheckCircle2, Circle, Download } from 'lucide-react';
 import { triangulateConcepts, fetchWikipediaDefinition, MapStrategy } from '../services/wordMapperService';
 import { ProvenanceIndexEntry, TokenUsage } from '../types';
+import { useToast } from '../contexts/ToastContext';
 
 export interface SemanticNode {
   id: string;
@@ -42,6 +43,8 @@ export const WordMapperView: React.FC<WordMapperViewProps> = ({ onRegisterConste
   const [selectedNode, setSelectedNode] = useState<SemanticNode | null>(null);
   const [wikiDefinition, setWikiDefinition] = useState<string | null>(null);
   const [loadingWiki, setLoadingWiki] = useState(false);
+
+  const { addToast } = useToast();
 
   // Handle Initial State from Props (Navigation from Agent Library)
   useEffect(() => {
@@ -90,7 +93,7 @@ export const WordMapperView: React.FC<WordMapperViewProps> = ({ onRegisterConste
       setLastUsage(result.usage);
     } catch (e) {
       console.error(e);
-      alert("Mapping failed. Check console.");
+      addToast("Mapping failed. Check console.", 'error');
     } finally {
       setIsMapping(false);
     }

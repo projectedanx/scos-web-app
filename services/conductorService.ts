@@ -37,6 +37,42 @@ const safeParseSchema = (schemaStr: string): any => {
 };
 
 /**
+ * Validates that a Sovereign Agent Manifest maps correctly to Conductor's tool definitions.
+ */
+export const validateConductorSchema = (agent: SovereignAgentManifest): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!agent.identity.name) {
+    errors.push("Agent name is required.");
+  }
+
+  if (!agent.identity.primeDirective) {
+    errors.push("Prime directive is required.");
+  }
+
+  agent.tools.forEach((tool, index) => {
+    if (!tool.name || !tool.name.match(/^[a-zA-Z0-9_-]+$/)) {
+      errors.push(`Tool '${tool.name || `at index ${index}`}' has an invalid name. Must be alphanumeric, dashes, or underscores.`);
+    }
+    try {
+      const schema = JSON.parse(tool.inputSchema);
+      if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
+         errors.push(`Tool '${tool.name}' inputSchema must be a JSON object.`);
+      } else if (schema.type && schema.type !== "object") {
+         errors.push(`Tool '${tool.name}' inputSchema must be of type "object".`);
+      }
+    } catch (e) {
+      errors.push(`Tool '${tool.name}' has invalid JSON in inputSchema.`);
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+};
+
+/**
  * Transforms a Sovereign Agent Manifest into a Conductor-ready Skill Manifest.
  */
 export const transformToConductor = (agent: SovereignAgentManifest): ConductorSkillManifest => {

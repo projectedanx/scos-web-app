@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Trash2, Zap, MessageSquareCode, Layers } from 'lucide-react';
 import { ChatMessage, SovereignAgentManifest, ContextCapsule, SovereignPrompt, TokenUsage } from '../types';
 import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
+import { useDialog } from '../contexts/DialogContext';
 
 interface CollaboratorViewProps {
   agents: SovereignAgentManifest[];
@@ -26,6 +27,8 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
   const [isTyping, setIsTyping] = useState(false);
   const chatRef = useRef<Chat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { confirm } = useDialog();
 
   // Persist history
   useEffect(() => {
@@ -139,7 +142,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
   };
 
   const clearHistory = () => {
-    if (confirm("Clear Co-Mind memory?")) {
+    confirm("Clear Co-Mind memory?", async () => {
       setMessages([]);
       localStorage.removeItem(STORAGE_KEY);
       // Re-init chat will happen on next render/effect cycle essentially, or we can force it, 
@@ -147,7 +150,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
       // but we removed messages dependency to avoid loops. 
       // Actually, for a clean reset, we might want to reload the page or force re-init.
       // For now, clearing state is enough visual reset.
-    }
+    });
   };
 
   return (

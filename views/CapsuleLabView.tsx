@@ -4,6 +4,8 @@ import { Database, Loader2, FileText, Download, Code, Globe, Zap, ChevronRight, 
 import { distillCapsule, analyzeDocument } from '../services/geminiService';
 import { compileCapsuleHtml } from '../services/capsuleCompiler';
 import { ContextCapsule, TokenUsage, ProvenanceIndexEntry } from '../types';
+import { useDialog } from '../contexts/DialogContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface CapsuleDraft {
   id: string;
@@ -37,6 +39,9 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
   const [capsule, setCapsule] = useState<ContextCapsule | null>(null);
   const [lastUsage, setLastUsage] = useState<TokenUsage | null>(null);
   
+  const { confirm } = useDialog();
+  const { addToast } = useToast();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Tagging State
@@ -86,7 +91,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
       setLastUsage(result.usage);
     } catch (e) {
       console.error(e);
-      alert("Distillation failed. Check console for details.");
+      addToast("Distillation failed. Check console for details.", 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -113,22 +118,22 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
   };
 
   const handleLoadDraft = (draft: CapsuleDraft) => {
-    if (confirm("Load draft? Current unsaved changes will be lost.")) {
+    confirm("Load draft? Current unsaved changes will be lost.", async () => {
       setInputValue(draft.content);
       setCapsule(draft.capsuleResult);
       setSuggestedTags([]);
       setLastUsage(draft.usage || null);
       setActiveMode('LAB');
-    }
+    });
   };
 
   const handleDeleteDraft = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Delete this draft permanently?")) {
+    confirm("Delete this draft permanently?", async () => {
       const updatedDrafts = drafts.filter(d => d.id !== id);
       setDrafts(updatedDrafts);
       localStorage.setItem(DRAFTS_KEY, JSON.stringify(updatedDrafts));
-    }
+    });
   };
 
   // Save to Sovereign Vault (Permanent)
@@ -155,7 +160,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
        });
     }
     
-    alert("Capsule committed to Sovereign Vault.");
+    addToast("Capsule committed to Sovereign Vault.", 'success');
   };
 
   // --- Metadata Management ---
@@ -305,7 +310,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
   // --- Gateway Simulation ---
   const handleSimulateGateway = () => {
      if (capsules.length === 0) {
-        alert("No capsules in Vault to simulate.");
+        addToast("No capsules in Vault to simulate.", 'info');
         return;
      }
      const randomIdx = Math.floor(Math.random() * capsules.length);

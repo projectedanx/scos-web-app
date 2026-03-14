@@ -16,6 +16,8 @@ import { CollaboratorView } from './views/CollaboratorView';
 import { ContractBuilderView } from './views/ContractBuilderView';
 import { PublicGatewayView } from './views/PublicGatewayView'; 
 import { useAuth } from './contexts/AuthContext';
+import { useToast } from './contexts/ToastContext';
+import { useDialog } from './contexts/DialogContext';
 import { MapStrategy } from './services/wordMapperService';
 import { 
   syncAgents, 
@@ -112,6 +114,8 @@ const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest
 };
 
 function App() {
+  const { addToast } = useToast();
+  const { confirm, prompt } = useDialog();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.DASHBOARD); 
   
   // State
@@ -224,13 +228,13 @@ function App() {
   };
 
   const handleDeleteCapsule = async (id: string) => {
-    if (confirm("Destroy capsule?")) {
+    confirm("Destroy capsule?", async () => {
       if (user) {
         await deleteCapsuleFromCloud(user.uid, id);
       } else {
         setCapsules(prev => prev.filter(c => c.meta.id !== id));
       }
-    }
+    });
   };
 
   const handleSavePrompt = async (prompt: SovereignPrompt) => {
@@ -247,13 +251,13 @@ function App() {
   };
 
   const handleDeletePrompt = async (id: string) => {
-    if (confirm("Delete prompt?")) {
+    confirm("Delete prompt?", async () => {
       if (user) {
         await deletePromptFromCloud(user.uid, id);
       } else {
         setPrompts(prev => prev.filter(p => p.id !== id));
       }
-    }
+    });
   };
 
   const handleSaveContract = async (contract: CognitiveContract) => {
@@ -279,14 +283,14 @@ function App() {
 
   const handleDeleteAgent = async (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Decommission agent?")) {
+    confirm("Decommission agent?", async () => {
       const agent = vault[index];
       if (user) {
         await deleteAgentFromCloud(user.uid, agent);
       } else {
         setVault(prev => prev.filter((_, i) => i !== index));
       }
-    }
+    });
   };
 
   const handleFolderImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -408,10 +412,10 @@ function App() {
         setProvenanceIndex(prev => [...prev, ...newProvenance]);
         if(user) newProvenance.forEach(entry => saveProvenanceToCloud(user.uid, entry));
 
-        alert(`Vault Imported Successfully.\nAgents: ${newAgents.length}\nCapsules: ${newCapsules.length}\nProvenance: ${newProvenance.length}`);
+        addToast(`Vault Imported Successfully.\nAgents: ${newAgents.length}\nCapsules: ${newCapsules.length}\nProvenance: ${newProvenance.length}`, 'success');
 
       } catch (err) {
-        alert("Import failed: " + err);
+        addToast("Import failed: " + err, 'error');
       }
     };
     reader.readAsText(file);
@@ -439,12 +443,12 @@ function App() {
   };
 
   const handleRegenerateKeys = async () => {
-    if (confirm("WARNING: Regenerating keys will invalidate previous signatures. Proceed?")) {
+    confirm("WARNING: Regenerating keys will invalidate previous signatures. Proceed?", async () => {
       const keys = await generateCommanderKeys();
       localStorage.setItem('sovereign_cmdr_keys', JSON.stringify(keys));
       setCommanderKeys(keys);
       if (user) syncSovereignProfile(keys);
-    }
+    });
   };
 
   // --- Render ---

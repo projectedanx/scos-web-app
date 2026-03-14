@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
-import { X, Code, FileJson, Copy, Check, Download, Layers } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Code, FileJson, Copy, Check, Download, Layers, AlertTriangle } from 'lucide-react';
 import { SovereignAgentManifest } from '../types';
-import { transformToConductor, generatePythonStubs, generateSkillReadme } from '../services/conductorService';
+import { transformToConductor, generatePythonStubs, generateSkillReadme, validateConductorSchema } from '../services/conductorService';
 
 interface ConductorExportModalProps {
   agent: SovereignAgentManifest;
@@ -14,6 +14,11 @@ type Tab = 'MANIFEST' | 'PYTHON' | 'README';
 export const ConductorExportModal: React.FC<ConductorExportModalProps> = ({ agent, onClose }) => {
   const [activeTab, setActiveTab] = useState<Tab>('MANIFEST');
   const [copied, setCopied] = useState(false);
+  const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
+
+  useEffect(() => {
+    setValidation(validateConductorSchema(agent));
+  }, [agent]);
 
   const artifacts = React.useMemo(() => ({
     MANIFEST: {
@@ -71,6 +76,22 @@ export const ConductorExportModal: React.FC<ConductorExportModalProps> = ({ agen
              <X className="w-5 h-5" />
           </button>
         </div>
+
+        {!validation.valid && (
+          <div className="bg-amber-500/10 border-b border-amber-500/20 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-500 mb-1">Schema Validation Warnings</h4>
+                <ul className="text-xs text-amber-400/80 list-disc pl-4 space-y-1">
+                  {validation.errors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex border-b border-zinc-800 bg-black/20 px-4">

@@ -36,10 +36,10 @@
 - [x] **Error Handling:** Graceful fallback for non-critical analysis features.
 
 ## Phase 2: The Secure Proxy & Conductor Bridge
-- [ ] **Environment:** Set up `functions/` directory (TypeScript).
-- [ ] **Secrets:** Store `GEMINI_API_KEY` in Google Cloud Secret Manager.
-- [ ] **Conductor Schema Check:** Validate that `SovereignAgentManifest` maps correctly to Conductor's tool definitions.
-- [ ] **Skill Transformer:** Write a utility to export `sovereign-agent-[name].json` as a Gemini Skill folder structure (`ConductorExportModal`).
+- [x] **Environment:** Set up `functions/` directory (TypeScript).
+- [x] **Secrets:** Store `GEMINI_API_KEY` in Google Cloud Secret Manager.
+- [x] **Conductor Schema Check:** Validate that `SovereignAgentManifest` maps correctly to Conductor's tool definitions.
+- [x] **Skill Transformer:** Write a utility to export `sovereign-agent-[name].json` as a Gemini Skill folder structure (`ConductorExportModal`).
 
 ## Phase 3: The Python Swarm Uplink (`scos-core`)
 This is the creation of the Python runner that executes the agents designed in the web app.

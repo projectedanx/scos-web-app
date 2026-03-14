@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Settings, Upload, Save, Copy, Check, FileText, Image as ImageIcon, Terminal, Code, Crosshair, Zap, ArrowRight, Loader2, RotateCcw, Trash2, ChevronDown, BookTemplate } from 'lucide-react';
 import { PromptEngineConfig, PromptEngineType, GeneratedPrompt, TokenUsage, SovereignPrompt, ProvenanceIndexEntry } from '../types';
 import { generateMetaPrompt } from '../services/geminiService';
+import { useToast } from '../contexts/ToastContext';
+import { useDialog } from '../contexts/DialogContext';
 
 // --- Default Sovereign Engines ---
 
@@ -183,6 +185,9 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { addToast } = useToast();
+  const { confirm, prompt } = useDialog();
+
   const activeEngine = engines.find(e => e.id === activeEngineId) || null;
 
   // Persist templates
@@ -228,19 +233,20 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
 
   const handleSaveTemplate = () => {
     if (!activeEngine) return;
-    const name = prompt("Name this Configuration (Meta Prompt + Knowledge):", `${activeEngine.name} Custom`);
-    if (!name) return;
+    prompt("Name this Configuration (Meta Prompt + Knowledge):", async (name) => {
+      if (!name) return;
 
-    const newTemplate: MetaPromptTemplate = {
-      id: crypto.randomUUID(),
-      name,
-      systemPrompt: activeEngine.metaSystemPrompt,
-      knowledgeContext: activeEngine.knowledgeContext || '',
-      timestamp: Date.now()
-    };
+      const newTemplate: MetaPromptTemplate = {
+        id: crypto.randomUUID(),
+        name,
+        systemPrompt: activeEngine.metaSystemPrompt,
+        knowledgeContext: activeEngine.knowledgeContext || '',
+        timestamp: Date.now()
+      };
 
-    setSavedTemplates(prev => [newTemplate, ...prev]);
-    alert(`Configuration saved as template: "${name}"`);
+      setSavedTemplates(prev => [newTemplate, ...prev]);
+      addToast(`Configuration saved as template: "${name}"`, 'success');
+    }, `${activeEngine.name} Custom`);
   };
 
   const handleLoadTemplate = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -280,9 +286,9 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
 
   const handleDeleteTemplate = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if(confirm("Delete this template?")) {
+    confirm("Delete this template?", async () => {
        setSavedTemplates(prev => prev.filter(t => t.id !== id));
-    }
+    });
   };
 
   // --- Generation Logic ---
@@ -306,7 +312,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
       setOutput(generated);
     } catch (e) {
       console.error(e);
-      alert("Generation failed. Check console.");
+      addToast("Generation failed. Check console.", 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -320,40 +326,41 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
         ? `${output.intent.substring(0, 40)}...` 
         : output.intent;
         
-    const title = prompt("Save to Library - Enter Prompt Title:", defaultTitle);
-    if (!title) return;
+    prompt("Save to Library - Enter Prompt Title:", async (title) => {
+      if (!title) return;
 
-    const newPrompt: SovereignPrompt = {
-        id: crypto.randomUUID(),
-        title,
-        content: output.content,
-        category: activeEngine.type, // Use engine type as category
-        subcategory: 'Forged',
-        tags: [activeEngine.name, 'Forged'],
-        linkedAgentNames: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        version: 1,
-        description: `Generated via ${activeEngine.name}. Intent: ${output.intent}`
-    };
+      const newPrompt: SovereignPrompt = {
+          id: crypto.randomUUID(),
+          title,
+          content: output.content,
+          category: activeEngine.type, // Use engine type as category
+          subcategory: 'Forged',
+          tags: [activeEngine.name, 'Forged'],
+          linkedAgentNames: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          version: 1,
+          description: `Generated via ${activeEngine.name}. Intent: ${output.intent}`
+      };
 
-    onSavePrompt(newPrompt);
+      onSavePrompt(newPrompt);
 
-    // Register in provenance
-    onRegisterProvenance({
-        hash: `forged-${newPrompt.id}`,
-        agentName: 'Prompt Forge',
-        timestamp: Date.now(),
-        sourceType: 'PROMPT_TEMPLATE',
-        snippet: `Forged: ${title}`,
-        analysis: {
-            wordCount: output.content.split(/\s+/).length,
-            sentiment: 'NEUTRAL',
-            topics: [activeEngine.type, 'AI_GENERATED']
-        }
-    });
+      // Register in provenance
+      onRegisterProvenance({
+          hash: `forged-${newPrompt.id}`,
+          agentName: 'Prompt Forge',
+          timestamp: Date.now(),
+          sourceType: 'PROMPT_TEMPLATE',
+          snippet: `Forged: ${title}`,
+          analysis: {
+              wordCount: output.content.split(/\s+/).length,
+              sentiment: 'NEUTRAL',
+              topics: [activeEngine.type, 'AI_GENERATED']
+          }
+      });
 
-    alert("Saved to Sovereign Prompt Library.");
+      addToast("Saved to Sovereign Prompt Library.", 'success');
+    }, defaultTitle);
   };
 
   const copyOutput = () => {

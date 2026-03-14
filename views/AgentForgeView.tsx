@@ -6,6 +6,8 @@ import { hashContent, signData, CommanderKeyPair } from '../services/cryptoServi
 import { ManifestDisplay } from '../components/ManifestDisplay';
 import { ChatInterface } from '../components/ChatInterface';
 import { FabricationStatus, SovereignAgentManifest, ScarEntry, ManifestVersion, ProvenanceIndexEntry, TokenUsage, FabricationMode, CouncilMemberType, CouncilFeedback, CouncilSessionLog } from '../types';
+import { useDialog } from '../contexts/DialogContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface AgentForgeViewProps {
   commanderKeys: CommanderKeyPair | null;
@@ -54,6 +56,9 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
   const [councilLog, setCouncilLog] = useState<CouncilSessionLog | null>(null);
   const [councilStep, setCouncilStep] = useState<'IDLE' | 'DISCOVERY' | 'SYNTHESIS' | 'CRITIQUE' | 'FINALIZATION'>('IDLE');
   
+  const { confirm } = useDialog();
+  const { addToast } = useToast();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const councilConsoleRef = useRef<HTMLDivElement>(null);
   
@@ -371,7 +376,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
   };
 
   const handleClearHistory = () => {
-    if (confirm('Purge active workspace? This will reset the Forge to input mode.')) {
+    confirm('Purge active workspace? This will reset the Forge to input mode.', async () => {
       setVersions([]);
       setCurrentVersionIndex(-1);
       setStatus(FabricationStatus.IDLE);
@@ -379,7 +384,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       setAgentName('');
       setCouncilLog(null);
       localStorage.removeItem(STORAGE_KEY);
-    }
+    });
   };
 
   // Safe reset for corrupted state
