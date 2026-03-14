@@ -1,5 +1,5 @@
 
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { 
   collection, 
   doc, 
@@ -18,6 +18,59 @@ import {
   ProvenanceIndexEntry
 } from '../types';
 
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string;
+    email?: string | null;
+    emailVerified?: boolean;
+    isAnonymous?: boolean;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  const err = new Error(JSON.stringify(errInfo));
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  window.dispatchEvent(new CustomEvent('firestore-error', { detail: err }));
+  throw err;
+}
+
 const USERS_COLLECTION = 'users';
 
 // --- Helper to get refs ---
@@ -30,18 +83,28 @@ export const syncAgents = (uid: string, onUpdate: (data: SovereignAgentManifest[
   return onSnapshot(q, (snapshot) => {
     const agents = snapshot.docs.map(d => d.data() as SovereignAgentManifest);
     onUpdate(agents);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/manifests`);
   });
 };
 
 export const saveAgentToCloud = async (uid: string, agent: SovereignAgentManifest) => {
   // Use name as ID for simplicity in this version, or generate a UUID
   const agentId = agent.identity.name.toLowerCase().replace(/\s+/g, '-');
-  await setDoc(doc(getCollectionRef(uid, 'manifests'), agentId), agent);
+  try {
+    await setDoc(doc(getCollectionRef(uid, 'manifests'), agentId), agent);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/manifests/${agentId}`);
+  }
 };
 
 export const deleteAgentFromCloud = async (uid: string, agent: SovereignAgentManifest) => {
   const agentId = agent.identity.name.toLowerCase().replace(/\s+/g, '-');
-  await deleteDoc(doc(getCollectionRef(uid, 'manifests'), agentId));
+  try {
+    await deleteDoc(doc(getCollectionRef(uid, 'manifests'), agentId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/manifests/${agentId}`);
+  }
 };
 
 // --- CAPSULES ---
@@ -50,15 +113,25 @@ export const syncCapsules = (uid: string, onUpdate: (data: ContextCapsule[]) => 
   return onSnapshot(q, (snapshot) => {
     const capsules = snapshot.docs.map(d => d.data() as ContextCapsule);
     onUpdate(capsules);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/capsules`);
   });
 };
 
 export const saveCapsuleToCloud = async (uid: string, capsule: ContextCapsule) => {
-  await setDoc(doc(getCollectionRef(uid, 'capsules'), capsule.meta.id), capsule);
+  try {
+    await setDoc(doc(getCollectionRef(uid, 'capsules'), capsule.meta.id), capsule);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/capsules/${capsule.meta.id}`);
+  }
 };
 
 export const deleteCapsuleFromCloud = async (uid: string, capsuleId: string) => {
-  await deleteDoc(doc(getCollectionRef(uid, 'capsules'), capsuleId));
+  try {
+    await deleteDoc(doc(getCollectionRef(uid, 'capsules'), capsuleId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/capsules/${capsuleId}`);
+  }
 };
 
 // --- PROMPTS ---
@@ -67,15 +140,25 @@ export const syncPrompts = (uid: string, onUpdate: (data: SovereignPrompt[]) => 
   return onSnapshot(q, (snapshot) => {
     const prompts = snapshot.docs.map(d => d.data() as SovereignPrompt);
     onUpdate(prompts);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/prompts`);
   });
 };
 
 export const savePromptToCloud = async (uid: string, prompt: SovereignPrompt) => {
-  await setDoc(doc(getCollectionRef(uid, 'prompts'), prompt.id), prompt);
+  try {
+    await setDoc(doc(getCollectionRef(uid, 'prompts'), prompt.id), prompt);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/prompts/${prompt.id}`);
+  }
 };
 
 export const deletePromptFromCloud = async (uid: string, promptId: string) => {
-  await deleteDoc(doc(getCollectionRef(uid, 'prompts'), promptId));
+  try {
+    await deleteDoc(doc(getCollectionRef(uid, 'prompts'), promptId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/prompts/${promptId}`);
+  }
 };
 
 // --- CONTRACTS ---
@@ -84,22 +167,36 @@ export const syncContracts = (uid: string, onUpdate: (data: CognitiveContract[])
   return onSnapshot(q, (snapshot) => {
     const contracts = snapshot.docs.map(d => d.data() as CognitiveContract);
     onUpdate(contracts);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/contracts`);
   });
 };
 
 export const saveContractToCloud = async (uid: string, contract: CognitiveContract) => {
-  await setDoc(doc(getCollectionRef(uid, 'contracts'), contract.id), contract);
+  try {
+    await setDoc(doc(getCollectionRef(uid, 'contracts'), contract.id), contract);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/contracts/${contract.id}`);
+  }
 };
 
 export const deleteContractFromCloud = async (uid: string, contractId: string) => {
-  await deleteDoc(doc(getCollectionRef(uid, 'contracts'), contractId));
+  try {
+    await deleteDoc(doc(getCollectionRef(uid, 'contracts'), contractId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/contracts/${contractId}`);
+  }
 };
 
 // --- PROVENANCE ---
 export const saveProvenanceToCloud = async (uid: string, entry: ProvenanceIndexEntry) => {
   // We use a separate subcollection for the provenance log
   const id = `${entry.timestamp}-${entry.hash.substring(0,8)}`;
-  await setDoc(doc(getCollectionRef(uid, 'provenance'), id), entry);
+  try {
+    await setDoc(doc(getCollectionRef(uid, 'provenance'), id), entry);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/provenance/${id}`);
+  }
 };
 
 export const syncProvenance = (uid: string, onUpdate: (data: ProvenanceIndexEntry[]) => void) => {
@@ -108,5 +205,7 @@ export const syncProvenance = (uid: string, onUpdate: (data: ProvenanceIndexEntr
   return onSnapshot(q, (snapshot) => {
     const entries = snapshot.docs.map(d => d.data() as ProvenanceIndexEntry);
     onUpdate(entries);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/provenance`);
   });
 };

@@ -1,0 +1,99 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "commanderName": {
+          "type": "string",
+          "description": "The name of the commander"
+        },
+        "email": {
+          "type": "string",
+          "description": "The email of the user"
+        },
+        "sovereignPublicKey": {
+          "type": "string",
+          "description": "The public key of the user"
+        },
+        "lastHandshake": {
+          "type": "number",
+          "description": "The timestamp of the last handshake"
+        },
+        "keyId": {
+          "type": "string",
+          "description": "The key ID of the user"
+        }
+      }
+    },
+    "AgentManifest": {
+      "title": "AgentManifest",
+      "description": "A manifest for a sovereign agent",
+      "type": "object",
+      "properties": {}
+    },
+    "Capsule": {
+      "title": "Capsule",
+      "description": "A context capsule",
+      "type": "object",
+      "properties": {}
+    },
+    "Prompt": {
+      "title": "Prompt",
+      "description": "A sovereign prompt",
+      "type": "object",
+      "properties": {}
+    },
+    "Contract": {
+      "title": "Contract",
+      "description": "A cognitive contract",
+      "type": "object",
+      "properties": {}
+    },
+    "Provenance": {
+      "title": "Provenance",
+      "description": "A provenance index entry",
+      "type": "object",
+      "properties": {}
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "The user's profile"
+    },
+    "/users/{userId}/manifests/{manifestId}": {
+      "schema": {
+        "$ref": "#/entities/AgentManifest"
+      },
+      "description": "The user's agent manifests"
+    },
+    "/users/{userId}/capsules/{capsuleId}": {
+      "schema": {
+        "$ref": "#/entities/Capsule"
+      },
+      "description": "The user's context capsules"
+    },
+    "/users/{userId}/prompts/{promptId}": {
+      "schema": {
+        "$ref": "#/entities/Prompt"
+      },
+      "description": "The user's sovereign prompts"
+    },
+    "/users/{userId}/contracts/{contractId}": {
+      "schema": {
+        "$ref": "#/entities/Contract"
+      },
+      "description": "The user's cognitive contracts"
+    },
+    "/users/{userId}/provenance/{provenanceId}": {
+      "schema": {
+        "$ref": "#/entities/Provenance"
+      },
+      "description": "The user's provenance index entries"
+    }
+  }
+}

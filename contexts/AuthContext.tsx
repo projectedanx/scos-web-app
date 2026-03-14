@@ -11,6 +11,59 @@ import { auth, db, isFirebaseConfigured } from '../services/firebase';
 import { CommanderKeyPair } from '../services/cryptoService';
 import { useToast } from './ToastContext';
 
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string;
+    email?: string | null;
+    emailVerified?: boolean;
+    isAnonymous?: boolean;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  const err = new Error(JSON.stringify(errInfo));
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  window.dispatchEvent(new CustomEvent('firestore-error', { detail: err }));
+  throw err;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -98,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Sovereign Handshake Complete: Cloud Profile Linked.");
     } catch (e) {
       console.error("Failed to sync sovereign profile", e);
+      handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
     }
   };
 
