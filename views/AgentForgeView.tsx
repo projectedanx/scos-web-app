@@ -607,7 +607,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                   
                   {/* Console Output */}
                   <div ref={councilConsoleRef} className="bg-black/50 border border-zinc-800 rounded-lg p-4 font-mono text-xs text-zinc-400 h-64 overflow-y-auto custom-scrollbar space-y-2">
-                     <div className="text-zinc-600 italic mb-4">>>> COUNCIL SESSION {councilLog?.sessionId.substring(0,8)} INITIATED</div>
+                     <div className="text-zinc-600 italic mb-4">&gt;&gt;&gt; COUNCIL SESSION {councilLog?.sessionId.substring(0,8)} INITIATED</div>
                      
                      {councilLog?.discovery?.map((d, i) => (
                         <div key={`d-${i}`} className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2 mb-2">
@@ -620,7 +620,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                      ))}
 
                      {councilStep === 'DISCOVERY' && (councilLog?.discovery || []).length < 5 && (
-                        <div className="text-blue-500/50 animate-pulse">>>> GATHERING INTELLIGENCE VECTORS...</div>
+                        <div className="text-blue-500/50 animate-pulse">&gt;&gt;&gt; GATHERING INTELLIGENCE VECTORS...</div>
                      )}
 
                      {/* Synthesis */}
@@ -635,7 +635,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                      )}
 
                      {councilStep === 'SYNTHESIS' && !councilLog?.synthesis && (
-                        <div className="text-yellow-500/50 animate-pulse mt-4">>>> PLANNER IS SYNTHESIZING DRAFT...</div>
+                        <div className="text-yellow-500/50 animate-pulse mt-4">&gt;&gt;&gt; PLANNER IS SYNTHESIZING DRAFT...</div>
                      )}
 
                      {/* Critiques */}
@@ -650,11 +650,11 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                      ))}
 
                      {councilStep === 'CRITIQUE' && (councilLog?.critiques || []).length < 5 && councilLog?.synthesis && (
-                        <div className="text-red-500/50 animate-pulse">>>> DELIBERATING DRAFT MANIFEST...</div>
+                        <div className="text-red-500/50 animate-pulse">&gt;&gt;&gt; DELIBERATING DRAFT MANIFEST...</div>
                      )}
 
                      {councilStep === 'FINALIZATION' && (
-                        <div className="text-sovereign/50 animate-pulse mt-4 pt-4 border-t border-zinc-900/50">>>> FINALIZING IDENTITY MATRIX...</div>
+                        <div className="text-sovereign/50 animate-pulse mt-4 pt-4 border-t border-zinc-900/50">&gt;&gt;&gt; FINALIZING IDENTITY MATRIX...</div>
                      )}
                      
                      <div className="animate-pulse text-zinc-600">_</div>

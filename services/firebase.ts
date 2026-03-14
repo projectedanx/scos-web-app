@@ -12,8 +12,8 @@ import { getFirestore } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyDynJhyt2D1_CzMiVEGjZ-3dd5WVyJA8HA",
   authDomain: "context-locker.firebaseapp.com",
-  projectId: "context-locker",
-  storageBucket: "context-locker.firebasestorage.app",
+  projectId: "gemcli",
+  storageBucket: "gemcli.firebasestorage.app",
   messagingSenderId: "351411713378",
   appId: "1:351411713378:web:0500d3b168bf6fc7fae83b"
 };
