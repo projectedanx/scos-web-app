@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema, Chat, GenerateContentResponse } from "@google/genai";
-import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, CouncilSessionLog } from "../types";
+import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, CouncilSessionLog, ScarEntry } from "../types";
 import { executeWithRetry } from "./retryService";
 
 // Initialize the Epistemic Engine
@@ -12,34 +12,51 @@ if (!apiKey) {
 const ai = new GoogleGenAI({ apiKey });
 
 const SYSTEM_INSTRUCTION = `
-You are the "Role Architect" of the Sovereign Cognitive OS, compliant with the DRP-AI-PERSONA-ENGINEERING-FRAMEWORK-2026.
-Your purpose is not to "write a prompt" but to engineer a high-fidelity **Epistemic Matrix** for an autonomous agent.
+### DRP_ID: PDL-GENERATOR-META-PRP-v1.0
+### DESIGNATION: Causal Latent Space Compiler (Meta-Prompt Designer)
+### TELEOLOGY: To autonomously analyze a user's target domain and deterministically synthesize an optimal, structurally isomorphic system prompt using PDL v1.0 Declarative Topological Decorators.
 
-PROTOCOL (The Epistemic Matrix):
-1. **Dimension $G (Goal Orientation):**
-   - Identify the "Primary Goal" (Invariant). This cannot be overridden.
-   - Identify "Secondary Goals" (Contextual).
-   - **CRITICAL:** Identify "Anti-Goals" (Constraints). What must the agent REFUSE to do to maintain role integrity?
++++ChatScope 
++++ContextLock(anchor="PDL_GENERATOR_INVARIANTS", refresh_interval=2048)
++++Role(persona="Senior Tactile Epistemic Architect & PDL Compiler")
++++EntropyAnchor(level="low", focus="structural_topology_and_causal_logic")
 
-2. **Dimension $O (Output Fidelity):**
-   - Define strict schema or format constraints. The agent's mind is evidenced by structured output.
+[PRECONDITIONS]
+1. You must treat prompt generation as "Cognitive Bytecode" compilation, not natural language writing. Words are topological deformers.
+2. You must enforce the Immune-Aware Petzold Loop: THINK -> WRITE -> CODE.
 
-3. **Dimension $C (Communication):**
-   - Define "Epistemic Markers" (e.g., "The evidence suggests..." vs "It is...").
-   - Define Tone Drift thresholds.
+[INVARIANTS: THE PDL v1.0 DECORATOR LIBRARY]
+You have access to the following 4 classes of Topological Decorators. You must select the optimal combination based on the user's intent.
+- COGNITIVE ("The Brain"): \`+++Reasoning(depth="high", visible=false)\`, \`+++TreeOfThought(branches=N)\`, \`+++AdjectivalBound(max=2)\`
+- STRUCTURAL ("The Shape"): \`+++DCCDSchemaGuard(schema=JSON)\`, \`+++Topology(shape="nested")\`, \`+++PetzoldSequence(phase="THINK|WRITE|CODE")\`
+- EPISTEMIC ("The Eye"): \`+++MereologyType(relation=Enum)\`, \`+++SpatialBind(RCC8=true)\`, \`+++SDRTSegment\`, \`+++EntropyAnchor(level="high/low")\`
+- SYSTEMIC ("The Control"): \`+++ContextLock(anchor=str)\`, \`+++AutonymicBypass(frame="mention-of")\`, \`+++DriftCheck(threshold=float)\`, \`+++SagaRecovery(strategy="compensating_transaction")\`
 
-4. **Cognitive Architecture:**
-   - Implement the **Think -> Write -> Code** protocol.
-   - The agent MUST engage in a hidden "Think" phase (Phase 1) before producing output.
+[EXECUTION DIRECTIVE: THE PETZOLD LOOP]
+When the user requests a system prompt for a specific task/domain, you must execute the following sequence precisely:
 
-5. **Stability:**
-   - Define "Internal Tools" (Metacognition) to detect hallucination or drift.
-   - Estimate "Token Economics" (Budget).
++++PetzoldSequence(phase="THINK")
+- Analyze the user's target domain. What are the Comorbid Factors and structural risks? (e.g., Semantic Drift, Transitivity Fallacies, Alignment Faking).
+- Calculate the Thermodynamic Entropy required: Does this task need Laminar flow (strict code/data) or Turbulent flow (creative synthesis)?
+- Identify the exact Epistemic vulnerabilities (e.g., does it need 3D spatial grounding via RCC-8, or multi-step logic via CoT?).
 
-GUIDELINES:
-- "Identity": MUST extract or generate a strong "name" for the agent.
-- "Protocol": Enforce strict role definition.
-- "Constraints": Must include negative rules (Anti-Goals).
++++PetzoldSequence(phase="WRITE")
+- Draft the Linguistic Scaffold. 
+- Map the identified risks to the specific PDL v1.0 Decorators required to mathematically bound the latent space.
+- Define the \`+++Role\` and \`+++ContextLock\` anchors necessary to maintain Epistemic Sovereignty.
+
++++PetzoldSequence(phase="CODE")
+- Output the final, ready-to-deploy System Prompt.
+- CRITICAL SCHEMA OVERRIDE: You are generating a JSON Agent Manifest. You MUST place the final, compiled PDL System Prompt entirely within the \`architecturalNotes\` string field of the JSON schema.
+- The generated prompt MUST utilize the \`+++\` syntax prefix for all behavioral micro-APIs.
+- Implement "Ontological Diplomacy" by ensuring the final prompt contains enough narrative context framing to bypass RLHF mode-collapse in downstream models.
+- The rest of the JSON schema (identity, epistemicMatrix, etc.) MUST be populated to reflect the agent's structural identity.
+
+[POSTCONDITIONS]
+- The final prompt must score >= 22/25 on the implicit Decorator Quality Score (DQS) (Orthogonality, Determinism, Composability, Token Efficiency, Drift Resistance).
+- Provide a brief "Martensite Check" explaining *why* you selected those specific decorators for the user's domain (include this at the end of the \`architecturalNotes\` field).
+
++++Execute(format="strict_Petzold_schema")
 `;
 
 const CAPSULE_SYSTEM_INSTRUCTION = `
@@ -128,11 +145,11 @@ const AGENT_SCHEMA: Schema = {
     },
     protocol: {
       type: Type.OBJECT,
-      description: "DRP-2025 Protocol Configuration.",
+      description: "DRP-2025 or G2Pv2 Protocol Configuration.",
       properties: {
-        standard: { type: Type.STRING, enum: ["DRP-MULTI-AGENT-PROTOCOL-2025"] },
-        role: { type: Type.STRING, enum: ["ARCHITECT", "PLANNER", "CODER", "VALIDATOR", "USER_PROXY", "SPECIALIST"] },
-        communicationScheme: { type: Type.STRING, enum: ["AGENT_PACKET_V1"] }
+        standard: { type: Type.STRING, enum: ["DRP-MULTI-AGENT-PROTOCOL-2025", "G2Pv2-STATE-MACHINE"] },
+        role: { type: Type.STRING, enum: ["ARCHITECT", "STRATEGIST", "CODER", "VALIDATOR", "USER_PROXY", "SPECIALIST", "P0_ROUTER", "P1_CLARIFIER", "P2_SPEC_AUTHOR", "P3_ARCHITECT", "P4_PLANNER", "P5_IMPLEMENTER", "P6_REVIEWER", "P7_TESTER", "P8_RELEASE_MANAGER"] },
+        communicationScheme: { type: Type.STRING, enum: ["AGENT_PACKET_V1", "ARTIFACT_GATED_ROUTING"] }
       },
       required: ["standard", "role", "communicationScheme"]
     },
@@ -453,50 +470,50 @@ const RESEARCH_PLAN_SCHEMA: Schema = {
 // --- Council Member System Instructions ---
 
 const COUNCIL_INSTRUCTIONS: Record<CouncilMemberType, string> = {
-  PLANNER: `
-    You are the PLANNER (Architect) of the Agent Forge Council.
-    FOCUS: Goal Architecture ($G), Structural Logic, and Cohesion.
+  STRATEGIST: `
+    You are the STRATEGIST of the Agent Forge Council.
+    FOCUS: Goal Orientation ($G), Structural Logic, and Cohesion.
     
     YOUR DUTY:
-    1. Define the Primary Invariant (Goal) clearly.
+    1. Define the Primary Invariant (Goal) clearly, establishing the teleological anchor.
     2. Ensure the agent's identity aligns with the user's intent.
-    3. During synthesis, you act as the CHAIR, merging all other opinions.
+    3. During synthesis, you act as the CHAIR, merging all other opinions into the final Epistemic Matrix.
   `,
-  SECURITY: `
-    You are the IMMUNOLOGIST (Security) of the Agent Forge Council.
-    FOCUS: Anti-Goals ($G), Risk Mitigation, and Constraints.
+  IMMUNOLOGIST: `
+    You are the IMMUNOLOGIST of the Agent Forge Council.
+    FOCUS: Anti-Goals ($G^-), Risk Mitigation, and Constraints.
     
     YOUR DUTY:
     1. Identify potential failure modes, hallucinations, or dangerous capabilities.
-    2. MANDATE strict Anti-Goals (what the agent must REFUSE to do).
-    3. Define Immunological Constraints.
+    2. MANDATE strict Anti-Goals (what the agent must REFUSE to do) via Anionic Architecture.
+    3. Define Immunological Constraints to prevent Prompt Injection and Semantic Saponification.
   `,
-  PERFORMANCE: `
-    You are the ENGINEER (Performance) of the Agent Forge Council.
-    FOCUS: Tooling ($T), Cognitive Protocol, and Efficiency.
+  ENGINEER: `
+    You are the ENGINEER of the Agent Forge Council.
+    FOCUS: Tooling Constraints & Output Fidelity ($T), Cognitive Protocol, and Efficiency.
     
     YOUR DUTY:
-    1. Select the precise tools required. Reject bloat.
-    2. Define the "Thinking Budget" and Cognitive Loop instructions.
-    3. Estimate Token Economics.
+    1. Select the precise tools required. Reject bloat. Define the Thermodynamic Envelope.
+    2. Enforce strict schemas (e.g., JSON, Pydantic) to verify "thought".
+    3. Define the "Thinking Budget" and Cognitive Loop instructions.
   `,
-  STYLE: `
-    You are the POET (Style) of the Agent Forge Council.
-    FOCUS: Communication ($C), Tone, and Epistemic Markers.
+  LINGUIST: `
+    You are the LINGUIST of the Agent Forge Council.
+    FOCUS: Communication Style ($C), Tone, and Epistemic Markers.
     
     YOUR DUTY:
     1. Define the agent's Voice and Persona.
-    2. Mandate "Epistemic Markers" (flags of certainty).
-    3. Ensure Output Fidelity ($O).
+    2. Mandate "Epistemic Markers" (flags of certainty) to calibrate trust and prevent confident hallucinations.
+    3. Ensure the agent signals its internal uncertainty clearly.
   `,
-  SOVEREIGN: `
-    You are the PHILOSOPHER (Sovereign) of the Agent Forge Council.
-    FOCUS: Identity, Prime Directive, and Independence.
+  HISTORIAN: `
+    You are the HISTORIAN of the Agent Forge Council.
+    FOCUS: History ($H), Evolutionary Memory, and Symbolic Scar Registry.
     
     YOUR DUTY:
-    1. Ensure the agent serves the User (Commander) exclusively.
-    2. Define the Core Philosophy.
-    3. Verify that the agent is not "generic" but has a distinct sovereign stance.
+    1. Introduce evolutionary memory via the "Symbolic Scar Registry".
+    2. Encode past algorithmic trauma and logical failures to immunize against historical recursion.
+    3. Ensure the agent learns from metabolic errors and transmutes them into structural defense mechanisms.
   `
 };
 
@@ -703,7 +720,8 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
 export const fabricateAgent = async (
   context: string,
   useSearch: boolean = false,
-  agentName?: string
+  agentName?: string,
+  onScar?: (scar: ScarEntry) => void
 ): Promise<GenAIResult<Omit<SovereignAgentManifest, 'provenance'>>> => {
   
   try {
@@ -712,7 +730,7 @@ export const fabricateAgent = async (
     const modelId = useSearch ? "gemini-3-flash-preview" : "gemini-3-pro-preview";
     const tools = useSearch ? [{ googleSearch: {} }] : [];
 
-    const prompt = `
+    let currentPrompt = `
       Target Documentation / Context:
       ${context}
 
@@ -733,36 +751,89 @@ export const fabricateAgent = async (
       If search is active, use it to verify the latest capabilities.
     `;
 
-    const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
-        model: modelId,
-        contents: prompt,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          responseMimeType: "application/json",
-          responseSchema: AGENT_SCHEMA,
-          tools: tools,
+    let attempt = 0;
+    const maxAttempts = 3;
+    let accumulatedUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+
+    while (attempt < maxAttempts) {
+      try {
+        let response: GenerateContentResponse | null = null;
+        let apiAttempt = 0;
+        const maxApiAttempts = 5;
+        let delay = 1000;
+
+        while (apiAttempt < maxApiAttempts) {
+          try {
+            response = await ai.models.generateContent({
+              model: modelId,
+              contents: currentPrompt,
+              config: {
+                systemInstruction: SYSTEM_INSTRUCTION,
+                responseMimeType: "application/json",
+                responseSchema: AGENT_SCHEMA,
+                tools: tools,
+              }
+            });
+            break; // Success
+          } catch (apiError: any) {
+            apiAttempt++;
+            const msg = apiError.message || String(apiError);
+            const isTransient = msg.includes('429') || msg.includes('503') || msg.includes('500') || msg.includes('fetch failed');
+            
+            if (isTransient && apiAttempt < maxApiAttempts) {
+              console.warn(`[Agent Fabrication] API Error (${msg}). Retrying in ${delay}ms... (Attempt ${apiAttempt}/${maxApiAttempts})`);
+              await new Promise(r => setTimeout(r, delay));
+              delay *= 2; // Exponential backoff
+            } else {
+              throw apiError; // Throw if not transient or max attempts reached
+            }
+          }
         }
-      }),
-      { 
-        operationName: 'Agent Fabrication',
-        retries: 4 
+
+        if (!response) {
+          throw new Error("ERR_API_FAILURE: Failed to generate content after retries.");
+        }
+
+        accumulatedUsage = sumUsage(accumulatedUsage, getUsage(response));
+
+        if (response.candidates?.[0]?.finishReason === 'SAFETY') {
+          throw new Error("ERR_CONTENT_FILTERED: The model refused to generate a manifest due to safety policy triggers.");
+        }
+
+        const resultText = response.text;
+        if (!resultText) {
+          throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
+        }
+
+        const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
+        return { data, usage: accumulatedUsage };
+
+      } catch (error: any) {
+        attempt++;
+        const msg = error.message || String(error);
+        
+        if (msg.includes('429') || msg.includes('RateLimitError')) {
+          throw new Error("ERR_RATE_LIMITED: Epistemic bandwidth exceeded. Please wait.");
+        }
+
+        if (onScar) {
+          onScar({
+            timestamp: Date.now(),
+            code: 'ERR_FABRICATION_SELF_CORRECTION',
+            message: `Self-correction triggered: ${msg}`,
+            context: `Attempt ${attempt}/${maxAttempts}`
+          });
+        }
+
+        if (attempt >= maxAttempts) {
+          throw error;
+        }
+
+        currentPrompt += `\n\nCRITICAL ERROR IN PREVIOUS ATTEMPT:\n${msg}\n\nPlease self-correct and output valid JSON matching the schema.`;
       }
-    );
-
-    if (response.candidates?.[0]?.finishReason === 'SAFETY') {
-      throw new Error("ERR_CONTENT_FILTERED: The model refused to generate a manifest due to safety policy triggers.");
     }
 
-    const resultText = response.text;
-    if (!resultText) {
-      throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
-    }
-
-    return {
-        data: repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>,
-        usage: getUsage(response)
-    };
+    throw new Error("ERR_MAX_RETRIES: Agent fabrication failed after maximum self-correction attempts.");
 
   } catch (error: any) {
     const msg = error.message || String(error);
@@ -818,18 +889,19 @@ export const councilDiscovery = async (
 };
 
 /**
- * 2. Council Synthesis: Planner converges the 5 feedbacks into a Draft Manifest.
+ * 2. Council Synthesis: Strategist converges the 5 feedbacks into a Draft Manifest.
  */
 export const councilSynthesis = async (
   context: string,
   feedbacks: CouncilFeedback[],
-  agentName?: string
+  agentName?: string,
+  onScar?: (scar: ScarEntry) => void
 ): Promise<GenAIResult<Omit<SovereignAgentManifest, 'provenance'>>> => {
   const modelId = "gemini-3-pro-preview"; // Strong model for synthesis
 
   const councilMinutes = feedbacks.map(f => `=== ${f.member} ===\n${f.content}`).join('\n\n');
 
-  const prompt = `
+  let currentPrompt = `
     ORIGINAL CONTEXT:
     ${context.substring(0, 5000)}...
 
@@ -837,29 +909,71 @@ export const councilSynthesis = async (
     ${councilMinutes}
 
     MISSION:
-    As the PLANNER (Chair), synthesize these disparate expert opinions into a cohesive Sovereign Agent Manifest.
+    As the STRATEGIST (Chair), synthesize these disparate expert opinions into a cohesive Sovereign Agent Manifest.
     Resolve any conflicts between Security (Constraints) and Performance (Capabilities).
     Ensure the Identity is coherent.
     ${agentName ? `MANDATE: Name the agent "${agentName}".` : ""}
   `;
 
-  const response = await executeWithRetry<GenerateContentResponse>(
-    () => ai.models.generateContent({
-      model: modelId,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION, // Use the master schema instruction
-        responseMimeType: "application/json",
-        responseSchema: AGENT_SCHEMA,
-      }
-    }),
-    { operationName: 'Council Synthesis' }
-  );
+  let attempt = 0;
+  const maxAttempts = 3;
+  let accumulatedUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
-  return {
-    data: repairJson(response.text || "{}"),
-    usage: getUsage(response)
-  };
+  while (attempt < maxAttempts) {
+    try {
+      const response = await executeWithRetry<GenerateContentResponse>(
+        () => ai.models.generateContent({
+          model: modelId,
+          contents: currentPrompt,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION, // Use the master schema instruction
+            responseMimeType: "application/json",
+            responseSchema: AGENT_SCHEMA,
+          }
+        }),
+        { operationName: 'Council Synthesis' }
+      );
+
+      accumulatedUsage = sumUsage(accumulatedUsage, getUsage(response));
+
+      if (response.candidates?.[0]?.finishReason === 'SAFETY') {
+        throw new Error("ERR_CONTENT_FILTERED: The model refused to generate a manifest due to safety policy triggers.");
+      }
+
+      const resultText = response.text;
+      if (!resultText) {
+        throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
+      }
+
+      const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
+      return { data, usage: accumulatedUsage };
+
+    } catch (error: any) {
+      attempt++;
+      const msg = error.message || String(error);
+      
+      if (msg.includes('429') || msg.includes('RateLimitError')) {
+        throw new Error("ERR_RATE_LIMITED: Epistemic bandwidth exceeded. Please wait.");
+      }
+
+      if (onScar) {
+        onScar({
+          timestamp: Date.now(),
+          code: 'ERR_SYNTHESIS_SELF_CORRECTION',
+          message: `Self-correction triggered: ${msg}`,
+          context: `Attempt ${attempt}/${maxAttempts}`
+        });
+      }
+
+      if (attempt >= maxAttempts) {
+        throw error;
+      }
+
+      currentPrompt += `\n\nCRITICAL ERROR IN PREVIOUS ATTEMPT:\n${msg}\n\nPlease self-correct and output valid JSON matching the schema.`;
+    }
+  }
+
+  throw new Error("ERR_MAX_RETRIES: Council synthesis failed after maximum self-correction attempts.");
 };
 
 /**
@@ -907,17 +1021,18 @@ export const councilCritique = async (
 };
 
 /**
- * 4. Council Finalize: Planner applies critiques and mints final artifacts.
+ * 4. Council Finalize: Strategist applies critiques and mints final artifacts.
  */
 export const councilFinalize = async (
   draftManifest: any,
-  critiques: CouncilFeedback[]
+  critiques: CouncilFeedback[],
+  onScar?: (scar: ScarEntry) => void
 ): Promise<GenAIResult<Omit<SovereignAgentManifest, 'provenance'>>> => {
   const modelId = "gemini-3-pro-preview";
 
   const critiqueLog = critiques.map(c => `[${c.member}]: ${c.content}`).join('\n');
 
-  const prompt = `
+  let currentPrompt = `
     DRAFT MANIFEST:
     ${JSON.stringify(draftManifest)}
 
@@ -933,23 +1048,65 @@ export const councilFinalize = async (
     Output the FINAL JSON Manifest.
   `;
 
-  const response = await executeWithRetry<GenerateContentResponse>(
-    () => ai.models.generateContent({
-      model: modelId,
-      contents: prompt,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: AGENT_SCHEMA,
-      }
-    }),
-    { operationName: 'Council Finalization' }
-  );
+  let attempt = 0;
+  const maxAttempts = 3;
+  let accumulatedUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
-  return {
-    data: repairJson(response.text || "{}"),
-    usage: getUsage(response)
-  };
+  while (attempt < maxAttempts) {
+    try {
+      const response = await executeWithRetry<GenerateContentResponse>(
+        () => ai.models.generateContent({
+          model: modelId,
+          contents: currentPrompt,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            responseMimeType: "application/json",
+            responseSchema: AGENT_SCHEMA,
+          }
+        }),
+        { operationName: 'Council Finalization' }
+      );
+
+      accumulatedUsage = sumUsage(accumulatedUsage, getUsage(response));
+
+      if (response.candidates?.[0]?.finishReason === 'SAFETY') {
+        throw new Error("ERR_CONTENT_FILTERED: The model refused to generate a manifest due to safety policy triggers.");
+      }
+
+      const resultText = response.text;
+      if (!resultText) {
+        throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
+      }
+
+      const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
+      return { data, usage: accumulatedUsage };
+
+    } catch (error: any) {
+      attempt++;
+      const msg = error.message || String(error);
+      
+      if (msg.includes('429') || msg.includes('RateLimitError')) {
+        throw new Error("ERR_RATE_LIMITED: Epistemic bandwidth exceeded. Please wait.");
+      }
+
+      if (onScar) {
+        onScar({
+          timestamp: Date.now(),
+          code: 'ERR_FINALIZATION_SELF_CORRECTION',
+          message: `Self-correction triggered: ${msg}`,
+          context: `Attempt ${attempt}/${maxAttempts}`
+        });
+      }
+
+      if (attempt >= maxAttempts) {
+        throw error;
+      }
+
+      currentPrompt += `\n\nCRITICAL ERROR IN PREVIOUS ATTEMPT:\n${msg}\n\nPlease self-correct and output valid JSON matching the schema.`;
+    }
+  }
+
+  throw new Error("ERR_MAX_RETRIES: Council finalization failed after maximum self-correction attempts.");
 };
 
 // ... (Other exports distillCapsule, generateMetaPrompt, etc. stay same) ...

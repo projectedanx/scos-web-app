@@ -1,8 +1,10 @@
 
++++ContextLock(anchor="SCOS_BACKEND", refresh_interval=2048)
+
 # SCOS Backend Architecture: Hybrid Sovereignty
 
-> **Status:** Specification (v1.9.7)
-> **Target Infrastructure:** Firebase (Google Cloud Platform)
+> **Status:** Operational (v1.12.2)
+> **Target Infrastructure:** Firebase (Google Cloud Platform - `scos-17fbf`)
 > **Philosophy:** Cloud for Synchronization, Client for Sovereignty.
 
 ## 1. Core Philosophy: The Sovereign Bridge
@@ -101,14 +103,29 @@ The Python layer is the **Runtime Environment**. It does not *design* agents; it
 
 ## 4. Security Rules (`firestore.rules`)
 
+**CRITICAL NOTE:** The Firebase project (`scos-17fbf`) is manually managed to preserve sovereign infrastructure. Automated rule deployment is strictly prohibited. The following rules must be manually applied in the Firebase Console:
+
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Helper Functions
+    function isAuthenticated() {
+       return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+       return isAuthenticated() && request.auth.uid == userId;
+    }
+
     // User Sovereignty: Only you can touch your agents and constellations
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // Swarm Nodes (Service Accounts) need specific access

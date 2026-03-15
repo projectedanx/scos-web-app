@@ -10,12 +10,12 @@ import { getFirestore } from "firebase/firestore";
 // 5. Paste the config object below.
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCw56hlvRySFKr-9H2MevoiIelne_7pfE4",
-  authDomain: "epigemcli.firebaseapp.com",
-  projectId: "epigemcli",
-  storageBucket: "epigemcli.firebasestorage.app",
-  messagingSenderId: "945224212983",
-  appId: "1:945224212983:web:ae8f46cba742af78a74ef2"
+  apiKey: "AIzaSyDiB9Hjsr5HWj4Hgmi5cmAmX4w3S6sH56I",
+  authDomain: "scos-17fbf.firebaseapp.com",
+  projectId: "scos-17fbf",
+  storageBucket: "scos-17fbf.firebasestorage.app",
+  messagingSenderId: "219202106059",
+  appId: "1:219202106059:web:9e7b52b98d821b7cbea14e"
 };
 
 // Initialize Firebase

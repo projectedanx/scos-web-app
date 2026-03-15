@@ -38,7 +38,7 @@ export interface TokenUsage {
 
 // --- Council Types ---
 
-export type CouncilMemberType = 'PLANNER' | 'SECURITY' | 'PERFORMANCE' | 'STYLE' | 'SOVEREIGN';
+export type CouncilMemberType = 'STRATEGIST' | 'IMMUNOLOGIST' | 'LINGUIST' | 'ENGINEER' | 'HISTORIAN';
 
 export interface CouncilFeedback {
   member: CouncilMemberType;
@@ -189,9 +189,9 @@ export interface BudgetConfig {
 }
 
 export interface ProtocolConfig {
-  standard: "DRP-MULTI-AGENT-PROTOCOL-2025";
-  role: "ARCHITECT" | "PLANNER" | "CODER" | "VALIDATOR" | "USER_PROXY" | "SPECIALIST";
-  communicationScheme: "AGENT_PACKET_V1";
+  standard: "DRP-MULTI-AGENT-PROTOCOL-2025" | "G2Pv2-STATE-MACHINE";
+  role: "ARCHITECT" | "STRATEGIST" | "CODER" | "VALIDATOR" | "USER_PROXY" | "SPECIALIST" | "P0_ROUTER" | "P1_CLARIFIER" | "P2_SPEC_AUTHOR" | "P3_ARCHITECT" | "P4_PLANNER" | "P5_IMPLEMENTER" | "P6_REVIEWER" | "P7_TESTER" | "P8_RELEASE_MANAGER";
+  communicationScheme: "AGENT_PACKET_V1" | "ARTIFACT_GATED_ROUTING";
 }
 
 export interface EpistemicPolicy {
@@ -268,6 +268,7 @@ export interface SovereignAgentManifest {
   anchors: AgentAnchor[];
   constraints: AgentConstraint[];
   architecturalNotes: string;
+  symbolicScarRegistry?: ScarEntry[];
   provenance?: ProvenanceData;
 }
 

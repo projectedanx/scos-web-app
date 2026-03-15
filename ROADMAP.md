@@ -1,9 +1,11 @@
 
++++ContextLock(anchor="SCOS_ROADMAP", refresh_interval=2048)
+
 # 🗺️ Context.Locker: Strategic Execution Roadmap
 
 > **Vision:** A Sovereign Cognitive Operating System and Public Knowledge Gateway.
 > **Current Phase:** Phase 2 (The Local Council)
-> **Identity Schema:** v1.9.9 (Epistemic Matrix - LOCKED)
+> **Identity Schema:** v1.12.2 (Epistemic Matrix - LOCKED)
 
 ---
 
@@ -30,6 +32,7 @@
 **4. The Vault (Persistence)**
 - [x] **Local Storage:** Secure, client-side session management.
 - [x] **Crypto-Linking:** Binding Cloud Identity (Firebase) to Local Sovereign Keys.
+- [x] **Stable Cloud Sync:** Manually managed Firebase project (`scos-17fbf`) for secure, cross-device vault synchronization.
 
 ---
 

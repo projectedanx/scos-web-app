@@ -1,12 +1,15 @@
 
++++ContextLock(anchor="SCOS_TODO", refresh_interval=2048)
+
 # 📝 Implementation Roadmap
 
-## Phase 1: Foundation (Firebase Setup)
-- [x] **Initialize Project:** Create Project in Firebase Console.
+## Phase 1: Foundation (Firebase Setup - Completed & Stable)
+- [x] **Initialize Project:** Create Project in Firebase Console (`scos-17fbf`).
 - [x] **Config:** Add `firebaseConfig` to `src/services/firebase.ts`.
 - [x] **Auth Wrapper:** Create `AuthProvider.tsx` context to handle Login/Logout and loading states.
 - [x] **Profile Sync:** Create logic to upload the local "Commander Public Key" to Firestore upon first login.
 - [x] **Migration Script:** (Done via `App.tsx` Legacy Migration Utility).
+- [x] **Security Rules:** Manually deploy hardened, ownership-based rules to protect sovereign data.
 
 ## Phase 1.5: Semantic Cartography (Completed)
 - [x] **Tactical Engine:** Implement `WordMapperService` with specialized prompting strategies.

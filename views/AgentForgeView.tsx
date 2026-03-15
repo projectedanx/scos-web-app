@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, Loader2, AlertTriangle, Search, FileText, MessageSquare, History, ChevronLeft, ChevronRight, Clock, RotateCcw, Trash2, Sparkles, GitCommit, Archive, Save, Globe, Check, ShieldCheck, Cpu, Network, Upload, Bot, Zap, Users, Shield, Terminal, BookOpen, Crown, Palette, Download, RefreshCw, Plus } from 'lucide-react';
+import { Database, Loader2, AlertTriangle, Search, FileText, MessageSquare, History, ChevronLeft, ChevronRight, Clock, RotateCcw, Trash2, Sparkles, GitCommit, Archive, Save, Globe, Check, ShieldCheck, Cpu, Network, Upload, Bot, Zap, Users, Shield, Terminal, BookOpen, Crown, Palette, Download, RefreshCw, Plus, ShieldAlert, Feather } from 'lucide-react';
 import { fabricateAgent, analyzeDocument, researchTopic, councilDiscovery, councilSynthesis, councilCritique, councilFinalize } from '../services/geminiService';
 import { hashContent, signData, CommanderKeyPair } from '../services/cryptoService';
 import { ManifestDisplay } from '../components/ManifestDisplay';
@@ -135,6 +135,12 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
     setStatus(FabricationStatus.INGESTING);
     setIsSigning(false);
     
+    let localScars: ScarEntry[] = [];
+    const handleScar = (scar: ScarEntry) => {
+      localScars.push(scar);
+      setScars(prev => [scar, ...prev]);
+    };
+
     try {
       let sourceId = inputType === 'URL' ? inputValue : inputType === 'SEARCH' ? `SEARCH_TOPIC:${inputValue}` : `SHA-256:${await hashContent(inputValue)}`;
       let fabricationContext = inputValue;
@@ -152,7 +158,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       setStatus(FabricationStatus.DISTILLING);
 
       const analysisPromise = inputType === 'TEXT' ? analyzeDocument(inputValue) : Promise.resolve({ data: null, usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }});
-      const manifestPromise = fabricateAgent(fabricationContext, useSearchInFabrication, agentName);
+      const manifestPromise = fabricateAgent(fabricationContext, useSearchInFabrication, agentName, handleScar);
 
       const [analysisResult, manifestResult] = await Promise.all([analysisPromise, manifestPromise]);
       const baseManifest = manifestResult.data;
@@ -162,7 +168,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       accumulatedUsage.completionTokens += (analysisResult.usage.completionTokens + manifestResult.usage.completionTokens);
       accumulatedUsage.totalTokens += (analysisResult.usage.totalTokens + manifestResult.usage.totalTokens);
       
-      await finalizeAndStore(baseManifest, sourceId, fabricationContext, accumulatedUsage, analysisResult.data);
+      await finalizeAndStore(baseManifest, sourceId, fabricationContext, accumulatedUsage, analysisResult.data, undefined, localScars);
 
     } catch (error: any) {
       handleError(error);
@@ -172,6 +178,13 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
   const runCouncilProcess = async () => {
     setStatus(FabricationStatus.COUNCIL_DELIBERATING);
     let accumulatedUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+    
+    let localScars: ScarEntry[] = [];
+    const handleScar = (scar: ScarEntry) => {
+      localScars.push(scar);
+      setScars(prev => [scar, ...prev]);
+    };
+
     let sourceId = inputType === 'URL' ? inputValue : inputType === 'SEARCH' ? `SEARCH_TOPIC:${inputValue}` : `SHA-256:${await hashContent(inputValue)}`;
     
     // Initialize Local Session Log (Critical for ensuring data passes to finalizeAndStore)
@@ -189,7 +202,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
     try {
       // 1. DISCOVERY PHASE
       setCouncilStep('DISCOVERY');
-      const members: CouncilMemberType[] = ['PLANNER', 'SECURITY', 'STYLE', 'PERFORMANCE', 'SOVEREIGN'];
+      const members: CouncilMemberType[] = ['STRATEGIST', 'IMMUNOLOGIST', 'LINGUIST', 'ENGINEER', 'HISTORIAN'];
       
       const discoveryPromises = members.map(m => councilDiscovery(inputValue, m));
       const discoveryResults = await Promise.all(discoveryPromises);
@@ -203,7 +216,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
 
       // 2. SYNTHESIS PHASE
       setCouncilStep('SYNTHESIS');
-      const synthesisResult = await councilSynthesis(inputValue, discoveries, agentName);
+      const synthesisResult = await councilSynthesis(inputValue, discoveries, agentName, handleScar);
       accumulatedUsage = sumUsage(accumulatedUsage, synthesisResult.usage);
       const draftManifest = synthesisResult.data;
       
@@ -225,7 +238,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
 
       // 4. FINALIZATION PHASE
       setCouncilStep('FINALIZATION');
-      const finalResult = await councilFinalize(draftManifest, critiques);
+      const finalResult = await councilFinalize(draftManifest, critiques, handleScar);
       accumulatedUsage = sumUsage(accumulatedUsage, finalResult.usage);
       const finalManifest = finalResult.data;
 
@@ -234,7 +247,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       accumulatedUsage = sumUsage(accumulatedUsage, analysisResult.usage);
 
       // Pass the fully constructed local log to storage
-      await finalizeAndStore(finalManifest, sourceId, inputValue, accumulatedUsage, analysisResult.data, currentSessionLog);
+      await finalizeAndStore(finalManifest, sourceId, inputValue, accumulatedUsage, analysisResult.data, currentSessionLog, localScars);
 
     } catch (error: any) {
       handleError(error);
@@ -250,7 +263,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
 
   // Helper to determine member status text
   const getMemberStatus = (member: CouncilMemberType, step: string) => {
-    if (member === 'PLANNER') {
+    if (member === 'STRATEGIST') {
         if (step === 'SYNTHESIS') return 'SYNTHESIZING';
         if (step === 'FINALIZATION') return 'FINALIZING';
         return 'CHAIRING';
@@ -267,7 +280,8 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
     fabricationContext: string, 
     usage: TokenUsage,
     analysisData: any,
-    councilSession?: CouncilSessionLog
+    councilSession?: CouncilSessionLog,
+    localScars: ScarEntry[] = []
   ) => {
       const timestamp = Date.now();
       
@@ -276,6 +290,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
       // This ensures the signature represents the Identity, not the Fabrication History.
       const manifestPayload: SovereignAgentManifest = {
         ...baseManifest,
+        symbolicScarRegistry: localScars.length > 0 ? localScars : undefined,
         provenance: {
           details: {
             origin: inputType === 'URL' ? 'URL' : inputType === 'SEARCH' ? 'RESEARCH_TOPIC' : 'RAW_DOCUMENT',
@@ -453,11 +468,11 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
      let color = "text-zinc-500";
      
      switch(type) {
-       case 'PLANNER': Icon = Network; color = isActive ? "text-blue-400" : "text-zinc-600"; break;
-       case 'SECURITY': Icon = Shield; color = isActive ? "text-red-400" : "text-zinc-600"; break;
-       case 'STYLE': Icon = Palette; color = isActive ? "text-purple-400" : "text-zinc-600"; break;
-       case 'PERFORMANCE': Icon = Zap; color = isActive ? "text-yellow-400" : "text-zinc-600"; break;
-       case 'SOVEREIGN': Icon = Crown; color = isActive ? "text-sovereign" : "text-zinc-600"; break;
+       case 'STRATEGIST': Icon = Network; color = isActive ? "text-blue-400" : "text-zinc-600"; break;
+       case 'IMMUNOLOGIST': Icon = ShieldAlert; color = isActive ? "text-red-400" : "text-zinc-600"; break;
+       case 'LINGUIST': Icon = Feather; color = isActive ? "text-emerald-400" : "text-zinc-600"; break;
+       case 'ENGINEER': Icon = Cpu; color = isActive ? "text-amber-400" : "text-zinc-600"; break;
+       case 'HISTORIAN': Icon = History; color = isActive ? "text-purple-400" : "text-zinc-600"; break;
      }
 
      return (
@@ -603,11 +618,11 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
             {isLoading && mode === FabricationMode.COUNCIL && (
                <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
                   <div className="flex justify-center gap-8 mb-8">
-                     <CouncilMemberIcon type="PLANNER" isActive={true} status={getMemberStatus('PLANNER', councilStep)} />
-                     <CouncilMemberIcon type="SECURITY" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('SECURITY', councilStep)} />
-                     <CouncilMemberIcon type="STYLE" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('STYLE', councilStep)} />
-                     <CouncilMemberIcon type="PERFORMANCE" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('PERFORMANCE', councilStep)} />
-                     <CouncilMemberIcon type="SOVEREIGN" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('SOVEREIGN', councilStep)} />
+                     <CouncilMemberIcon type="STRATEGIST" isActive={true} status={getMemberStatus('STRATEGIST', councilStep)} />
+                     <CouncilMemberIcon type="IMMUNOLOGIST" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('IMMUNOLOGIST', councilStep)} />
+                     <CouncilMemberIcon type="LINGUIST" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('LINGUIST', councilStep)} />
+                     <CouncilMemberIcon type="ENGINEER" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('ENGINEER', councilStep)} />
+                     <CouncilMemberIcon type="HISTORIAN" isActive={councilStep === 'DISCOVERY' || councilStep === 'CRITIQUE'} status={getMemberStatus('HISTORIAN', councilStep)} />
                   </div>
                   
                   {/* Console Output */}
@@ -640,7 +655,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
                      )}
 
                      {councilStep === 'SYNTHESIS' && !councilLog?.synthesis && (
-                        <div className="text-yellow-500/50 animate-pulse mt-4">&gt;&gt;&gt; PLANNER IS SYNTHESIZING DRAFT...</div>
+                        <div className="text-yellow-500/50 animate-pulse mt-4">&gt;&gt;&gt; STRATEGIST IS SYNTHESIZING DRAFT...</div>
                      )}
 
                      {/* Critiques */}

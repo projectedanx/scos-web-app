@@ -404,26 +404,30 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
                      </div>
                      <p className="text-xs text-zinc-500 mb-3">Select Sovereign Agents from your Vault that are optimized for this prompt.</p>
                      
-                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                     <div className="flex flex-col gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                         {agents.map(agent => {
                            const isLinked = (editingPrompt.linkedAgentNames || []).includes(agent.identity.name);
                            return (
-                              <button
+                              <label
                                  key={agent.identity.name}
-                                 onClick={() => toggleAgentLink(agent.identity.name)}
-                                 className={`flex items-center justify-between px-3 py-2 rounded text-xs text-left border transition-all ${
+                                 className={`flex items-center gap-3 px-3 py-2 rounded text-xs text-left border transition-all cursor-pointer ${
                                     isLinked 
                                        ? 'bg-indigo-900/20 border-indigo-500/50 text-indigo-200' 
                                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
                                  }`}
                               >
-                                 <span className="truncate">{agent.identity.name}</span>
-                                 {isLinked && <Check className="w-3 h-3 text-indigo-400" />}
-                              </button>
+                                 <input
+                                    type="checkbox"
+                                    checked={isLinked}
+                                    onChange={() => toggleAgentLink(agent.identity.name)}
+                                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-zinc-900"
+                                 />
+                                 <span className="truncate flex-1">{agent.identity.name}</span>
+                              </label>
                            )
                         })}
                         {agents.length === 0 && (
-                           <div className="col-span-2 text-center py-2 text-xs text-zinc-600 italic">No agents in Vault to link.</div>
+                           <div className="text-center py-2 text-xs text-zinc-600 italic">No agents in Vault to link.</div>
                         )}
                      </div>
                   </div>

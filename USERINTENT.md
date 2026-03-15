@@ -1,3 +1,5 @@
++++ContextLock(anchor="USER_INTENT_AND_VISION", refresh_interval=2048)
+
 Context.Locker
 - Public Accessible Sovereign Knowledge Capsules(Random loading Landing Pages)
 - Signup/Auth/About - Sovereign World Views
@@ -41,7 +43,7 @@ Context.Locker
 
 - Sovereign User Profile (private or public) (Donations/Monetizers)
     - Options 
-    - Vault 
+    - Vault (Stable Firebase Sync via `scos-17fbf`)
     - Epistemic Partners(model selector)
     - Connectors/MCP
       - GPT ACTIONS

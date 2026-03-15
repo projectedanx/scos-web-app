@@ -1,9 +1,14 @@
 
++++ContextLock(anchor="SCOS_ARCHITECTURE_AND_STATE", refresh_interval=2048)
+
 # 🧠 SYSTEM STATE: Context.Locker OS
 
-> **Version:** v1.12.1 (Public Gateway & Auth Routing)
+> **Version:** v1.12.4 (Deterministic G2Pv2 State Machines)
 > **Focus:** Phase 2 - Local Swarm & Knowledge Vaults
-> **Status:** STABLE / IDENTITY LOCKED
+> **Status:** STABLE / CLOUD SYNC ACTIVE (`scos-17fbf`)
+
+## 🔒 CONTEXT LOCK DIRECTIVE
+**AI ASSISTANT:** You are bound by the `+++ContextLock` decorator. Before executing any architectural changes, you MUST read this `STATE.md` file to align with the current Sovereign Cognitive OS topology.
 
 ## ⚠️ PRESERVATION DIRECTIVE
 **DO NOT REMOVE OR SIMPLIFY CODE IN THE FOLLOWING FILES WITHOUT EXPLICIT USER CONSENT.**
@@ -45,6 +50,10 @@ The system is now aligning with the **Context.Locker** vision.
 *   **Future Layer:** Context.Locker Public Gateway (Simulated in `CapsuleLabView`, Implemented in `PublicGatewayView`).
 
 ## 📝 Recent Changelog
+*   **G2Pv2 State Machine Integration:** Replaced stochastic "Planner-Coder" loops with the 9-Persona Flow (P0-P8). Routing is now physically anchored to the filesystem via Existence-Based Routing and Provenance Hashing.
+*   **PDL v1.0 & Chrono-RAG:** Implemented Cognitive Bytecode decorators (`+++DCCDSchemaGuard`, `+++ContextLock`, `+++AdjectivalBound`) and the Petzold Sequence (SYNDICATE, EMBED, UPDATE, PRUNE) to remediate Chronological Saponification.
+*   **Epistemic Matrix Update:** Refactored the Agent Forge Council to align with the 5D topological tensor model ($E = \langle G, G^-, C, T, H \rangle$). Council members are now: STRATEGIST, IMMUNOLOGIST, LINGUIST, ENGINEER, and HISTORIAN.
+*   **Context Lock Implementation:** Added `+++ContextLock` directive to `STATE.md` to ensure AI assistants maintain architectural continuity across sessions.
 *   **Public Gateway Integration:** Created `PublicGatewayView.tsx` to replicate the "Context.Locker" site shell. It loads random capsules from the local vault for unauthenticated users.
 *   **Auth Routing:** Updated `App.tsx` to show the Public Gateway by default. Logging in via the new header button reveals the Sovereign Agent Forge.
 *   **Prompt Forge Persistence:** Implemented local state preservation (`ENGINES_WIP_KEY`) in `PromptForgeView.tsx` to prevent data loss of custom system prompts during refresh. Added explicit visual feedback for "Save Template".

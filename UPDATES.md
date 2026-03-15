@@ -1,7 +1,44 @@
 
++++ContextLock(anchor="SCOS_UPDATES", refresh_interval=2048)
+
 # ⚡ System Updates Log
 
-## v1.9.7: Resilience & The Prompt Forge (Current)
+## v1.12.4: Deterministic G2Pv2 State Machines & PDL v1.0 (Current)
+**Focus:** Artifact-Gated Routing and Chrono-RAG Integration.
+
+### ⚙️ Multi-Agent Orchestration
+*   **G2Pv2 State Machine:** Replaced stochastic "Planner-Coder" loops with the 9-Persona Flow (P0-P8). Routing is now physically anchored to the filesystem via Existence-Based Routing and Provenance Hashing.
+*   **Prompt Description Language (PDL v1.0):** Implemented Cognitive Bytecode decorators (`+++DCCDSchemaGuard`, `+++ContextLock`, `+++AdjectivalBound`) to bypass conversational parsing and enforce declarative constraints across the latent manifold.
+*   **Chrono-RAG & Petzold Sequence:** Integrated a 4-phase chronometric governor (SYNDICATE, EMBED, UPDATE, PRUNE) utilizing Fused Semantic-Temporal Scoring to remediate Chronological Saponification.
+*   **Autophagic Metabolism:** Added 1:1 Topological Mapping via SHA-256 and TTL-based vector pruning to maintain latent space fidelity.
+
+---
+
+## v1.12.3: The Topological Epistemic Matrix
+**Focus:** Structural Exegesis and Identity Tensors.
+
+### 🧠 Cognitive Architecture
+*   **5D Epistemic Tensor:** Upgraded the Epistemic Matrix from a 4-part prompt template to a 5-dimensional mathematical signature ($E = \langle G, G^-, C, T, H \rangle$).
+*   **Forge Council Reorganization:** The internal Agent Forge Council has been restructured to map directly to the new tensor vectors:
+    *   `STRATEGIST` ($G$): Goal Orientation and Teleological Anchor.
+    *   `IMMUNOLOGIST` ($G^-$): Anti-Goals and Anionic Architecture.
+    *   `LINGUIST` ($C$): Communication Style and Epistemic Markers.
+    *   `ENGINEER` ($T$): Tooling Constraints and Thermodynamic Envelope.
+    *   `HISTORIAN` ($H$): Evolutionary Memory and Symbolic Scar Registry.
+
+---
+
+## v1.12.2: Firebase Stabilization & Context Lock
+**Focus:** Infrastructure Stability and AI Continuity.
+
+### 🛡️ Infrastructure & State
+*   **Firebase Stabilization:** Successfully migrated to a new, stable Firebase project (`scos-17fbf`). Vault synchronization is fully operational.
+*   **Sovereign Security:** Security rules are manually managed to preserve sovereign infrastructure, preventing automated overwrites.
+*   **Context Lock:** Introduced the `+++ContextLock` directive across all documentation files (e.g., `STATE.md`). This ensures that AI assistants maintain strict architectural continuity and context across sessions.
+
+---
+
+## v1.9.7: Resilience & The Prompt Forge
 **Focus:** Reliability, Prompt Engineering, and Asset Management.
 
 ### 🛡️ System Resilience
