@@ -42,7 +42,12 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
 
   // Initialize Chat Engine with Context Awareness
   useEffect(() => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = (import.meta as any).env?.VITE_API_KEY ||
+                   (import.meta as any).env?.GEMINI_API_KEY ||
+                   (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
+                   (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
+
+    const ai = new GoogleGenAI({ apiKey });
     
     // Construct the System State Context
     const agentSummary = agents.map(a => `- ${a.identity.name} (${a.identity.designation}): ${a.identity.primeDirective}`).join('\n');
