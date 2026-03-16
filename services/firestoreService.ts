@@ -4,7 +4,9 @@ import {
   collection, 
   doc, 
   setDoc, 
-  deleteDoc, 
+  deleteDoc,
+  writeBatch,
+  writeBatch,
   onSnapshot, 
   query, 
   orderBy, 
@@ -208,4 +210,88 @@ export const syncProvenance = (uid: string, onUpdate: (data: ProvenanceIndexEntr
   }, (error) => {
     handleFirestoreError(error, OperationType.GET, `users/${uid}/provenance`);
   });
+};
+
+
+
+// --- BATCH OPERATIONS ---
+export const batchSaveAgentsToCloud = async (uid: string, agents: SovereignAgentManifest[]) => {
+  if (agents.length === 0) return;
+  const batch = writeBatch(db);
+  const collectionRef = getCollectionRef(uid, 'manifests');
+
+  agents.forEach(agent => {
+    const agentId = agent.identity.name.toLowerCase().replace(/\s+/g, '-');
+    batch.set(doc(collectionRef, agentId), agent);
+  });
+
+  try {
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/manifests/batch`);
+  }
+};
+
+export const batchSaveCapsulesToCloud = async (uid: string, capsules: ContextCapsule[]) => {
+  if (capsules.length === 0) return;
+  const batch = writeBatch(db);
+  const collectionRef = getCollectionRef(uid, 'capsules');
+
+  capsules.forEach(capsule => {
+    batch.set(doc(collectionRef, capsule.meta.id), capsule);
+  });
+
+  try {
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/capsules/batch`);
+  }
+};
+
+export const batchSavePromptsToCloud = async (uid: string, prompts: SovereignPrompt[]) => {
+  if (prompts.length === 0) return;
+  const batch = writeBatch(db);
+  const collectionRef = getCollectionRef(uid, 'prompts');
+
+  prompts.forEach(prompt => {
+    batch.set(doc(collectionRef, prompt.id), prompt);
+  });
+
+  try {
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/prompts/batch`);
+  }
+};
+
+export const batchSaveContractsToCloud = async (uid: string, contracts: CognitiveContract[]) => {
+  if (contracts.length === 0) return;
+  const batch = writeBatch(db);
+  const collectionRef = getCollectionRef(uid, 'contracts');
+
+  contracts.forEach(contract => {
+    batch.set(doc(collectionRef, contract.id), contract);
+  });
+
+  try {
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/contracts/batch`);
+  }
+};
+
+export const batchSaveProvenanceToCloud = async (uid: string, entries: ProvenanceIndexEntry[]) => {
+  if (entries.length === 0) return;
+  const batch = writeBatch(db);
+  const collectionRef = getCollectionRef(uid, 'provenance');
+
+  entries.forEach(entry => {
+    batch.set(doc(collectionRef, entry.hash), entry);
+  });
+
+  try {
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/provenance/batch`);
+  }
 };
