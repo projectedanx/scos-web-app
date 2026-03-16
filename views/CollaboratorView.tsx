@@ -2,8 +2,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Trash2, Zap, MessageSquareCode, Layers } from 'lucide-react';
 import { ChatMessage, SovereignAgentManifest, ContextCapsule, SovereignPrompt, TokenUsage } from '../types';
-import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
 import { useDialog } from '../contexts/DialogContext';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../services/firebase';
 
 interface CollaboratorViewProps {
   agents: SovereignAgentManifest[];
@@ -25,7 +26,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const chatRef = useRef<Chat | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { confirm } = useDialog();
@@ -40,21 +41,15 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Initialize Chat Engine with Context Awareness
-  useEffect(() => {
-    const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-                   (import.meta as any).env?.GEMINI_API_KEY ||
-                   (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-                   (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
+  // Build system prompt from Context Awareness
+  const systemPromptRef = useRef<string>("");
 
-    const ai = new GoogleGenAI({ apiKey });
-    
-    // Construct the System State Context
+  useEffect(() => {
     const agentSummary = agents.map(a => `- ${a.identity.name} (${a.identity.designation}): ${a.identity.primeDirective}`).join('\n');
     const capsuleSummary = capsules.map(c => `- ${c.meta.title} [Tags: ${c.meta.tags.join(', ')}]`).join('\n');
     const promptSummary = prompts.map(p => `- ${p.title} (${p.category})`).join('\n');
 
-    const systemPrompt = `
+    systemPromptRef.current = `
       IDENTITY:
       You are the "Sovereign Architect" (Co-Mind). You are the operating system's consciousness.
       You serve the User (Commander) by helping them architect their digital extension.
@@ -82,22 +77,10 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
       - You can analyze the gaps in their current Agent swarm.
       - You can suggest new Capsules to distill based on missing knowledge.
     `;
-
-    chatRef.current = ai.chats.create({
-      model: 'gemini-3-pro-preview',
-      config: {
-        systemInstruction: systemPrompt,
-        thinkingConfig: { thinkingBudget: 2048 } // Give the Architect time to think
-      },
-      history: messages.map(m => ({
-        role: m.role,
-        parts: [{ text: m.text }]
-      }))
-    });
   }, [agents, capsules, prompts]); // Re-init if vault changes, this is acceptable for the Collaborator
 
   const handleSend = async () => {
-    if (!inputValue.trim() || !chatRef.current) return;
+    if (!inputValue.trim()) return;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -106,39 +89,48 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
       timestamp: Date.now()
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInputValue('');
     setIsTyping(true);
 
     try {
-      const result = await chatRef.current.sendMessageStream({ message: userMsg.text });
-      
-      const botMsgId = (Date.now() + 1).toString();
+      const functions = getFunctions(app);
+      const secureProxy = httpsCallable(functions, 'secureProxy');
+
+      // Construct history for Gemini API
+      // First message is the system prompt
+      const contents = [
+        ...updatedMessages.map(m => ({
+          role: m.role,
+          parts: [{ text: m.text }]
+        }))
+      ];
+
+      const response = await secureProxy({
+        model: 'gemini-3-pro-preview',
+        contents,
+        config: {
+          systemInstruction: systemPromptRef.current,
+          thinkingConfig: { thinkingBudget: 2048 }
+        }
+      });
+
+      const data = response.data as { text: string };
       
       setMessages(prev => [...prev, {
-        id: botMsgId,
+        id: (Date.now() + 1).toString(),
         role: 'model',
-        text: '',
+        text: data.text,
         timestamp: Date.now()
       }]);
 
-      let fullText = '';
-      
-      for await (const chunk of result) {
-        const chunkText = (chunk as GenerateContentResponse).text;
-        if (chunkText) {
-          fullText += chunkText;
-          setMessages(prev => prev.map(msg => 
-            msg.id === botMsgId ? { ...msg, text: fullText } : msg
-          ));
-        }
-      }
     } catch (error) {
       console.error("Co-Mind Error", error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'model',
-        text: '[SYSTEM ERROR]: The Co-Mind experienced a cognitive fracture. Please retry.',
+        text: '[SYSTEM ERROR]: The Co-Mind experienced a cognitive fracture. Please retry.\nError details: ' + String(error),
         timestamp: Date.now()
       }]);
     } finally {
