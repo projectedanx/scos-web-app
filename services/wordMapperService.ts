@@ -4,7 +4,12 @@ import { SemanticNode } from "../views/WordMapperView";
 import { TokenUsage } from "../types";
 import { executeWithRetry } from "./retryService";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = (import.meta as any).env?.VITE_API_KEY ||
+               (import.meta as any).env?.GEMINI_API_KEY ||
+               (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
+               (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
+
+const ai = new GoogleGenAI({ apiKey });
 
 // --- External API Types ---
 

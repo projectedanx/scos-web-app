@@ -5,7 +5,11 @@ import { executeWithRetry } from "./retryService";
 
 // Initialize the Epistemic Engine
 // FIX: Support both Vite (import.meta.env) and standard process.env
-const apiKey = (import.meta as any).env?.VITE_API_KEY || process.env.API_KEY;
+const apiKey = (import.meta as any).env?.VITE_API_KEY ||
+               (import.meta as any).env?.GEMINI_API_KEY ||
+               (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
+               (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
+
 if (!apiKey) {
   console.error("CRITICAL: GEMINI API KEY MISSING. AI FEATURES WILL FAIL.");
 }
