@@ -9,7 +9,7 @@ import { SovereignAgentManifest } from '../types';
 export interface ConductorToolDefinition {
   name: string;
   description: string;
-  parameters: any; // OpenAPI JSON Schema
+  parameters: Record<string, unknown>; // OpenAPI JSON Schema
 }
 
 export interface ConductorSkillManifest {
@@ -26,12 +26,12 @@ export interface ConductorSkillManifest {
 
 /**
  * Parses the stringified JSON schema from the manifest into an object.
- * Returns a default 'any' schema if parsing fails.
+ * Returns a default 'Record<string, unknown>' schema if parsing fails.
  */
-const safeParseSchema = (schemaStr: string): any => {
+const safeParseSchema = (schemaStr: string): Record<string, unknown> => {
   try {
-    return JSON.parse(schemaStr);
-  } catch (e) {
+    return JSON.parse(schemaStr) as Record<string, unknown>;
+  } catch (error: unknown) {
     return { type: "object", properties: {}, description: "Schema parsing failed." };
   }
 };
@@ -61,7 +61,7 @@ export const validateConductorSchema = (agent: SovereignAgentManifest): { valid:
       } else if (schema.type && schema.type !== "object") {
          errors.push(`Tool '${tool.name}' inputSchema must be of type "object".`);
       }
-    } catch (e) {
+    } catch (error: unknown) {
       errors.push(`Tool '${tool.name}' has invalid JSON in inputSchema.`);
     }
   });
