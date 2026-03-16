@@ -319,19 +319,26 @@ function App() {
      }
 
      if (newAgents.length > 0) {
-        // Update Local State
-        setVault(prevVault => {
-          const existingNames = new Set(prevVault.map(a => a.identity.name));
-          const uniqueNewAgents = newAgents.filter(a => !existingNames.has(a.identity.name));
-          // Push to cloud if logged in
-          if (user) {
-             uniqueNewAgents.forEach(a => saveAgentToCloud(user.uid, a));
-          } else {
-             // Local persist
-             localStorage.setItem('sovereign_vault_agents', JSON.stringify([...prevVault, ...uniqueNewAgents]));
-          }
-          return [...prevVault, ...uniqueNewAgents];
-        });
+        // Calculate unique new agents outside state updater
+        const existingNames = new Set(vault.map(a => a.identity.name));
+        const uniqueNewAgents = newAgents.filter(a => !existingNames.has(a.identity.name));
+
+        if (uniqueNewAgents.length > 0) {
+           // Update Local State
+           setVault(prev => [...prev, ...uniqueNewAgents]);
+
+           // Persistent side effects (Cloud or Local)
+           if (user) {
+              // Push to cloud if logged in (Batch)
+              Promise.all(uniqueNewAgents.map(a => saveAgentToCloud(user.uid, a))).catch(err => {
+                 console.error("Failed to batch save agents to cloud:", err);
+              });
+           } else {
+              // Local persist
+              const updatedVault = [...vault, ...uniqueNewAgents];
+              localStorage.setItem('sovereign_vault_agents', JSON.stringify(updatedVault));
+           }
+        }
         
         setScars(prev => [{
            timestamp: Date.now(),
@@ -372,45 +379,51 @@ function App() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
         if (!data.metadata || !Array.isArray(data.agents)) throw new Error("Invalid Vault");
         
+        const operations: Promise<void>[] = [];
+
         // 1. Agents
         const newAgents = (data.agents as SovereignAgentManifest[]).filter(
             a => !vault.some(p => p.identity.name === a.identity.name)
         );
         setVault(prev => [...prev, ...newAgents]);
-        if(user) newAgents.forEach(a => saveAgentToCloud(user.uid, a));
+        if(user) operations.push(...newAgents.map(a => saveAgentToCloud(user.uid, a)));
 
         // 2. Capsules
         const newCapsules = (data.capsules as ContextCapsule[] || []).filter(
             c => !capsules.some(p => p.meta.id === c.meta.id)
         );
         setCapsules(prev => [...prev, ...newCapsules]);
-        if(user) newCapsules.forEach(c => saveCapsuleToCloud(user.uid, c));
+        if(user) operations.push(...newCapsules.map(c => saveCapsuleToCloud(user.uid, c)));
 
         // 3. Prompts
         const newPrompts = (data.prompts as SovereignPrompt[] || []).filter(
             p => !prompts.some(prev => prev.id === p.id)
         );
         setPrompts(prev => [...prev, ...newPrompts]);
-        if(user) newPrompts.forEach(p => savePromptToCloud(user.uid, p));
+        if(user) operations.push(...newPrompts.map(p => savePromptToCloud(user.uid, p)));
 
         // 4. Contracts
         const newContracts = (data.contracts as CognitiveContract[] || []).filter(
             c => !contracts.some(prev => prev.id === c.id)
         );
         setContracts(prev => [...prev, ...newContracts]);
-        if(user) newContracts.forEach(c => saveContractToCloud(user.uid, c));
+        if(user) operations.push(...newContracts.map(c => saveContractToCloud(user.uid, c)));
 
         // 5. Provenance Index
         const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] || []).filter(
             entry => !provenanceIndex.some(prev => prev.hash === entry.hash)
         );
         setProvenanceIndex(prev => [...prev, ...newProvenance]);
-        if(user) newProvenance.forEach(entry => saveProvenanceToCloud(user.uid, entry));
+        if(user) operations.push(...newProvenance.map(entry => saveProvenanceToCloud(user.uid, entry)));
+
+        if (operations.length > 0) {
+           await Promise.all(operations);
+        }
 
         addToast(`Vault Imported Successfully.\nAgents: ${newAgents.length}\nCapsules: ${newCapsules.length}\nProvenance: ${newProvenance.length}`, 'success');
 
