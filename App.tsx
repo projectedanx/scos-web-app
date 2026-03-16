@@ -113,7 +113,51 @@ const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest
   };
 };
 
+
+const isValidVault = (data: any): data is SovereignVault => {
+  if (!data || typeof data !== 'object') return false;
+
+  if (!data.metadata || typeof data.metadata !== 'object') return false;
+
+  if (!Array.isArray(data.agents)) return false;
+  for (const agent of data.agents) {
+    if (!agent || typeof agent !== 'object') return false;
+    if (!agent.identity || typeof agent.identity !== 'object' || typeof agent.identity.name !== 'string') return false;
+  }
+
+  if (data.capsules !== undefined) {
+    if (!Array.isArray(data.capsules)) return false;
+    for (const capsule of data.capsules) {
+      if (!capsule || typeof capsule !== 'object' || !capsule.meta || typeof capsule.meta.id !== 'string') return false;
+    }
+  }
+
+  if ((data as any).prompts !== undefined) {
+    if (!Array.isArray((data as any).prompts)) return false;
+    for (const prompt of (data as any).prompts) {
+      if (!prompt || typeof prompt !== 'object' || typeof prompt.id !== 'string') return false;
+    }
+  }
+
+  if (data.contracts !== undefined) {
+    if (!Array.isArray(data.contracts)) return false;
+    for (const contract of data.contracts) {
+      if (!contract || typeof contract !== 'object' || typeof contract.id !== 'string') return false;
+    }
+  }
+
+  if (data.provenanceIndex !== undefined) {
+    if (!Array.isArray(data.provenanceIndex)) return false;
+    for (const entry of data.provenanceIndex) {
+      if (!entry || typeof entry !== 'object' || typeof entry.hash !== 'string') return false;
+    }
+  }
+
+  return true;
+};
+
 function App() {
+
   const { addToast } = useToast();
   const { confirm, prompt } = useDialog();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.DASHBOARD); 
@@ -382,40 +426,42 @@ function App() {
     reader.onload = async (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
-        if (!data.metadata || !Array.isArray(data.agents)) throw new Error("Invalid Vault");
+        if (!isValidVault(data)) {
+            throw new Error("Invalid Vault Schema: The imported file does not match the SovereignVault structure or contains malformed data.");
+        }
         
         const operations: Promise<void>[] = [];
 
         // 1. Agents
-        const newAgents = (data.agents as SovereignAgentManifest[]).filter(
+        const newAgents = data.agents.filter(
             a => !vault.some(p => p.identity.name === a.identity.name)
         );
         setVault(prev => [...prev, ...newAgents]);
         if(user) operations.push(...newAgents.map(a => saveAgentToCloud(user.uid, a)));
 
         // 2. Capsules
-        const newCapsules = (data.capsules as ContextCapsule[] || []).filter(
+        const newCapsules = (data.capsules || []).filter(
             c => !capsules.some(p => p.meta.id === c.meta.id)
         );
         setCapsules(prev => [...prev, ...newCapsules]);
         if(user) operations.push(...newCapsules.map(c => saveCapsuleToCloud(user.uid, c)));
 
         // 3. Prompts
-        const newPrompts = (data.prompts as SovereignPrompt[] || []).filter(
+        const newPrompts = ((data as any).prompts || []).filter(
             p => !prompts.some(prev => prev.id === p.id)
         );
         setPrompts(prev => [...prev, ...newPrompts]);
         if(user) operations.push(...newPrompts.map(p => savePromptToCloud(user.uid, p)));
 
         // 4. Contracts
-        const newContracts = (data.contracts as CognitiveContract[] || []).filter(
+        const newContracts = (data.contracts || []).filter(
             c => !contracts.some(prev => prev.id === c.id)
         );
         setContracts(prev => [...prev, ...newContracts]);
         if(user) operations.push(...newContracts.map(c => saveContractToCloud(user.uid, c)));
 
         // 5. Provenance Index
-        const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] || []).filter(
+        const newProvenance = (data.provenanceIndex || []).filter(
             entry => !provenanceIndex.some(prev => prev.hash === entry.hash)
         );
         setProvenanceIndex(prev => [...prev, ...newProvenance]);
