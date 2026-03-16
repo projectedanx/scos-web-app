@@ -116,7 +116,7 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
     """
     # TODO: Implement logic for ${tool.name}
     # Security Check: Ensure params match schema
-    return "Executed ${tool.name}"
+    raise NotImplementedError(f"Tool '${tool.name}' logic must be implemented.")
 `;
   }).join('\n');
 
