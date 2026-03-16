@@ -4,6 +4,7 @@ import {
   collection, 
   doc, 
   setDoc, 
+  writeBatch,
   deleteDoc, 
   onSnapshot, 
   query, 
@@ -77,6 +78,36 @@ const USERS_COLLECTION = 'users';
 const getUserRef = (uid: string) => doc(db, USERS_COLLECTION, uid);
 const getCollectionRef = (uid: string, sub: string) => collection(db, USERS_COLLECTION, uid, sub);
 
+export const saveItemsToCloudBatch = async <T extends { id?: string }>(
+  uid: string,
+  collectionName: string,
+  items: T[],
+  getId: (item: T) => string
+) => {
+  if (items.length === 0) return;
+
+  try {
+    // Firestore limit is 500 writes per batch
+    const CHUNK_SIZE = 500;
+    for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+      const chunk = items.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      const colRef = getCollectionRef(uid, collectionName);
+
+      chunk.forEach(item => {
+        const id = getId(item);
+        const docRef = doc(colRef, id);
+        batch.set(docRef, item);
+      });
+
+      await batch.commit();
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/${collectionName}/batch`);
+  }
+};
+
+
 // --- AGENTS ---
 export const syncAgents = (uid: string, onUpdate: (data: SovereignAgentManifest[]) => void) => {
   const q = query(getCollectionRef(uid, 'manifests'));
@@ -86,6 +117,10 @@ export const syncAgents = (uid: string, onUpdate: (data: SovereignAgentManifest[
   }, (error) => {
     handleFirestoreError(error, OperationType.GET, `users/${uid}/manifests`);
   });
+};
+
+export const saveAgentsToCloudBatch = async (uid: string, agents: SovereignAgentManifest[]) => {
+  await saveItemsToCloudBatch(uid, 'manifests', agents, a => a.identity.name.toLowerCase().replace(/\s+/g, '-'));
 };
 
 export const saveAgentToCloud = async (uid: string, agent: SovereignAgentManifest) => {
@@ -118,6 +153,10 @@ export const syncCapsules = (uid: string, onUpdate: (data: ContextCapsule[]) => 
   });
 };
 
+export const saveCapsulesToCloudBatch = async (uid: string, capsules: ContextCapsule[]) => {
+  await saveItemsToCloudBatch(uid, 'capsules', capsules, c => c.meta.id);
+};
+
 export const saveCapsuleToCloud = async (uid: string, capsule: ContextCapsule) => {
   try {
     await setDoc(doc(getCollectionRef(uid, 'capsules'), capsule.meta.id), capsule);
@@ -143,6 +182,10 @@ export const syncPrompts = (uid: string, onUpdate: (data: SovereignPrompt[]) => 
   }, (error) => {
     handleFirestoreError(error, OperationType.GET, `users/${uid}/prompts`);
   });
+};
+
+export const savePromptsToCloudBatch = async (uid: string, prompts: SovereignPrompt[]) => {
+  await saveItemsToCloudBatch(uid, 'prompts', prompts, p => p.id);
 };
 
 export const savePromptToCloud = async (uid: string, prompt: SovereignPrompt) => {
@@ -172,6 +215,10 @@ export const syncContracts = (uid: string, onUpdate: (data: CognitiveContract[])
   });
 };
 
+export const saveContractsToCloudBatch = async (uid: string, contracts: CognitiveContract[]) => {
+  await saveItemsToCloudBatch(uid, 'contracts', contracts, c => c.id);
+};
+
 export const saveContractToCloud = async (uid: string, contract: CognitiveContract) => {
   try {
     await setDoc(doc(getCollectionRef(uid, 'contracts'), contract.id), contract);
@@ -189,6 +236,10 @@ export const deleteContractFromCloud = async (uid: string, contractId: string) =
 };
 
 // --- PROVENANCE ---
+export const saveProvenanceToCloudBatch = async (uid: string, entries: ProvenanceIndexEntry[]) => {
+  await saveItemsToCloudBatch(uid, 'provenance', entries, e => `${e.timestamp}-${e.hash.substring(0,8)}`);
+};
+
 export const saveProvenanceToCloud = async (uid: string, entry: ProvenanceIndexEntry) => {
   // We use a separate subcollection for the provenance log
   const id = `${entry.timestamp}-${entry.hash.substring(0,8)}`;

@@ -26,10 +26,15 @@ import {
   syncContracts, 
   syncProvenance,
   saveAgentToCloud,
+  saveAgentsToCloudBatch,
   saveCapsuleToCloud,
+  saveCapsulesToCloudBatch,
   savePromptToCloud,
+  savePromptsToCloudBatch,
   saveContractToCloud,
+  saveContractsToCloudBatch,
   saveProvenanceToCloud,
+  saveProvenanceToCloudBatch,
   deleteAgentFromCloud,
   deleteCapsuleFromCloud,
   deletePromptFromCloud,
@@ -330,7 +335,7 @@ function App() {
            // Persistent side effects (Cloud or Local)
            if (user) {
               // Push to cloud if logged in (Batch)
-              Promise.all(uniqueNewAgents.map(a => saveAgentToCloud(user.uid, a))).catch(err => {
+              saveAgentsToCloudBatch(user.uid, uniqueNewAgents).catch(err => {
                  console.error("Failed to batch save agents to cloud:", err);
               });
            } else {
@@ -391,35 +396,35 @@ function App() {
             a => !vault.some(p => p.identity.name === a.identity.name)
         );
         setVault(prev => [...prev, ...newAgents]);
-        if(user) operations.push(...newAgents.map(a => saveAgentToCloud(user.uid, a)));
+        if(user && newAgents.length > 0) operations.push(saveAgentsToCloudBatch(user.uid, newAgents));
 
         // 2. Capsules
         const newCapsules = (data.capsules as ContextCapsule[] || []).filter(
             c => !capsules.some(p => p.meta.id === c.meta.id)
         );
         setCapsules(prev => [...prev, ...newCapsules]);
-        if(user) operations.push(...newCapsules.map(c => saveCapsuleToCloud(user.uid, c)));
+        if(user && newCapsules.length > 0) operations.push(saveCapsulesToCloudBatch(user.uid, newCapsules));
 
         // 3. Prompts
         const newPrompts = (data.prompts as SovereignPrompt[] || []).filter(
             p => !prompts.some(prev => prev.id === p.id)
         );
         setPrompts(prev => [...prev, ...newPrompts]);
-        if(user) operations.push(...newPrompts.map(p => savePromptToCloud(user.uid, p)));
+        if(user && newPrompts.length > 0) operations.push(savePromptsToCloudBatch(user.uid, newPrompts));
 
         // 4. Contracts
         const newContracts = (data.contracts as CognitiveContract[] || []).filter(
             c => !contracts.some(prev => prev.id === c.id)
         );
         setContracts(prev => [...prev, ...newContracts]);
-        if(user) operations.push(...newContracts.map(c => saveContractToCloud(user.uid, c)));
+        if(user && newContracts.length > 0) operations.push(saveContractsToCloudBatch(user.uid, newContracts));
 
         // 5. Provenance Index
         const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] || []).filter(
             entry => !provenanceIndex.some(prev => prev.hash === entry.hash)
         );
         setProvenanceIndex(prev => [...prev, ...newProvenance]);
-        if(user) operations.push(...newProvenance.map(entry => saveProvenanceToCloud(user.uid, entry)));
+        if(user && newProvenance.length > 0) operations.push(saveProvenanceToCloudBatch(user.uid, newProvenance));
 
         if (operations.length > 0) {
            await Promise.all(operations);
