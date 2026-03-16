@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 
 // --- FIREBASE CONFIGURATION ---
 // 1. Go to console.firebase.google.com
@@ -24,6 +25,7 @@ const app = initializeApp(firebaseConfig);
 // Export Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const functions = getFunctions(app);
 
 // Helper to check if config is missing (Offline Mode)
 export const isFirebaseConfigured = () => {
