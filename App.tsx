@@ -386,37 +386,44 @@ function App() {
         
         const operations: Promise<void>[] = [];
 
+        // Create Sets for O(1) lookups
+        const existingAgentNames = new Set(vault.map(p => p.identity.name));
+        const existingCapsuleIds = new Set(capsules.map(p => p.meta.id));
+        const existingPromptIds = new Set(prompts.map(prev => prev.id));
+        const existingContractIds = new Set(contracts.map(prev => prev.id));
+        const existingProvenanceHashes = new Set(provenanceIndex.map(prev => prev.hash));
+
         // 1. Agents
         const newAgents = (data.agents as SovereignAgentManifest[]).filter(
-            a => !vault.some(p => p.identity.name === a.identity.name)
+            a => !existingAgentNames.has(a.identity.name)
         );
         setVault(prev => [...prev, ...newAgents]);
         if(user) operations.push(...newAgents.map(a => saveAgentToCloud(user.uid, a)));
 
         // 2. Capsules
         const newCapsules = (data.capsules as ContextCapsule[] || []).filter(
-            c => !capsules.some(p => p.meta.id === c.meta.id)
+            c => !existingCapsuleIds.has(c.meta.id)
         );
         setCapsules(prev => [...prev, ...newCapsules]);
         if(user) operations.push(...newCapsules.map(c => saveCapsuleToCloud(user.uid, c)));
 
         // 3. Prompts
         const newPrompts = (data.prompts as SovereignPrompt[] || []).filter(
-            p => !prompts.some(prev => prev.id === p.id)
+            p => !existingPromptIds.has(p.id)
         );
         setPrompts(prev => [...prev, ...newPrompts]);
         if(user) operations.push(...newPrompts.map(p => savePromptToCloud(user.uid, p)));
 
         // 4. Contracts
         const newContracts = (data.contracts as CognitiveContract[] || []).filter(
-            c => !contracts.some(prev => prev.id === c.id)
+            c => !existingContractIds.has(c.id)
         );
         setContracts(prev => [...prev, ...newContracts]);
         if(user) operations.push(...newContracts.map(c => saveContractToCloud(user.uid, c)));
 
         // 5. Provenance Index
         const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] || []).filter(
-            entry => !provenanceIndex.some(prev => prev.hash === entry.hash)
+            entry => !existingProvenanceHashes.has(entry.hash)
         );
         setProvenanceIndex(prev => [...prev, ...newProvenance]);
         if(user) operations.push(...newProvenance.map(entry => saveProvenanceToCloud(user.uid, entry)));
