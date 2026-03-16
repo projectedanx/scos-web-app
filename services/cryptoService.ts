@@ -69,7 +69,7 @@ export const hashContent = async (content: string): Promise<string> => {
  * 2. Signs with Private Key
  * 3. Returns Hex Signature
  */
-export const signData = async (data: any, privateKeyJwk: JsonWebKey): Promise<string> => {
+export const signData = async (data: Record<string, unknown>, privateKeyJwk: JsonWebKey): Promise<string> => {
   // Import Private Key
   const privateKey = await window.crypto.subtle.importKey(
     "jwk",
@@ -97,7 +97,7 @@ export const signData = async (data: any, privateKeyJwk: JsonWebKey): Promise<st
 /**
  * Verifies a Signature
  */
-export const verifySignature = async (data: any, signatureHex: string, publicKeyJwk: JsonWebKey): Promise<boolean> => {
+export const verifySignature = async (data: Record<string, unknown>, signatureHex: string, publicKeyJwk: JsonWebKey): Promise<boolean> => {
   try {
     const publicKey = await window.crypto.subtle.importKey(
       "jwk",
