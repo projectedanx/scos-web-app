@@ -1,5 +1,5 @@
 
-import { ContextCapsule } from '../types';
+import { ContextCapsule, CapsuleMeta } from '../types';
 
 /**
  * Escape HTML special characters
@@ -359,8 +359,8 @@ function renderChecklist(sec: any): string {
  * Main compilation function
  */
 export function compileCapsuleHtml(capsule: ContextCapsule): string {
-  const meta = capsule?.meta || ({} as any);
-  const sections = capsule?.sections || ({} as any);
+  const meta = capsule?.meta || ({} as Partial<CapsuleMeta>);
+  const sections = capsule?.sections || ({} as Partial<ContextCapsule['sections']>);
 
   const tags = (meta.tags || []).slice(0, 8);
 
