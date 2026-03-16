@@ -19,6 +19,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useToast } from './contexts/ToastContext';
 import { useDialog } from './contexts/DialogContext';
 import { MapStrategy } from './services/wordMapperService';
+import { z } from 'zod';
 import { 
   syncAgents, 
   syncCapsules, 
@@ -35,6 +36,22 @@ import {
   deletePromptFromCloud,
   deleteContractFromCloud
 } from './services/firestoreService';
+
+
+// --- Validation Schemas ---
+const legacyAgentSchema = z.object({
+  identity: z.any().optional(),
+  name: z.string().optional(),
+  tools: z.array(z.any()).optional()
+}).passthrough();
+
+const vaultImportSchema = z.object({
+  metadata: z.any(),
+  agents: z.array(z.any()),
+  capsules: z.array(z.any()).optional(),
+  prompts: z.array(z.any()).optional(),
+  contracts: z.array(z.any()).optional()
+}).passthrough();
 
 // --- Legacy Migration Utility (Preserved) ---
 const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest => {
@@ -306,10 +323,26 @@ function App() {
 
         try {
            const text = await file.text();
-           const json = JSON.parse(text);
+           let json;
+           try {
+             json = JSON.parse(text);
+           } catch (parseError) {
+             console.warn(`Failed to parse JSON in ${file.name}`, parseError);
+             errorCount++;
+             continue;
+           }
+
+           const parseResult = legacyAgentSchema.safeParse(json);
+           if (!parseResult.success) {
+               console.warn(`Invalid agent schema in ${file.name}`, parseResult.error);
+               errorCount++;
+               continue;
+           }
+
+           const validData = parseResult.data;
            
-           if (json.identity || json.name || json.tools) {
-               const migrated = migrateLegacyAgent(json, file.name);
+           if (validData.identity || validData.name || validData.tools) {
+               const migrated = migrateLegacyAgent(validData, file.name);
                newAgents.push(migrated);
            }
         } catch (e) {
@@ -381,8 +414,15 @@ function App() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        const data = JSON.parse(event.target?.result as string);
-        if (!data.metadata || !Array.isArray(data.agents)) throw new Error("Invalid Vault");
+        const rawData = JSON.parse(event.target?.result as string);
+        const parseResult = vaultImportSchema.safeParse(rawData);
+
+        if (!parseResult.success) {
+            throw new Error(`Invalid Vault Schema`);
+        }
+
+        const data = parseResult.data;
+        if (!data.metadata || !Array.isArray(data.agents)) throw new Error("Invalid Vault Structure");
         
         const operations: Promise<void>[] = [];
 
