@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft, Loader2 } from 'lucide-react';
 import { ChatMessage } from '../types';
-import { createDiscoveryChat } from '../services/geminiService';
-import { GenerateContentResponse, Chat } from "@google/genai";
+import { createDiscoveryChat, ProxyChat } from '../services/geminiService';
+import { GenerateContentResponse } from "@google/genai";
 
 interface ChatInterfaceProps {
   context: string;
@@ -14,7 +14,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ context, useSearch
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const chatRef = useRef<Chat | null>(null);
+  const chatRef = useRef<ProxyChat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

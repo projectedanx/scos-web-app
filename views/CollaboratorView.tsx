@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Trash2, Zap, MessageSquareCode, Layers } from 'lucide-react';
 import { ChatMessage, SovereignAgentManifest, ContextCapsule, SovereignPrompt, TokenUsage } from '../types';
-import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
+import { GenerateContentResponse } from "@google/genai";
+import { ProxyChat, createCollaboratorChat } from "../services/geminiService";
 import { useDialog } from '../contexts/DialogContext';
 
 interface CollaboratorViewProps {
@@ -25,7 +26,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const chatRef = useRef<Chat | null>(null);
+  const chatRef = useRef<ProxyChat | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { confirm } = useDialog();
@@ -42,12 +43,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
 
   // Initialize Chat Engine with Context Awareness
   useEffect(() => {
-    const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-                   (import.meta as any).env?.GEMINI_API_KEY ||
-                   (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-                   (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
 
-    const ai = new GoogleGenAI({ apiKey });
     
     // Construct the System State Context
     const agentSummary = agents.map(a => `- ${a.identity.name} (${a.identity.designation}): ${a.identity.primeDirective}`).join('\n');
@@ -83,17 +79,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
       - You can suggest new Capsules to distill based on missing knowledge.
     `;
 
-    chatRef.current = ai.chats.create({
-      model: 'gemini-3-pro-preview',
-      config: {
-        systemInstruction: systemPrompt,
-        thinkingConfig: { thinkingBudget: 2048 } // Give the Architect time to think
-      },
-      history: messages.map(m => ({
-        role: m.role,
-        parts: [{ text: m.text }]
-      }))
-    });
+    chatRef.current = createCollaboratorChat(systemPrompt, messages);
   }, [agents, capsules, prompts]); // Re-init if vault changes, this is acceptable for the Collaborator
 
   const handleSend = async () => {

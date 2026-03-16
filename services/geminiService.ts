@@ -1,19 +1,54 @@
 
-import { GoogleGenAI, Type, Schema, Chat, GenerateContentResponse } from "@google/genai";
+import { Type, Schema, GenerateContentResponse } from "@google/genai";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "./firebase";
 import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, CouncilSessionLog, ScarEntry } from "../types";
 import { executeWithRetry } from "./retryService";
 
-// Initialize the Epistemic Engine
-// FIX: Support both Vite (import.meta.env) and standard process.env
-const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-               (import.meta as any).env?.GEMINI_API_KEY ||
-               (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-               (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
 
-if (!apiKey) {
-  console.error("CRITICAL: GEMINI API KEY MISSING. AI FEATURES WILL FAIL.");
+export const generateContentProxy = async (params: any): Promise<GenerateContentResponse> => {
+  const proxy = httpsCallable<any, GenerateContentResponse>(functions, 'secureProxy');
+  const result = await proxy(params);
+  return result.data;
+};
+
+// Interface for mock chat to work with existing views
+export interface ProxyChat {
+  sendMessageStream: (params: { message: string }) => AsyncGenerator<GenerateContentResponse, void, unknown>;
 }
-const ai = new GoogleGenAI({ apiKey });
+
+class DiscoveryChatImpl implements ProxyChat {
+  public history: any[] = [];
+
+  constructor(private modelId: string, private config: any) {}
+
+  async *sendMessageStream(params: { message: string }): AsyncGenerator<GenerateContentResponse, void, unknown> {
+    this.history.push({ role: 'user', parts: [{ text: params.message }] });
+
+    const contents = this.history.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: msg.parts
+    }));
+
+    const response = await generateContentProxy({
+      model: this.modelId,
+      contents: contents,
+      config: this.config
+    });
+
+    this.history.push({ role: 'model', parts: [{ text: response.text }] });
+    // Fake streaming for proxy since Cloud Functions doesn't stream by default
+    if (response.text) {
+      const chunks = response.text.match(/.{1,20}/g) || [response.text];
+      for (const chunk of chunks) {
+        yield { ...response, text: chunk } as GenerateContentResponse;
+        await new Promise(r => setTimeout(r, 10)); // tiny delay
+      }
+    } else {
+      yield response;
+    }
+  }
+}
 
 const SYSTEM_INSTRUCTION = `
 ### DRP_ID: PDL-GENERATOR-META-PRP-v1.0
@@ -621,7 +656,7 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
     `;
 
     const planResponse = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => generateContentProxy({
         model: planningModelId,
         contents: planPrompt,
         config: {
@@ -647,7 +682,7 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
       try {
          // We wrap the individual vector search with retry to be robust against transient errors
          const searchResponse = await executeWithRetry<GenerateContentResponse>(
-           () => ai.models.generateContent({
+           () => generateContentProxy({
               model: searchModelId,
               contents: `Find detailed, technical information for: "${query}". Focus on facts, code snippets, and architectural details.`,
               config: {
@@ -698,7 +733,7 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
     `;
 
     const finalResponse = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => generateContentProxy({
         model: planningModelId, // Use Pro for synthesis
         contents: synthesisPrompt,
       }),
@@ -768,7 +803,7 @@ export const fabricateAgent = async (
 
         while (apiAttempt < maxApiAttempts) {
           try {
-            response = await ai.models.generateContent({
+            response = await generateContentProxy({
               model: modelId,
               contents: currentPrompt,
               config: {
@@ -871,7 +906,7 @@ export const councilDiscovery = async (
   `;
 
   const response = await executeWithRetry<GenerateContentResponse>(
-    () => ai.models.generateContent({
+    () => generateContentProxy({
       model: modelId,
       contents: prompt,
       config: {
@@ -926,7 +961,7 @@ export const councilSynthesis = async (
   while (attempt < maxAttempts) {
     try {
       const response = await executeWithRetry<GenerateContentResponse>(
-        () => ai.models.generateContent({
+        () => generateContentProxy({
           model: modelId,
           contents: currentPrompt,
           config: {
@@ -1003,7 +1038,7 @@ export const councilCritique = async (
   `;
 
   const response = await executeWithRetry<GenerateContentResponse>(
-    () => ai.models.generateContent({
+    () => generateContentProxy({
       model: modelId,
       contents: prompt,
       config: {
@@ -1059,7 +1094,7 @@ export const councilFinalize = async (
   while (attempt < maxAttempts) {
     try {
       const response = await executeWithRetry<GenerateContentResponse>(
-        () => ai.models.generateContent({
+        () => generateContentProxy({
           model: modelId,
           contents: currentPrompt,
           config: {
@@ -1142,7 +1177,7 @@ export const distillCapsule = async (context: string): Promise<GenAIResult<Conte
     `;
 
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => generateContentProxy({
         model: modelId,
         contents: prompt,
         config: {
@@ -1196,7 +1231,7 @@ export const generateMetaPrompt = async (
     `;
 
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => generateContentProxy({
          model: modelId,
          contents: userPrompt,
          config: {
@@ -1218,20 +1253,13 @@ export const generateMetaPrompt = async (
   }
 };
 
-export const createDiscoveryChat = (context: string, useSearch: boolean): Chat => {
-  // Use Flash for search grounding interactions, Pro for deep architectural reasoning without search
+export const createDiscoveryChat = (context: string, useSearch: boolean): ProxyChat => {
   const modelId = useSearch ? "gemini-3-flash-preview" : "gemini-3-pro-preview";
   const tools = useSearch ? [{ googleSearch: {} }] : [];
-
-  return ai.chats.create({
-    model: modelId,
-    config: {
-      systemInstruction: `
-        You are the "Sovereign Architect". Focus on Epistemic Goals ($G), Anti-Goals, and Immunological Constraints.
-      `,
-      tools: tools,
-    }
-  });
+  const systemInstruction = `
+    You are the "Sovereign Architect". Focus on Epistemic Goals ($G), Anti-Goals, and Immunological Constraints.
+  `;
+  return new DiscoveryChatImpl(modelId, { systemInstruction, tools });
 };
 
 const ANALYSIS_SCHEMA: Schema = {
@@ -1261,7 +1289,7 @@ export const analyzeDocument = async (context: string): Promise<GenAIResult<Cont
     `;
 
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => generateContentProxy({
         model: modelId,
         contents: prompt,
         config: {
@@ -1291,4 +1319,16 @@ export const analyzeDocument = async (context: string): Promise<GenAIResult<Cont
         usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
     };
   }
+};
+
+export const createCollaboratorChat = (systemInstruction: string, messages: any[]): ProxyChat => {
+  const chat = new DiscoveryChatImpl("gemini-3-pro-preview", {
+    systemInstruction,
+    thinkingConfig: { thinkingBudget: 2048 }
+  });
+  chat.history = messages.map(m => ({
+    role: m.role,
+    parts: [{ text: m.text }]
+  }));
+  return chat;
 };

@@ -1,15 +1,11 @@
 
-import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
+import { Schema, Type, GenerateContentResponse } from "@google/genai";
+import { generateContentProxy } from "./geminiService";
 import { SemanticNode } from "../views/WordMapperView";
 import { TokenUsage } from "../types";
 import { executeWithRetry } from "./retryService";
 
-const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-               (import.meta as any).env?.GEMINI_API_KEY ||
-               (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-               (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
 
-const ai = new GoogleGenAI({ apiKey });
 
 // --- External API Types ---
 
@@ -250,7 +246,7 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
 
   try {
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => generateContentProxy({
         model: modelId,
         contents: prompt,
         config: {

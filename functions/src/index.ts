@@ -38,7 +38,8 @@ export const secureProxy = functions
 
       return {
         text: response.text,
-        usage: response.usageMetadata
+        candidates: response.candidates,
+        usageMetadata: response.usageMetadata
       };
     } catch (error: any) {
       console.error("Proxy Error:", error);
