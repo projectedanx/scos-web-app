@@ -1,0 +1,10 @@
+--- services/conductorService.ts
++++ services/conductorService.ts
+@@ -102,7 +102,7 @@
+     """
+     # TODO: Implement logic for ${tool.name}
+     # Security Check: Ensure params match schema
+-    return "Executed ${tool.name}"
++    raise NotImplementedError(f"Tool ${tool.name} is not yet implemented.")
+ `;
+   }).join('\n');

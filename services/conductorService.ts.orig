@@ -116,7 +116,7 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
     """
     # TODO: Implement logic for ${tool.name}
     # Security Check: Ensure params match schema
-    raise NotImplementedError(f"Tool ${tool.name} is not yet implemented.")
+    return "Executed ${tool.name}"
 `;
   }).join('\n');
 
@@ -139,10 +139,10 @@ from scos_core.types import AgentContext
     }
 )
 class ${agent.identity.name.replace(/\s+/g, '')}Agent:
-    
+
     def __init__(self):
         self.prime_directive = "${agent.identity.primeDirective}"
-        
+
     def on_wake(self, ctx: AgentContext):
         """Called when the agent is instantiated from the Vault."""
         print(f"[{self.name}] Online. Listening for Intent...")
