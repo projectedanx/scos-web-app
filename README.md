@@ -62,7 +62,7 @@ SCOS is designed to be the **Architect** for the **Gemini Conductor** ecosystem.
 ## 🚀 Deployment
 
 ### Prerequisites
-- Node.js v18+
+- Node.js v22+
 - Google Gemini API Key
 
 ### Installation
@@ -86,7 +86,7 @@ SCOS is designed to be the **Architect** for the **Gemini Conductor** ecosystem.
 
 4.  **Ignite the Forge**
     ```bash
-    npm start
+    npx vite
     ```
 
 ## 📖 Usage Protocol

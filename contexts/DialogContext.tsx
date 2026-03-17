@@ -7,6 +7,11 @@ interface DialogContextType {
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
+/**
+ * The DialogProvider function.
+ * @param { children } - The { children } parameter.
+ * @returns The resulting value.
+ */
 export const DialogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [dialog, setDialog] = useState<{
     type: 'confirm' | 'prompt';
@@ -89,6 +94,10 @@ export const DialogProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   );
 };
 
+/**
+ * Custom hook: useDialog.
+ * @returns The resulting value.
+ */
 export const useDialog = () => {
   const context = useContext(DialogContext);
   if (context === undefined) {

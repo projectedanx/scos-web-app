@@ -12,6 +12,11 @@ interface AgentLibraryViewProps {
 type SortMode = 'DATE_NEW' | 'DATE_OLD' | 'NAME_AZ' | 'NAME_ZA';
 type RiskFilter = 'ALL' | 'SAFE' | 'CRITICAL';
 
+/**
+ * The AgentLibraryView function.
+ * @param { agents, onSelectAgent, onMapAgent } - The { agents, onSelectAgent, onMapAgent } parameter.
+ * @returns The resulting value.
+ */
 export const AgentLibraryView: React.FC<AgentLibraryViewProps> = ({ agents, onSelectAgent, onMapAgent }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('DATE_NEW');

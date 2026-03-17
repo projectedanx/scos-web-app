@@ -37,6 +37,23 @@ interface ContractBuilderViewProps {
   onRegisterProvenance: (entry: ProvenanceIndexEntry) => void;
 }
 
+/**
+ * The ContractBuilderView function.
+ * @param {
+ *   contracts,
+ *   agents,
+ *   onSaveContract,
+ *   onDeleteContract,
+ *   onRegisterProvenance
+ * } - The {
+ *   contracts,
+ *   agents,
+ *   onSaveContract,
+ *   onDeleteContract,
+ *   onRegisterProvenance
+ * } parameter.
+ * @returns The resulting value.
+ */
 export const ContractBuilderView: React.FC<ContractBuilderViewProps> = ({ 
   contracts, 
   agents, 

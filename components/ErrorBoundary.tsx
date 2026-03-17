@@ -9,25 +9,38 @@ interface State {
   error: Error | null;
 }
 
+/** The ErrorBoundary class. */
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  /**
+     * Retrieves the DerivedStateFromError.
+     * @param error - The error parameter.
+     * @returns The resulting State.
+     */
+    public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  /**
+     * The componentDidCatch method.
+     * @param error - The error parameter.
+     * @param errorInfo - The errorInfo parameter.
+     */
+    public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
 
-  public componentDidMount() {
+  /** The componentDidMount method. */
+    public componentDidMount() {
     window.addEventListener('firestore-error', this.handleFirestoreErrorEvent as EventListener);
   }
 
-  public componentWillUnmount() {
+  /** The componentWillUnmount method. */
+    public componentWillUnmount() {
     window.removeEventListener('firestore-error', this.handleFirestoreErrorEvent as EventListener);
   }
 
@@ -35,7 +48,11 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: true, error: event.detail });
   };
 
-  public render() {
+  /**
+     * The render method.
+     * @returns The resulting value.
+     */
+    public render() {
     if (this.state.hasError) {
       let errorMessage = "An unexpected error occurred.";
       let isFirestoreError = false;

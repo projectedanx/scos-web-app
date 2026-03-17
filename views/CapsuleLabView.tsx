@@ -25,6 +25,21 @@ interface CapsuleLabViewProps {
 
 const DRAFTS_KEY = 'sovereign_capsule_drafts';
 
+/**
+ * The CapsuleLabView function.
+ * @param {
+ *   capsules = [],
+ *   onSaveCapsule,
+ *   onDeleteCapsule,
+ *   onRegisterProvenance
+ * } - The {
+ *   capsules = [],
+ *   onSaveCapsule,
+ *   onDeleteCapsule,
+ *   onRegisterProvenance
+ * } parameter.
+ * @returns The resulting value.
+ */
 export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({ 
   capsules = [], 
   onSaveCapsule, 
