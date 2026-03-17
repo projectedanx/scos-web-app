@@ -103,6 +103,11 @@ ${manifest.anchors.map(a => `- ${a.name}: ${a.description}`).join('\n')}
 `;
 };
 
+/**
+ * The ManifestDisplay function.
+ * @param { manifest } - The { manifest } parameter.
+ * @returns The resulting value.
+ */
 export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) => {
   const [activeDep, setActiveDep] = useState<{ name: string; sourceId: string } | null>(null);
   const [copied, setCopied] = useState(false);

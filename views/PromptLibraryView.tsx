@@ -11,6 +11,23 @@ interface PromptLibraryViewProps {
   onRegisterProvenance: (entry: ProvenanceIndexEntry) => void;
 }
 
+/**
+ * The PromptLibraryView function.
+ * @param {
+ *   prompts,
+ *   agents,
+ *   onSavePrompt,
+ *   onDeletePrompt,
+ *   onRegisterProvenance
+ * } - The {
+ *   prompts,
+ *   agents,
+ *   onSavePrompt,
+ *   onDeletePrompt,
+ *   onRegisterProvenance
+ * } parameter.
+ * @returns The resulting value.
+ */
 export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({ 
   prompts, 
   agents, 

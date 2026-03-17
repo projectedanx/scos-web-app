@@ -21,12 +21,22 @@ const SIGN_ALGO = {
 
 // --- Utilities ---
 
+/**
+ * The arrayBufferToHex function.
+ * @param buffer - The buffer parameter.
+ * @returns The resulting string.
+ */
 function arrayBufferToHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 }
 
+/**
+ * The strToArrayBuffer function.
+ * @param str - The str parameter.
+ * @returns The resulting ArrayBuffer.
+ */
 function strToArrayBuffer(str: string): ArrayBuffer {
   const enc = new TextEncoder();
   return enc.encode(str);

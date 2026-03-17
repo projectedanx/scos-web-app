@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 
 // --- FIREBASE CONFIGURATION ---
 // 1. Go to console.firebase.google.com
@@ -24,8 +25,13 @@ const app = initializeApp(firebaseConfig);
 // Export Services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const functions = getFunctions(app);
 
 // Helper to check if config is missing (Offline Mode)
+/**
+ * Checks if FirebaseConfigured.
+ * @returns The resulting value.
+ */
 export const isFirebaseConfigured = () => {
   // Checks if the API Key has been changed from the default placeholder
   return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("AIzaSy...");

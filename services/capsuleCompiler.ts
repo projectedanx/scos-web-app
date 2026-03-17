@@ -1,5 +1,5 @@
 
-import { ContextCapsule } from '../types';
+import { ContextCapsule, CapsuleMeta } from '../types';
 
 /**
  * Escape HTML special characters
@@ -76,6 +76,12 @@ function tableHtml(table: any): string {
 
 // --- Section Renderers ---
 
+/**
+ * The renderCapsuleHeader function.
+ * @param meta - The meta parameter.
+ * @param sections - The sections parameter.
+ * @returns The resulting string.
+ */
 function renderCapsuleHeader(meta: any, sections: any): string {
   const nav = [];
 
@@ -141,6 +147,12 @@ function renderCapsuleHeader(meta: any, sections: any): string {
   </header>`;
 }
 
+/**
+ * The renderOverview function.
+ * @param sec - The sec parameter.
+ * @param meta - The meta parameter.
+ * @returns The resulting string.
+ */
 function renderOverview(sec: any, meta: any): string {
   if (!sec) return "";
   const heroPills = sec.hero_pills || [];
@@ -184,6 +196,11 @@ function renderOverview(sec: any, meta: any): string {
   </section>`;
 }
 
+/**
+ * The renderKeyConcepts function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderKeyConcepts(sec: any): string {
   if (!sec || !(sec.cards || []).length) return "";
   const cardsHtml = sec.cards
@@ -208,6 +225,11 @@ function renderKeyConcepts(sec: any): string {
   </section>`;
 }
 
+/**
+ * The renderStructure function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderStructure(sec: any): string {
   if (!sec || !(sec.table?.rows || []).length) return "";
   return `
@@ -220,6 +242,11 @@ function renderStructure(sec: any): string {
   </section>`;
 }
 
+/**
+ * The renderPersonas function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderPersonas(sec: any): string {
   if (!sec || !(sec.table?.rows || []).length) return "";
   return `
@@ -232,6 +259,11 @@ function renderPersonas(sec: any): string {
   </section>`;
 }
 
+/**
+ * The renderWorkflow function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderWorkflow(sec: any): string {
   if (!sec || !(sec.steps || []).length) return "";
   const cards = sec.steps
@@ -265,6 +297,11 @@ function renderWorkflow(sec: any): string {
   </section>`;
 }
 
+/**
+ * The renderResilience function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderResilience(sec: any): string {
   if (!sec || !(sec.failure_modes || []).length) return "";
   const gridCols = sec.failure_modes.length >= 3 ? "md:grid-cols-3" : "md:grid-cols-2";
@@ -298,6 +335,11 @@ function renderResilience(sec: any): string {
   </section>`;
 }
 
+/**
+ * The renderMetrics function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderMetrics(sec: any): string {
   if (!sec || !(sec.items || []).length) return "";
   const gridCols = sec.items.length >= 3 ? "md:grid-cols-3" : "md:grid-cols-2";
@@ -325,6 +367,11 @@ function renderMetrics(sec: any): string {
   </section>`;
 }
 
+/**
+ * The renderChecklist function.
+ * @param sec - The sec parameter.
+ * @returns The resulting string.
+ */
 function renderChecklist(sec: any): string {
   if (!sec || !(sec.items || []).length) return "";
   const gridCols = sec.items.length >= 2 ? "md:grid-cols-2" : "md:grid-cols-1";
@@ -359,8 +406,8 @@ function renderChecklist(sec: any): string {
  * Main compilation function
  */
 export function compileCapsuleHtml(capsule: ContextCapsule): string {
-  const meta = capsule?.meta || ({} as any);
-  const sections = capsule?.sections || ({} as any);
+  const meta = capsule?.meta || ({} as Partial<CapsuleMeta>);
+  const sections = capsule?.sections || ({} as Partial<ContextCapsule['sections']>);
 
   const tags = (meta.tags || []).slice(0, 8);
 
