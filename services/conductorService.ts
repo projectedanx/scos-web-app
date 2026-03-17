@@ -24,14 +24,27 @@ export interface ConductorSkillManifest {
   };
 }
 
+
+/**
+ * Safely parse JSON while preventing Prototype Pollution.
+ */
+const secureJSONParse = (jsonStr: string): any => {
+  return JSON.parse(jsonStr, (key, value) => {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return undefined;
+    }
+    return value;
+  });
+};
+
 /**
  * Parses the stringified JSON schema from the manifest into an object.
  * Returns a default 'any' schema if parsing fails.
  */
 const safeParseSchema = (schemaStr: string): any => {
   try {
-    return JSON.parse(schemaStr);
-  } catch (e) {
+    return secureJSONParse(schemaStr);
+  } catch (error: unknown) {
     return { type: "object", properties: {}, description: "Schema parsing failed." };
   }
 };
@@ -55,13 +68,15 @@ export const validateConductorSchema = (agent: SovereignAgentManifest): { valid:
       errors.push(`Tool '${tool.name || `at index ${index}`}' has an invalid name. Must be alphanumeric, dashes, or underscores.`);
     }
     try {
-      const schema = JSON.parse(tool.inputSchema);
+      const schema = secureJSONParse(tool.inputSchema);
       if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
          errors.push(`Tool '${tool.name}' inputSchema must be a JSON object.`);
-      } else if (schema.type && schema.type !== "object") {
-         errors.push(`Tool '${tool.name}' inputSchema must be of type "object".`);
+      } else if (schema.type !== "object") {
+         errors.push(`Tool '${tool.name}' inputSchema must explicitly be of type "object".`);
+      } else if (!schema.properties || typeof schema.properties !== "object" || Array.isArray(schema.properties)) {
+         errors.push(`Tool '${tool.name}' inputSchema must define a valid 'properties' object.`);
       }
-    } catch (e) {
+    } catch (error: unknown) {
       errors.push(`Tool '${tool.name}' has invalid JSON in inputSchema.`);
     }
   });
