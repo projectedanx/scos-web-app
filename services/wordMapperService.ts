@@ -3,13 +3,9 @@ import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/gena
 import { SemanticNode } from "../views/WordMapperView";
 import { TokenUsage } from "../types";
 import { executeWithRetry } from "./retryService";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "./firebase";
 
-const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-               (import.meta as any).env?.GEMINI_API_KEY ||
-               (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-               (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
-
-const ai = new GoogleGenAI({ apiKey });
 
 // --- External API Types ---
 
@@ -249,32 +245,36 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
   `;
 
   try {
-    const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+    const secureProxy = httpsCallable(functions, 'secureProxy');
+    const response = await executeWithRetry(
+      () => secureProxy({
         model: modelId,
         contents: prompt,
         config: {
           responseMimeType: "application/json",
-          responseSchema: MAPPER_SCHEMA
+          responseSchema: MAPPER_SCHEMA as any
         }
       }),
       { operationName: `Triangulation(${strategy})` }
     );
 
-    const json = JSON.parse(response.text || "{\"nodes\": []}");
+    const resultData = (response.data as any) || {};
+    const text = resultData.text || "{\"nodes\": []}";
+    const usageMetadata = resultData.usage || {};
+
+    const json = JSON.parse(text);
     const nodes = json.nodes.map((node: any) => ({
       ...node,
       id: crypto.randomUUID()
     }));
 
     const usage: TokenUsage = {
-      promptTokens: response.usageMetadata?.promptTokenCount || 0,
-      completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
-      totalTokens: response.usageMetadata?.totalTokenCount || 0
+      promptTokens: usageMetadata.promptTokenCount || 0,
+      completionTokens: usageMetadata.candidatesTokenCount || 0,
+      totalTokens: usageMetadata.totalTokenCount || 0
     };
 
     return { nodes, usage };
-
   } catch (error) {
     console.error("Triangulation failed", error);
     throw new Error("Failed to map concepts.");
