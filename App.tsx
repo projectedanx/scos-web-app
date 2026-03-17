@@ -395,9 +395,15 @@ function App() {
         
         const operations: Promise<void>[] = [];
 
+        // Create Sets for O(1) lookups
+        const existingAgentNames = new Set(vault.map(p => p.identity.name));
+        const existingCapsuleIds = new Set(capsules.map(p => p.meta.id));
+        const existingPromptIds = new Set(prompts.map(prev => prev.id));
+        const existingContractIds = new Set(contracts.map(prev => prev.id));
+        const existingProvenanceHashes = new Set(provenanceIndex.map(prev => prev.hash));
+
         // 1. Agents
-        const existingAgentNames = new Set(vault.map(a => a.identity.name));
-        const newAgents = ((data.agents as SovereignAgentManifest[]) || []).filter(
+        const newAgents = (data.agents as SovereignAgentManifest[]).filter(
             a => !existingAgentNames.has(a.identity.name)
         );
         setVault(prev => [...prev, ...newAgents]);
