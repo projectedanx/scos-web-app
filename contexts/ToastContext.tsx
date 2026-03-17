@@ -13,6 +13,11 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+/**
+ * The ToastProvider function.
+ * @param { children } - The { children } parameter.
+ * @returns The resulting value.
+ */
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -52,6 +57,10 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
+/**
+ * Custom hook: useToast.
+ * @returns The resulting value.
+ */
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (context === undefined) {

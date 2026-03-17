@@ -13,6 +13,11 @@ interface CollaboratorViewProps {
 
 const STORAGE_KEY = 'sovereign_comind_history';
 
+/**
+ * The CollaboratorView function.
+ * @param { agents, capsules, prompts } - The { agents, capsules, prompts } parameter.
+ * @returns The resulting value.
+ */
 export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, capsules, prompts }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {

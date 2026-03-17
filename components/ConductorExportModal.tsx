@@ -11,6 +11,11 @@ interface ConductorExportModalProps {
 
 type Tab = 'MANIFEST' | 'PYTHON' | 'README';
 
+/**
+ * The ConductorExportModal function.
+ * @param { agent, onClose } - The { agent, onClose } parameter.
+ * @returns The resulting value.
+ */
 export const ConductorExportModal: React.FC<ConductorExportModalProps> = ({ agent, onClose }) => {
   const [activeTab, setActiveTab] = useState<Tab>('MANIFEST');
   const [copied, setCopied] = useState(false);

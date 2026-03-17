@@ -25,6 +25,11 @@ interface WordMapperViewProps {
   onStateConsumed?: () => void;
 }
 
+/**
+ * The WordMapperView function.
+ * @param { onRegisterConstellation, initialState, onStateConsumed } - The { onRegisterConstellation, initialState, onStateConsumed } parameter.
+ * @returns The resulting value.
+ */
 export const WordMapperView: React.FC<WordMapperViewProps> = ({ onRegisterConstellation, initialState, onStateConsumed }) => {
   const [seeds, setSeeds] = useState<string[]>([]);
   const [currentInput, setCurrentInput] = useState('');

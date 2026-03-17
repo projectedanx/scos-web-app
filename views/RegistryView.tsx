@@ -7,6 +7,11 @@ interface RegistryViewProps {
   index: ProvenanceIndexEntry[];
 }
 
+/**
+ * The RegistryView function.
+ * @param { index } - The { index } parameter.
+ * @returns The resulting value.
+ */
 export const RegistryView: React.FC<RegistryViewProps> = ({ index }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'RAW_DOCUMENT' | 'URL' | 'RESEARCH_TOPIC' | 'CONSTELLATION'>('ALL');

@@ -29,6 +29,23 @@ interface DashboardViewProps {
   onNavigate: (mode: ViewMode) => void;
 }
 
+/**
+ * The DashboardView function.
+ * @param {
+ *   agents,
+ *   provenanceHistory,
+ *   commanderKeys,
+ *   user,
+ *   onNavigate
+ * } - The {
+ *   agents,
+ *   provenanceHistory,
+ *   commanderKeys,
+ *   user,
+ *   onNavigate
+ * } parameter.
+ * @returns The resulting value.
+ */
 export const DashboardView: React.FC<DashboardViewProps> = ({ 
   agents, 
   provenanceHistory, 

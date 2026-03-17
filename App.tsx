@@ -118,6 +118,10 @@ const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest
   };
 };
 
+/**
+ * The App function.
+ * @returns The resulting value.
+ */
 function App() {
   const { addToast } = useToast();
   const { confirm, prompt } = useDialog();

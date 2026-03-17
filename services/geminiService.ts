@@ -1177,6 +1177,12 @@ export const distillCapsule = async (context: string): Promise<GenAIResult<Conte
   }
 };
 
+/**
+ * The generateMetaPrompt function.
+ * @param intent - The intent parameter.
+ * @param engine - The engine parameter.
+ * @returns The resulting Promise<GenAIResult<string>>.
+ */
 export const generateMetaPrompt = async (
   intent: string,
   engine: PromptEngineConfig
@@ -1218,6 +1224,12 @@ export const generateMetaPrompt = async (
   }
 };
 
+/**
+ * The createDiscoveryChat function.
+ * @param context - The context parameter.
+ * @param useSearch - The useSearch parameter.
+ * @returns The resulting Chat.
+ */
 export const createDiscoveryChat = (context: string, useSearch: boolean): Chat => {
   // Use Flash for search grounding interactions, Pro for deep architectural reasoning without search
   const modelId = useSearch ? "gemini-3-flash-preview" : "gemini-3-pro-preview";
@@ -1248,6 +1260,11 @@ export interface ContextAnalysisResult {
     topics: string[];
 }
 
+/**
+ * The analyzeDocument function.
+ * @param context - The context parameter.
+ * @returns The resulting Promise<GenAIResult<ContextAnalysisResult>>.
+ */
 export const analyzeDocument = async (context: string): Promise<GenAIResult<ContextAnalysisResult>> => {
   try {
     const modelId = "gemini-3-flash-preview";

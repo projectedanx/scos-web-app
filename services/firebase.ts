@@ -26,6 +26,10 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // Helper to check if config is missing (Offline Mode)
+/**
+ * Checks if FirebaseConfigured.
+ * @returns The resulting value.
+ */
 export const isFirebaseConfigured = () => {
   // Checks if the API Key has been changed from the default placeholder
   return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("AIzaSy...");

@@ -18,6 +18,21 @@ interface AgentForgeViewProps {
 
 const STORAGE_KEY = 'sovereign_forge_history';
 
+/**
+ * The AgentForgeView function.
+ * @param {
+ *   commanderKeys,
+ *   onAddToVault,
+ *   restoredAgent,
+ *   onAgentRestored
+ * } - The {
+ *   commanderKeys,
+ *   onAddToVault,
+ *   restoredAgent,
+ *   onAgentRestored
+ * } parameter.
+ * @returns The resulting value.
+ */
 export const AgentForgeView: React.FC<AgentForgeViewProps> = ({ 
   commanderKeys, 
   onAddToVault, 
@@ -307,7 +322,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
 
       if (commanderKeys) {
          // Sign the CLEAN payload
-         const signatureHex = await signData(manifestPayload, commanderKeys.privateKey);
+         const signatureHex = await signData(manifestPayload as unknown as Record<string, unknown>, commanderKeys.privateKey);
          
          if (manifestPayload.provenance) {
              manifestPayload.provenance.signature = {
