@@ -148,6 +148,11 @@ interface PromptForgeViewProps {
   onRegisterProvenance: (entry: ProvenanceIndexEntry) => void;
 }
 
+/**
+ * The PromptForgeView function.
+ * @param { onSavePrompt, onRegisterProvenance } - The { onSavePrompt, onRegisterProvenance } parameter.
+ * @returns The resulting value.
+ */
 export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, onRegisterProvenance }) => {
   const [activeEngineId, setActiveEngineId] = useState<string | null>(null);
   
@@ -233,7 +238,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
 
   const handleSaveTemplate = () => {
     if (!activeEngine) return;
-    prompt("Name this Configuration (Meta Prompt + Knowledge):", async (name) => {
+    prompt("Name this Configuration (Meta Prompt + Knowledge):", `${activeEngine.name} Custom`, async (name: string) => {
       if (!name) return;
 
       const newTemplate: MetaPromptTemplate = {
@@ -246,7 +251,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
 
       setSavedTemplates(prev => [newTemplate, ...prev]);
       addToast(`Configuration saved as template: "${name}"`, 'success');
-    }, `${activeEngine.name} Custom`);
+    });
   };
 
   const handleLoadTemplate = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -326,7 +331,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
         ? `${output.intent.substring(0, 40)}...` 
         : output.intent;
         
-    prompt("Save to Library - Enter Prompt Title:", async (title) => {
+    prompt("Save to Library - Enter Prompt Title:", defaultTitle, async (title: string) => {
       if (!title) return;
 
       const newPrompt: SovereignPrompt = {
@@ -360,7 +365,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
       });
 
       addToast("Saved to Sovereign Prompt Library.", 'success');
-    }, defaultTitle);
+    });
   };
 
   const copyOutput = () => {

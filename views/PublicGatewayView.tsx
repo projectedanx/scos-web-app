@@ -9,6 +9,11 @@ interface PublicGatewayViewProps {
   onLogin: () => void;
 }
 
+/**
+ * The PublicGatewayView function.
+ * @param { capsules, onLogin } - The { capsules, onLogin } parameter.
+ * @returns The resulting value.
+ */
 export const PublicGatewayView: React.FC<PublicGatewayViewProps> = ({ capsules, onLogin }) => {
   const [currentCapsule, setCurrentCapsule] = useState<ContextCapsule | null>(null);
   const [mode, setMode] = useState<'VIEWER' | 'INDEX'>('VIEWER');

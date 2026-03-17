@@ -39,6 +39,12 @@ interface FirestoreErrorInfo {
   }
 }
 
+/**
+ * Handles the FirestoreError event.
+ * @param error - The error parameter.
+ * @param operationType - The operationType parameter.
+ * @param path - The path parameter.
+ */
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
@@ -82,8 +88,14 @@ const AuthContext = createContext<AuthContextType>({
   isConfigured: false
 });
 
+/** Custom hook: useAuth. */
 export const useAuth = () => useContext(AuthContext);
 
+/**
+ * The AuthProvider function.
+ * @param { children } - The { children } parameter.
+ * @returns The resulting value.
+ */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);

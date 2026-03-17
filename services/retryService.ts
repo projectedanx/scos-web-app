@@ -27,6 +27,12 @@ const DEFAULT_OPTIONS = {
   operationName: 'Operation'
 };
 
+/**
+ * The executeWithRetry function.
+ * @param fn - The fn parameter.
+ * @param options - The options parameter.
+ * @returns The resulting Promise<T>.
+ */
 export const executeWithRetry = async <T>(
   fn: () => Promise<T>,
   options: RetryOptions<T> = {}

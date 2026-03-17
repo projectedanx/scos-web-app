@@ -10,6 +10,11 @@ interface ChatInterfaceProps {
   onBack: () => void;
 }
 
+/**
+ * The ChatInterface function.
+ * @param { context, useSearch, onBack } - The { context, useSearch, onBack } parameter.
+ * @returns The resulting value.
+ */
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ context, useSearch, onBack }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');

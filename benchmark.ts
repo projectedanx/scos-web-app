@@ -38,6 +38,7 @@ const simulateBatchCommit = async (count: number) => {
     return performance.now() - start;
 };
 
+/** The runBenchmark function. */
 async function runBenchmark() {
     const ITEMS = 100;
     console.log(`\nStarting Benchmark: Saving ${ITEMS} items to Cloud`);

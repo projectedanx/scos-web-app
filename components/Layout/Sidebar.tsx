@@ -9,6 +9,11 @@ interface SidebarProps {
   onToggleVault: () => void;
 }
 
+/**
+ * The Sidebar function.
+ * @param { currentMode, onSwitch, onToggleVault } - The { currentMode, onSwitch, onToggleVault } parameter.
+ * @returns The resulting value.
+ */
 export const Sidebar: React.FC<SidebarProps> = ({ currentMode, onSwitch, onToggleVault }) => {
   
   const NavItem = ({ mode, icon: Icon, label }: { mode: ViewMode; icon: any; label: string }) => {

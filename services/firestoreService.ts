@@ -6,7 +6,6 @@ import {
   setDoc, 
   deleteDoc,
   writeBatch,
-  writeBatch,
   onSnapshot, 
   query, 
   orderBy, 
@@ -48,6 +47,12 @@ interface FirestoreErrorInfo {
   }
 }
 
+/**
+ * Handles the FirestoreError event.
+ * @param error - The error parameter.
+ * @param operationType - The operationType parameter.
+ * @param path - The path parameter.
+ */
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
@@ -80,6 +85,12 @@ const getUserRef = (uid: string) => doc(db, USERS_COLLECTION, uid);
 const getCollectionRef = (uid: string, sub: string) => collection(db, USERS_COLLECTION, uid, sub);
 
 // --- AGENTS ---
+/**
+ * The syncAgents function.
+ * @param uid - The uid parameter.
+ * @param onUpdate - The onUpdate parameter.
+ * @returns The resulting value.
+ */
 export const syncAgents = (uid: string, onUpdate: (data: SovereignAgentManifest[]) => void) => {
   const q = query(getCollectionRef(uid, 'manifests'));
   return onSnapshot(q, (snapshot) => {
@@ -90,6 +101,11 @@ export const syncAgents = (uid: string, onUpdate: (data: SovereignAgentManifest[
   });
 };
 
+/**
+ * The saveAgentToCloud function.
+ * @param uid - The uid parameter.
+ * @param agent - The agent parameter.
+ */
 export const saveAgentToCloud = async (uid: string, agent: SovereignAgentManifest) => {
   // Use name as ID for simplicity in this version, or generate a UUID
   const agentId = agent.identity.name.toLowerCase().replace(/\s+/g, '-');
@@ -100,6 +116,11 @@ export const saveAgentToCloud = async (uid: string, agent: SovereignAgentManifes
   }
 };
 
+/**
+ * The deleteAgentFromCloud function.
+ * @param uid - The uid parameter.
+ * @param agent - The agent parameter.
+ */
 export const deleteAgentFromCloud = async (uid: string, agent: SovereignAgentManifest) => {
   const agentId = agent.identity.name.toLowerCase().replace(/\s+/g, '-');
   try {
@@ -110,6 +131,12 @@ export const deleteAgentFromCloud = async (uid: string, agent: SovereignAgentMan
 };
 
 // --- CAPSULES ---
+/**
+ * The syncCapsules function.
+ * @param uid - The uid parameter.
+ * @param onUpdate - The onUpdate parameter.
+ * @returns The resulting value.
+ */
 export const syncCapsules = (uid: string, onUpdate: (data: ContextCapsule[]) => void) => {
   const q = query(getCollectionRef(uid, 'capsules'));
   return onSnapshot(q, (snapshot) => {
@@ -120,6 +147,11 @@ export const syncCapsules = (uid: string, onUpdate: (data: ContextCapsule[]) => 
   });
 };
 
+/**
+ * The saveCapsuleToCloud function.
+ * @param uid - The uid parameter.
+ * @param capsule - The capsule parameter.
+ */
 export const saveCapsuleToCloud = async (uid: string, capsule: ContextCapsule) => {
   try {
     await setDoc(doc(getCollectionRef(uid, 'capsules'), capsule.meta.id), capsule);
@@ -128,6 +160,11 @@ export const saveCapsuleToCloud = async (uid: string, capsule: ContextCapsule) =
   }
 };
 
+/**
+ * The deleteCapsuleFromCloud function.
+ * @param uid - The uid parameter.
+ * @param capsuleId - The capsuleId parameter.
+ */
 export const deleteCapsuleFromCloud = async (uid: string, capsuleId: string) => {
   try {
     await deleteDoc(doc(getCollectionRef(uid, 'capsules'), capsuleId));
@@ -137,6 +174,12 @@ export const deleteCapsuleFromCloud = async (uid: string, capsuleId: string) => 
 };
 
 // --- PROMPTS ---
+/**
+ * The syncPrompts function.
+ * @param uid - The uid parameter.
+ * @param onUpdate - The onUpdate parameter.
+ * @returns The resulting value.
+ */
 export const syncPrompts = (uid: string, onUpdate: (data: SovereignPrompt[]) => void) => {
   const q = query(getCollectionRef(uid, 'prompts'));
   return onSnapshot(q, (snapshot) => {
@@ -147,6 +190,11 @@ export const syncPrompts = (uid: string, onUpdate: (data: SovereignPrompt[]) => 
   });
 };
 
+/**
+ * The savePromptToCloud function.
+ * @param uid - The uid parameter.
+ * @param prompt - The prompt parameter.
+ */
 export const savePromptToCloud = async (uid: string, prompt: SovereignPrompt) => {
   try {
     await setDoc(doc(getCollectionRef(uid, 'prompts'), prompt.id), prompt);
@@ -155,6 +203,11 @@ export const savePromptToCloud = async (uid: string, prompt: SovereignPrompt) =>
   }
 };
 
+/**
+ * The deletePromptFromCloud function.
+ * @param uid - The uid parameter.
+ * @param promptId - The promptId parameter.
+ */
 export const deletePromptFromCloud = async (uid: string, promptId: string) => {
   try {
     await deleteDoc(doc(getCollectionRef(uid, 'prompts'), promptId));
@@ -164,6 +217,12 @@ export const deletePromptFromCloud = async (uid: string, promptId: string) => {
 };
 
 // --- CONTRACTS ---
+/**
+ * The syncContracts function.
+ * @param uid - The uid parameter.
+ * @param onUpdate - The onUpdate parameter.
+ * @returns The resulting value.
+ */
 export const syncContracts = (uid: string, onUpdate: (data: CognitiveContract[]) => void) => {
   const q = query(getCollectionRef(uid, 'contracts'));
   return onSnapshot(q, (snapshot) => {
@@ -174,6 +233,11 @@ export const syncContracts = (uid: string, onUpdate: (data: CognitiveContract[])
   });
 };
 
+/**
+ * The saveContractToCloud function.
+ * @param uid - The uid parameter.
+ * @param contract - The contract parameter.
+ */
 export const saveContractToCloud = async (uid: string, contract: CognitiveContract) => {
   try {
     await setDoc(doc(getCollectionRef(uid, 'contracts'), contract.id), contract);
@@ -182,6 +246,11 @@ export const saveContractToCloud = async (uid: string, contract: CognitiveContra
   }
 };
 
+/**
+ * The deleteContractFromCloud function.
+ * @param uid - The uid parameter.
+ * @param contractId - The contractId parameter.
+ */
 export const deleteContractFromCloud = async (uid: string, contractId: string) => {
   try {
     await deleteDoc(doc(getCollectionRef(uid, 'contracts'), contractId));
@@ -191,6 +260,11 @@ export const deleteContractFromCloud = async (uid: string, contractId: string) =
 };
 
 // --- PROVENANCE ---
+/**
+ * The saveProvenanceToCloud function.
+ * @param uid - The uid parameter.
+ * @param entry - The entry parameter.
+ */
 export const saveProvenanceToCloud = async (uid: string, entry: ProvenanceIndexEntry) => {
   // We use a separate subcollection for the provenance log
   const id = `${entry.timestamp}-${entry.hash.substring(0,8)}`;
@@ -201,6 +275,12 @@ export const saveProvenanceToCloud = async (uid: string, entry: ProvenanceIndexE
   }
 };
 
+/**
+ * The syncProvenance function.
+ * @param uid - The uid parameter.
+ * @param onUpdate - The onUpdate parameter.
+ * @returns The resulting value.
+ */
 export const syncProvenance = (uid: string, onUpdate: (data: ProvenanceIndexEntry[]) => void) => {
   // Limit to recent 100 for dashboard performance
   const q = query(getCollectionRef(uid, 'provenance'), orderBy('timestamp', 'desc')); 
@@ -215,6 +295,12 @@ export const syncProvenance = (uid: string, onUpdate: (data: ProvenanceIndexEntr
 
 
 // --- BATCH OPERATIONS ---
+/**
+ * The batchSaveAgentsToCloud function.
+ * @param uid - The uid parameter.
+ * @param agents - The agents parameter.
+ * @returns The resulting value.
+ */
 export const batchSaveAgentsToCloud = async (uid: string, agents: SovereignAgentManifest[]) => {
   if (agents.length === 0) return;
   const batch = writeBatch(db);
@@ -232,6 +318,12 @@ export const batchSaveAgentsToCloud = async (uid: string, agents: SovereignAgent
   }
 };
 
+/**
+ * The batchSaveCapsulesToCloud function.
+ * @param uid - The uid parameter.
+ * @param capsules - The capsules parameter.
+ * @returns The resulting value.
+ */
 export const batchSaveCapsulesToCloud = async (uid: string, capsules: ContextCapsule[]) => {
   if (capsules.length === 0) return;
   const batch = writeBatch(db);
@@ -248,6 +340,12 @@ export const batchSaveCapsulesToCloud = async (uid: string, capsules: ContextCap
   }
 };
 
+/**
+ * The batchSavePromptsToCloud function.
+ * @param uid - The uid parameter.
+ * @param prompts - The prompts parameter.
+ * @returns The resulting value.
+ */
 export const batchSavePromptsToCloud = async (uid: string, prompts: SovereignPrompt[]) => {
   if (prompts.length === 0) return;
   const batch = writeBatch(db);
@@ -264,6 +362,12 @@ export const batchSavePromptsToCloud = async (uid: string, prompts: SovereignPro
   }
 };
 
+/**
+ * The batchSaveContractsToCloud function.
+ * @param uid - The uid parameter.
+ * @param contracts - The contracts parameter.
+ * @returns The resulting value.
+ */
 export const batchSaveContractsToCloud = async (uid: string, contracts: CognitiveContract[]) => {
   if (contracts.length === 0) return;
   const batch = writeBatch(db);
@@ -280,6 +384,12 @@ export const batchSaveContractsToCloud = async (uid: string, contracts: Cognitiv
   }
 };
 
+/**
+ * The batchSaveProvenanceToCloud function.
+ * @param uid - The uid parameter.
+ * @param entries - The entries parameter.
+ * @returns The resulting value.
+ */
 export const batchSaveProvenanceToCloud = async (uid: string, entries: ProvenanceIndexEntry[]) => {
   if (entries.length === 0) return;
   const batch = writeBatch(db);
