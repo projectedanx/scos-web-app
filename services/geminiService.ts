@@ -1085,9 +1085,9 @@ export const councilFinalize = async (
       const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
       return { data, usage: accumulatedUsage };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       attempt++;
-      const msg = error.message || String(error);
+      const msg = error instanceof Error ? error.message : String(error);
       
       if (msg.includes('429') || msg.includes('RateLimitError')) {
         throw new Error("ERR_RATE_LIMITED: Epistemic bandwidth exceeded. Please wait.");
