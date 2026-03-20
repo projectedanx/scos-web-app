@@ -1,0 +1,135 @@
+simulation_id: TQS-DRP-CYBER-992-v1.0
+generated_at: '2026-03-17T17:47:00+11:00'
+description: Mathematical baseline limits for Hamiltonian loss function during z0*
+  phase transition quench
+Hamiltonian_Parameters:
+  H_existing_z0star:
+    type: float
+    description: Energy of existing constitutional austenite invariant layer
+    baseline_value: 1.0
+    units: normalized_entropy_units
+  alpha_attack_weight:
+    type: float
+    formula: H_delta / H_max_observed
+    min: 0.01
+    max: 1.0
+    nominal: 0.35
+    description: Attack entropy normalized weight; high alpha = high-energy zero-day
+  Phi_golden_ratio:
+    type: constant
+    value: 1.6180339887
+    role: Density constraint preventing resonance cascade in invariant lattice
+    justification: Phi minimizes lattice packing fraction overlap; analogous to optimal
+      sphere packing in 3D
+  lambda_EWC:
+    type: float
+    description: Elastic Weight Consolidation penalty to prevent catastrophic forgetting
+      of existing z0* invariants
+    min: 1000.0
+    max: 100000.0
+    nominal: 10000.0
+    sensitivity: HIGH - values below 1000 risk forgetting critical invariants
+Phase_Transition_Thresholds:
+  T_martensite_start_Ms:
+    description: Minimum entropy threshold at which IAG initiates quench (analogous
+      to martensite start temperature)
+    value_bits: 4.7
+    units: Shannon bits
+    justification: 3-sigma above baseline operational manifold entropy; validated
+      against flash-crash negative controls
+  T_martensite_finish_Mf:
+    description: Entropy level at which quench is fully solidified (invariant locked)
+    value_bits: 2.1
+    units: Shannon bits
+    note: Window between Ms and Mf defines the temporal forging window
+  forging_window_ms:
+    min: 8
+    max: 35
+    nominal: 20
+    critical_constraint: Must complete before exploit payload execution; estimated
+      from AIxCC exploit timing data
+Hessian_Stability_Constraints:
+  Tr_Hessian_max:
+    description: Maximum acceptable Hessian trace of z0* post-quench
+    value: 0.05
+    units: normalized
+    interpretation: Bounded Hessian = non-resonant invariant; unbounded = catastrophic
+      lattice shatter
+  eigenvalue_negativity_check:
+    description: All Hessian eigenvalues must be negative (stable minimum) post-quench
+    test: np.all(np.linalg.eigvals(H_hessian) < 0)
+    failure_action: Rollback quench; increase lambda_EWC by factor 2
+  spectral_radius:
+    max: 0.1
+    units: normalized
+Betti_Number_Constraints:
+  beta_0_post_quench:
+    description: Connected components of z0* manifold must remain 1 (no fragmentation)
+    required: 1
+  beta_1_post_quench:
+    description: All 1-cycles traversed by the attack must be collapsed to 0
+    required: 0
+    pre_quench_value: beta_1_attack (measured from Stage 2)
+  beta_1_existing_preserved:
+    description: Existing beta_1 invariants (legitimate topological features) must
+      be preserved
+    preservation_ratio_min: 0.97
+    failure_label: Semantic Saponification
+ZKP_Latency_Constraints:
+  proof_system: PLONK over BN254 (128-bit security)
+  NTT_latency_fraction: 0.9
+  empirical_reference: arXiv:2509.22684 - NTT contributes up to 90% of ZKP latency
+    on GPUs
+  target_proof_generation_ms: 12
+  target_verification_ms: 0.5
+  hardware_assumption: NVIDIA A100 GPU for prover; mainframe CPU for O(1) verifier
+  batch_proving: Aggregate 8 invariant constraints into single PLONK proof via Lagrange
+    interpolation
+eBPF_Bytecode_Constraints:
+  max_instructions: 1000000
+  stack_depth_max: 512
+  loop_termination: REQUIRED - BPF verifier enforces bounded loops
+  map_types_allowed:
+  - BPF_MAP_TYPE_HASH
+  - BPF_MAP_TYPE_LRU_HASH
+  - BPF_MAP_TYPE_RINGBUF
+  target_throughput_Mpps: 10.0
+  hook_point: XDP_REDIRECT at OSA-Express NIC driver layer
+  signing: Ed25519 via PKCS#11 HSM interface
+Negative_Control_Protocol:
+  black_swan_oracle:
+    description: Real-time feed of market microstructure events (VIX spike, circuit
+      breaker triggers)
+    latency_ms: 1
+    source: Exchange feed via FIX protocol
+    action: Suppress IAG quench if black_swan_flag=True AND entropy source is financial_flow
+  large_block_trade_test:
+    description: Inject legitimate block trade of 3-sigma size monthly
+    pass_condition: Trade executes without eBPF block; no invariant forged
+    fail_action: Increase entropy discrimination sigma threshold by 0.5
+Simulation_Test_Cases:
+- test_id: TC-001
+  description: Multi-stage memory corruption zero-day against legacy financial API
+  exploit_type: heap_spray + ROP_chain + COBOL_VSAM_buffer_overflow
+  expected_H_delta_bits: 7.2
+  expected_beta_1_new: 3
+  expected_forging_result: QUENCH_SUCCESS
+  expected_pipeline_latency_ms: 38
+- test_id: TC-002
+  description: Flash crash + large block trade (legitimate anomaly)
+  exploit_type: NONE - legitimate financial event
+  expected_H_delta_bits: 5.1
+  black_swan_oracle_active: true
+  expected_forging_result: QUENCH_SUPPRESSED
+  expected_pipeline_latency_ms: 3
+- test_id: TC-003
+  description: Adversarial Invariant Poisoning attempt
+  exploit_type: series_of_sacrificial_exploits
+  expected_H_delta_bits:
+  - 4.8
+  - 4.9
+  - 5.0
+  - 5.1
+  - 5.2
+  expected_forging_result: RATE_LIMITED_AFTER_3rd
+  expected_pipeline_latency_ms: 40
