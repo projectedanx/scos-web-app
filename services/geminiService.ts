@@ -2,18 +2,15 @@
 import { GoogleGenAI, Type, Schema, Chat, GenerateContentResponse } from "@google/genai";
 import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, CouncilSessionLog, ScarEntry } from "../types";
 import { executeWithRetry } from "./retryService";
+import { getGeminiApiKey } from "./envService";
 
 // Initialize the Epistemic Engine
-// FIX: Support both Vite (import.meta.env) and standard process.env
-const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-               (import.meta as any).env?.GEMINI_API_KEY ||
-               (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-               (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
+const apiKey = getGeminiApiKey();
 
 if (!apiKey) {
   console.error("CRITICAL: GEMINI API KEY MISSING. AI FEATURES WILL FAIL.");
 }
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
 const SYSTEM_INSTRUCTION = `
 ### DRP_ID: PDL-GENERATOR-META-PRP-v1.0

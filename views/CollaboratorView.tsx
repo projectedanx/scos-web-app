@@ -4,6 +4,7 @@ import { Send, Bot, User, Trash2, Zap, MessageSquareCode, Layers } from 'lucide-
 import { ChatMessage, SovereignAgentManifest, ContextCapsule, SovereignPrompt, TokenUsage } from '../types';
 import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
 import { useDialog } from '../contexts/DialogContext';
+import { getGeminiApiKey } from '../services/envService';
 
 interface CollaboratorViewProps {
   agents: SovereignAgentManifest[];
@@ -47,12 +48,9 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
 
   // Initialize Chat Engine with Context Awareness
   useEffect(() => {
-    const apiKey = (import.meta as any).env?.VITE_API_KEY ||
-                   (import.meta as any).env?.GEMINI_API_KEY ||
-                   (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined) ||
-                   (typeof process !== 'undefined' ? process.env?.API_KEY : undefined);
+    const apiKey = getGeminiApiKey();
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: apiKey || "" });
     
     // Construct the System State Context
     const agentSummary = agents.map(a => `- ${a.identity.name} (${a.identity.designation}): ${a.identity.primeDirective}`).join('\n');
