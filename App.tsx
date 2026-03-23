@@ -339,7 +339,7 @@ function App() {
            // Persistent side effects (Cloud or Local)
            if (user) {
               // Push to cloud if logged in (Batch)
-              await Promise.all(uniqueNewAgents.map(a => saveAgentToCloud(user.uid, a))).catch(err => {
+              await batchSaveAgentsToCloud(user.uid, uniqueNewAgents).catch(err => {
                  console.error("Failed to batch save agents to cloud:", err);
               });
            } else {
