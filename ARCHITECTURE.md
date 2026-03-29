@@ -161,3 +161,94 @@ The **Petzold Sequence** serves as the chronometric governor of the SCOS, treati
 ### Fused Semantic-Temporal Scoring
 $$ score(q, d, t) = \alpha \cos(q, d) + (1 - \alpha) \cdot 0.5^{\frac{age\_days(t)}{h}} $$
 This formula leverages the U-shaped performance curve of LLM attention, forcing thermodynamically fresh knowledge to the positions in the context window where attention heads are most resilient.
+## 9. Relational Schema Topography (Firestore)
+
+The SCOS utilizes a multi-tenant NoSQL structure in Firebase Firestore, scoped entirely around the authenticated user (`uid`). All cognitive artifacts and historical data are isolated within subcollections of the root `users/{uid}` document.
+
+```mermaid
+erDiagram
+    USER ||--o{ MANIFEST : "fabricates/owns (users/{uid}/manifests)"
+    USER ||--o{ CAPSULE : "distills/owns (users/{uid}/capsules)"
+    USER ||--o{ PROMPT : "engineers/owns (users/{uid}/prompts)"
+    USER ||--o{ CONTRACT : "negotiates/owns (users/{uid}/contracts)"
+    USER ||--o{ PROVENANCE : "logs/owns (users/{uid}/provenance)"
+
+    USER {
+        string uid PK "Google Auth UID"
+    }
+
+    MANIFEST {
+        string id PK "Agent Name (slugified)"
+        json identity "Designation, Prime Directive"
+        json epistemicMatrix "Goals, Output, Communication, Cognitive"
+        json tools "Agent capabilities"
+        json constraints "Limits and Boundaries"
+        int timestamp "Last Sync"
+    }
+
+    CAPSULE {
+        string id PK "Capsule Meta ID"
+        string title "Knowledge Topic"
+        string primary_pill "Domain"
+        json sections "Overview, Concepts, Structure..."
+        string status "draft | published"
+    }
+
+    PROMPT {
+        string id PK "UUID"
+        string title "Prompt Name"
+        string content "PDL/System Instructions"
+        string category "Engine Category"
+        int version "Iteration"
+    }
+
+    CONTRACT {
+        string id PK "UUID"
+        string title "Mission Title"
+        string status "DRAFT | ACTIVE | COMPLETED"
+        json anchors "Goals, Constraints, Invariants"
+        string array assignedAgentNames "Bound Manifests"
+    }
+
+    PROVENANCE {
+        string id PK "{timestamp}-{hash_prefix}"
+        string hash "SHA-256 Content Hash"
+        string agentName "Executing Agent"
+        string sourceType "RAW_DOCUMENT | URL | ..."
+        json analysis "WordCount, Sentiment, Topics"
+    }
+```
+
+## 10. Cloud Synchronization & Batch Flow
+
+The Bridge operates via aggressive chunked batching (`writeBatch`) for collection migrations and reactive snapshot listeners (`onSnapshot`) for real-time consistency between the Local Vault and the Execution Layer.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant LocalVault as Local Vault (IndexedDB)
+    participant UI as SCOS UI (React)
+    participant Bridge as firestoreService.ts
+    participant DB as Firestore (scos-17fbf)
+
+    rect rgb(20, 20, 40)
+    Note over LocalVault, DB: Reactive Hydration (Read)
+    UI->>Bridge: syncAgents(uid, onUpdate)
+    Bridge->>DB: onSnapshot(query(users/{uid}/manifests))
+    DB-->>Bridge: Snapshot Event (Manifests)
+    Bridge-->>UI: onUpdate(SovereignAgentManifest[])
+    UI->>LocalVault: Update State & Local Copy
+    end
+
+    rect rgb(40, 20, 20)
+    Note over LocalVault, DB: Multi-Artifact Sync (Write)
+    UI->>Bridge: batchSaveAgentsToCloud(uid, agents[])
+    Bridge->>DB: writeBatch(db)
+    loop Every Agent in agents[]
+        Bridge->>DB: batch.set(doc(users/{uid}/manifests/{agentId}), agent)
+    end
+    Bridge->>DB: batch.commit()
+    DB-->>Bridge: Acknowledge Write
+    Bridge-->>UI: Resolution Promise
+    end
+```
