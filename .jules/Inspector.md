@@ -1,0 +1,3 @@
+## Inspector — Retry Service Edge Case Verification
+**Edge Case:** The `retryService.ts` module lacked explicit tests proving its structural resilience for various HTTP status errors, custom retry predicates, literal and functional fallbacks.
+**Assertion:** Wrote a comprehensive test suite in `services/__tests__/retryService.test.ts` utilizing nulls, non-retryable random errors, rate limits (429), server errors (500), literal fallback values, function fallbacks, and a custom shouldRetry predicate, proving mathematical logic resilience. Completed the Sabotage Check by temporarily breaking the retry limit boundary (`attempt > config.retries` -> `attempt > 0`), mathematically proving tests failed correctly, and then reverted to ensure integrity.
