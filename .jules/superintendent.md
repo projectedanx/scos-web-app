@@ -1,0 +1,1 @@
+Instability: The root directory was polluted with a temporary throwaway script (`benchmark.ts`) and the package lockfile was out of sync. | Fortification: Swept `benchmark.ts` using native `rm` to eradicate hallway trash and synchronized `package-lock.json` via native npm installation to resolve configuration drift.
