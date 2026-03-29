@@ -1,7 +1,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { validateConductorSchema } from '../conductorService.ts';
+import { validateConductorSchema, safeParseSchema } from '../conductorService.ts';
 
 const validManifest: any = {
   identity: {
@@ -128,3 +128,18 @@ test('validateConductorSchema - tool schema properties not an object', () => {
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors.includes("Tool 'tool1' inputSchema must define a valid 'properties' object."));
   });
+
+test('safeParseSchema - valid json', () => {
+  const result = safeParseSchema('{"type": "string"}');
+  assert.deepStrictEqual(result, { type: "string" });
+});
+
+test('safeParseSchema - invalid json returns fallback schema', () => {
+  const result = safeParseSchema('{"invalid": json');
+  assert.deepStrictEqual(result, { type: "object", properties: {}, description: "Schema parsing failed." });
+});
+
+test('safeParseSchema - empty string returns fallback schema', () => {
+  const result = safeParseSchema('');
+  assert.deepStrictEqual(result, { type: "object", properties: {}, description: "Schema parsing failed." });
+});
