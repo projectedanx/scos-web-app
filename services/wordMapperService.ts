@@ -41,7 +41,13 @@ export enum MapStrategy {
 async function fetchDatamuse(seed: string): Promise<string[]> {
   try {
     const response = await executeWithRetry(
-      () => fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(seed)}&max=15`),
+      () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        return fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(seed)}&max=15`, {
+          signal: controller.signal
+        }).finally(() => clearTimeout(timeoutId));
+      },
       { operationName: `Datamuse(${seed})` }
     );
     if (!response.ok) return [];
@@ -102,7 +108,13 @@ export async function fetchWikipediaDefinition(term: string): Promise<string | n
     });
     
     const response = await executeWithRetry(
-      () => fetch(`https://en.wikipedia.org/w/api.php?${params.toString()}`),
+      () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        return fetch(`https://en.wikipedia.org/w/api.php?${params.toString()}`, {
+          signal: controller.signal
+        }).finally(() => clearTimeout(timeoutId));
+      },
       { operationName: `Wiki(${term})` }
     );
     
@@ -245,7 +257,7 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
   `;
 
   try {
-    const secureProxy = httpsCallable(functions, 'secureProxy');
+    const secureProxy = httpsCallable(functions, 'secureProxy', { timeout: 15000 });
     const response = await executeWithRetry(
       () => secureProxy({
         model: modelId,
@@ -262,8 +274,28 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
     const text = resultData.text || "{\"nodes\": []}";
     const usageMetadata = resultData.usage || {};
 
-    const json = JSON.parse(text);
-    const nodes = json.nodes.map((node: any) => ({
+    // Strict Structural JSON parsing shielding against Prototype Pollution
+    const parsedData = JSON.parse(text, (key, value) => {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        return undefined;
+      }
+      return value;
+    });
+
+    // Enforce Schema Boundaries
+    if (!parsedData || typeof parsedData !== 'object' || !Array.isArray(parsedData.nodes)) {
+      throw new Error("ERR_STRUCTURAL_VALIDATION: LLM response missing 'nodes' array schema.");
+    }
+
+    const validatedNodes = parsedData.nodes.filter((n: any) =>
+      n && typeof n === 'object' &&
+      typeof n.concept === 'string' &&
+      typeof n.type === 'string' &&
+      typeof n.dimension === 'string' &&
+      typeof n.definition === 'string'
+    );
+
+    const nodes: SemanticNode[] = validatedNodes.map((node: any) => ({
       ...node,
       id: crypto.randomUUID()
     }));
