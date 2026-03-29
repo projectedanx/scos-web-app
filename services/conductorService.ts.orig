@@ -1,5 +1,5 @@
 
-import type { SovereignAgentManifest } from '../types.ts';
+import { SovereignAgentManifest } from '../types';
 
 /**
  * Conductor / MCP Compatibility Layer
@@ -24,27 +24,14 @@ export interface ConductorSkillManifest {
   };
 }
 
-
-/**
- * Safely parse JSON while preventing Prototype Pollution.
- */
-const secureJSONParse = (jsonStr: string): any => {
-  return JSON.parse(jsonStr, (key, value) => {
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      return undefined;
-    }
-    return value;
-  });
-};
-
 /**
  * Parses the stringified JSON schema from the manifest into an object.
  * Returns a default 'any' schema if parsing fails.
  */
 const safeParseSchema = (schemaStr: string): any => {
   try {
-    return secureJSONParse(schemaStr);
-  } catch (error: unknown) {
+    return JSON.parse(schemaStr);
+  } catch (e) {
     return { type: "object", properties: {}, description: "Schema parsing failed." };
   }
 };
@@ -68,15 +55,13 @@ export const validateConductorSchema = (agent: SovereignAgentManifest): { valid:
       errors.push(`Tool '${tool.name || `at index ${index}`}' has an invalid name. Must be alphanumeric, dashes, or underscores.`);
     }
     try {
-      const schema = secureJSONParse(tool.inputSchema);
+      const schema = JSON.parse(tool.inputSchema);
       if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
          errors.push(`Tool '${tool.name}' inputSchema must be a JSON object.`);
-      } else if (schema.type !== "object") {
-         errors.push(`Tool '${tool.name}' inputSchema must explicitly be of type "object".`);
-      } else if (!schema.properties || typeof schema.properties !== "object" || Array.isArray(schema.properties)) {
-         errors.push(`Tool '${tool.name}' inputSchema must define a valid 'properties' object.`);
+      } else if (schema.type && schema.type !== "object") {
+         errors.push(`Tool '${tool.name}' inputSchema must be of type "object".`);
       }
-    } catch (error: unknown) {
+    } catch (e) {
       errors.push(`Tool '${tool.name}' has invalid JSON in inputSchema.`);
     }
   });
@@ -131,7 +116,7 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
     """
     # TODO: Implement logic for ${tool.name}
     # Security Check: Ensure params match schema
-    raise NotImplementedError(f"Tool ${tool.name} is not yet implemented.")
+    return "Executed ${tool.name}"
 `;
   }).join('\n');
 
@@ -154,10 +139,10 @@ from scos_core.types import AgentContext
     }
 )
 class ${agent.identity.name.replace(/\s+/g, '')}Agent:
-    
+
     def __init__(self):
         self.prime_directive = "${agent.identity.primeDirective}"
-        
+
     def on_wake(self, ctx: AgentContext):
         """Called when the agent is instantiated from the Vault."""
         print(f"[{self.name}] Online. Listening for Intent...")
