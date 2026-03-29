@@ -41,7 +41,7 @@ const secureJSONParse = (jsonStr: string): any => {
  * Parses the stringified JSON schema from the manifest into an object.
  * Returns a default 'any' schema if parsing fails.
  */
-const safeParseSchema = (schemaStr: string): any => {
+export const safeParseSchema = (schemaStr: string): any => {
   try {
     return secureJSONParse(schemaStr);
   } catch (error: unknown) {
