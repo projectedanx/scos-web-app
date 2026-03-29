@@ -77,9 +77,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ context, useSearch
         const chunkText = (chunk as GenerateContentResponse).text;
         if (chunkText) {
           fullText += chunkText;
-          setMessages(prev => prev.map(msg => 
-            msg.id === botMsgId ? { ...msg, text: fullText } : msg
-          ));
+          setMessages(prev => {
+            const next = [...prev];
+            for (let i = next.length - 1; i >= 0; i--) {
+              if (next[i].id === botMsgId) {
+                next[i] = { ...next[i], text: fullText };
+                break;
+              }
+            }
+            return next;
+          });
         }
       }
     } catch (error) {
