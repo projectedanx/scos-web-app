@@ -1,2 +1,5 @@
-Learning: Discovered `services/firestoreService.ts` implements a multi-tenant NoSQL structure where `users/{uid}` serves as the root document for five sub-collections: `manifests`, `capsules`, `prompts`, `contracts`, and `provenance`.
-Action: Proceeding to map Firestore schema topography as an `erDiagram` and the Cloud Sync flow as a `sequenceDiagram` into `ARCHITECTURE.md`.
+Learning: Discovered `services/conductorService.ts`, which bridges SCOS Manifests to standard OpenAPI/JSON Schemas for external environments like Model Context Protocol (MCP) and Conductor. This represents a critical trust and compatibility boundary, transforming local JSON manifests into executable Python code and schema interfaces.
+Action: Add a C4Context diagram to `ARCHITECTURE.md` mapping the `Conductor Compatibility Boundary` between the local React vault and external execution layer (`scos-core` Python Swarm and Conductor Platform).
+
+Learning: Discovered complex multi-agent Council flow logic in `services/geminiService.ts` (`councilDiscovery`, `councilSynthesis`, `councilCritique`, `councilFinalize`). This represents a sophisticated LLM-driven consensus algorithm over multiple steps.
+Action: Add a Mermaid sequence diagram detailing the `Agent Council Synthesis Flow` showing the orchestration of Strategist, Immunologist, Engineer, Linguist, and Historian roles, to `ARCHITECTURE.md`.
