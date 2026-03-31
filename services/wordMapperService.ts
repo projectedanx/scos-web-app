@@ -274,31 +274,37 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
     const text = resultData.text || "{\"nodes\": []}";
     const usageMetadata = resultData.usage || {};
 
-    // Strict Structural JSON parsing shielding against Prototype Pollution
-    const parsedData = JSON.parse(text, (key, value) => {
-      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-        return undefined;
+    // Native Deterministic Schema Validator (mimicking Zod/Pydantic)
+    const SchemaValidator = {
+      parse: (jsonStr: string): { nodes: SemanticNode[] } => {
+        // Strict Structural JSON parsing shielding against Prototype Pollution
+        const parsed = JSON.parse(jsonStr, (key, value) => {
+          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            return undefined;
+          }
+          return value;
+        });
+
+        if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.nodes)) {
+          throw new Error("ERR_STRUCTURAL_VALIDATION: Response missing 'nodes' array schema.");
+        }
+
+        const validNodes = parsed.nodes.filter((n: any) =>
+          n && typeof n === 'object' &&
+          typeof n.concept === 'string' &&
+          typeof n.type === 'string' &&
+          typeof n.dimension === 'string' &&
+          typeof n.definition === 'string'
+        ).map((node: any) => ({
+          ...node,
+          id: crypto.randomUUID()
+        }));
+
+        return { nodes: validNodes };
       }
-      return value;
-    });
+    };
 
-    // Enforce Schema Boundaries
-    if (!parsedData || typeof parsedData !== 'object' || !Array.isArray(parsedData.nodes)) {
-      throw new Error("ERR_STRUCTURAL_VALIDATION: LLM response missing 'nodes' array schema.");
-    }
-
-    const validatedNodes = parsedData.nodes.filter((n: any) =>
-      n && typeof n === 'object' &&
-      typeof n.concept === 'string' &&
-      typeof n.type === 'string' &&
-      typeof n.dimension === 'string' &&
-      typeof n.definition === 'string'
-    );
-
-    const nodes: SemanticNode[] = validatedNodes.map((node: any) => ({
-      ...node,
-      id: crypto.randomUUID()
-    }));
+    const { nodes } = SchemaValidator.parse(text);
 
     const usage: TokenUsage = {
       promptTokens: usageMetadata.promptTokenCount || 0,
