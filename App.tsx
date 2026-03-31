@@ -306,26 +306,27 @@ function App() {
      const files = e.target.files;
      if (!files || files.length === 0) return;
 
-     const newAgents: SovereignAgentManifest[] = [];
-     let errorCount = 0;
+     const results = await Promise.all(
+        Array.from(files).map(async (file) => {
+           if (!file.name.endsWith('.json')) return null;
 
-     for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!file.name.endsWith('.json')) continue;
+           try {
+              const text = await file.text();
+              const json = JSON.parse(text);
 
-        try {
-           const text = await file.text();
-           const json = JSON.parse(text);
-           
-           if (json.identity || json.name || json.tools) {
-               const migrated = migrateLegacyAgent(json, file.name);
-               newAgents.push(migrated);
+              if (json.identity || json.name || json.tools) {
+                  return migrateLegacyAgent(json, file.name);
+              }
+           } catch (e) {
+              console.warn(`Failed to parse ${file.name}`, e);
+              return { error: true };
            }
-        } catch (e) {
-           console.warn(`Failed to parse ${file.name}`, e);
-           errorCount++;
-        }
-     }
+           return null;
+        })
+     );
+
+     const newAgents = results.filter((r): r is SovereignAgentManifest => r !== null && !('error' in r));
+     const errorCount = results.filter(r => r !== null && typeof r === 'object' && 'error' in r).length;
 
      if (newAgents.length > 0) {
         // Calculate unique new agents outside state updater
