@@ -28,12 +28,18 @@ export const secureProxy = functions
 
     const ai = new GoogleGenAI({ apiKey });
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const { model, contents, config } = data;
       const response = await ai.models.generateContent({
         model: model || "gemini-3-pro-preview",
         contents,
-        config
+        config: {
+          ...config,
+          abortSignal: controller.signal
+        }
       });
 
       return {
@@ -43,5 +49,7 @@ export const secureProxy = functions
     } catch (error: any) {
       console.error("Proxy Error:", error);
       throw new functions.https.HttpsError("internal", error.message);
+    } finally {
+      clearTimeout(timeoutId);
     }
   });
