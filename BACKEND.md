@@ -18,12 +18,82 @@ The transition to a cloud backend **must not** compromise the "Sovereign" aspect
 
 ## 2. Infrastructure Components
 
+```mermaid
+C4Context
+  title SCOS Backend Infrastructure Topology
+  Person(user, "User", "Authenticates via Firebase and holds local ECDSA keys")
+
+  System_Boundary(forge, "Agent Forge (Client)") {
+    System(web_app, "React Web App", "Manages identity, defines epistemic matrix, signs manifests")
+  }
+
+  System_Boundary(cloud, "Google Cloud Platform (Firebase)") {
+    System(auth, "Firebase Auth", "Handles Google/Email authentication")
+    System(firestore, "Cloud Firestore", "NoSQL synchronization and persistence")
+    System(functions, "Cloud Functions", "Secure compute wrapper for Gemini API and verification")
+  }
+
+  System_Ext(swarm, "Python Swarm (scos-core)", "Ingests manifests and executes runtime logic")
+
+  Rel(user, web_app, "Interacts with")
+  Rel(web_app, auth, "Authenticates via")
+  Rel(web_app, firestore, "Syncs signed manifests to")
+  Rel(web_app, functions, "Triggers secure compute operations")
+  Rel(functions, firestore, "Validates ECDSA signatures before deployment")
+  Rel(firestore, swarm, "Hydrates agent definitions and queues tasks")
+  Rel(swarm, firestore, "Writes execution logs and task results")
+```
+
 ### A. Authentication (Firebase Auth)
 - **Primary:** Google Sign-In & Email/Password.
 - **The Link:** Upon login, the client checks for a local `localStorage` Commander Key. If found, the Public Key is uploaded to the User Profile. This links the "Cloud Identity" to the "Sovereign Identity".
 
 ### B. Persistence (Cloud Firestore)
 NoSQL Document structure designed for real-time syncing between the Web Forge and Python Swarm nodes.
+
+```mermaid
+erDiagram
+    USER ||--o{ MANIFEST : "users/{userId}/manifests/{agentId}"
+    USER ||--o{ CONSTELLATION : "users/{userId}/constellations/{constellationId}"
+    USER ||--o{ PROMPT : "users/{userId}/prompts/{promptId}"
+    USER ||--o{ PUBLIC_CAPSULE : "public_capsules/{capsuleId} (Owner Reference)"
+
+    USER {
+        string commanderName
+        string sovereignPublicKey "PEM"
+        timestamp createdAt
+    }
+
+    MANIFEST {
+        string status "DRAFT | DEPLOYED | ACTIVE | HIBERNATING"
+        timestamp lastHeartbeat
+        string currentContext
+    }
+
+    CONSTELLATION {
+        string strategy
+        array seeds
+        array nodes
+    }
+
+    PROMPT {
+        string title
+        string content
+        string category
+        array linkedAgentNames
+    }
+
+    PUBLIC_CAPSULE {
+        string ownerId "Reference to User"
+    }
+
+    SWARM_QUEUE {
+        string agentId
+        string command
+        json payload
+        string status "PENDING | THINKING | WRITING | CODING | COMPLETED | FAILED"
+    }
+```
 
 **Schema Definitions:**
 
