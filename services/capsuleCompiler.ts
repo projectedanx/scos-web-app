@@ -1,5 +1,5 @@
 
-import { ContextCapsule, CapsuleMeta } from '../types';
+import type { ContextCapsule, CapsuleMeta } from '../types.ts';
 
 /**
  * Escape HTML special characters
