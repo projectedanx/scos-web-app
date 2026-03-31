@@ -252,3 +252,100 @@ sequenceDiagram
     Bridge-->>UI: Resolution Promise
     end
 ```
+
+## 11. Conductor Compatibility Boundary (MCP/Swarm Interface)
+
+The `conductorService.ts` acts as a crucial trust and execution boundary. It transforms the local JSON manifests (SCOS) into external Model Context Protocol (MCP) or Swarm-compatible schema interfaces, enabling the offline vault to deploy live agents.
+
+```mermaid
+C4Context
+  title Conductor Execution Boundary
+  Person(user, "Architect", "Designs agents and defines constraints.")
+
+  System_Boundary(forge, "Agent Forge (Web/React)") {
+    System(vault, "Local Vault", "Stores Manifests in IndexedDB")
+    System(conductorService, "Conductor Layer", "Transforms SCOS Manifests to OpenAPI/JSON Schema & Python Stubs")
+  }
+
+  System_Ext(conductor, "Conductor Platform / MCP", "External model execution interface.")
+  System_Ext(scosCore, "scos-core (Python Swarm)", "Runs generated Python stubs and handles agent routing.")
+  System_Ext(llm, "Large Language Model", "Gemini API")
+
+  Rel(user, vault, "Manages Agents")
+  Rel(vault, conductorService, "Sends Manifest")
+  Rel(conductorService, conductor, "Generates Skill Manifest (JSON/OpenAPI)")
+  Rel(conductorService, scosCore, "Generates Swarm Node (Python Stubs)")
+
+  Rel(conductor, llm, "Orchestrates API calls via defined tools")
+  Rel(scosCore, llm, "Orchestrates API calls via @agent decorator")
+```
+
+## 12. Agent Council Synthesis Flow
+
+The fabrication of an agent utilizes a 4-phase parallel LLM consensus loop orchestrated by `geminiService.ts`. Five distinct personas independently analyze, synthesize, and critique the user's intent to construct the final Epistemic Matrix.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Architect (User)
+    participant UI as Agent Forge (React)
+    participant C_Strategist as Strategist
+    participant C_Immunologist as Immunologist
+    participant C_Engineer as Engineer
+    participant C_Linguist as Linguist
+    participant C_Historian as Historian
+
+    User->>UI: Initiate Council Fabrication
+    rect rgb(30, 30, 50)
+    Note over UI, C_Historian: Phase 1: Parallel Discovery
+    par Strategist Analysis
+        UI->>C_Strategist: councilDiscovery(context)
+        C_Strategist-->>UI: Structural/Goal Feedback
+    and Immunologist Analysis
+        UI->>C_Immunologist: councilDiscovery(context)
+        C_Immunologist-->>UI: Risk/Constraint Feedback
+    and Engineer Analysis
+        UI->>C_Engineer: councilDiscovery(context)
+        C_Engineer-->>UI: Tooling/Protocol Feedback
+    and Linguist Analysis
+        UI->>C_Linguist: councilDiscovery(context)
+        C_Linguist-->>UI: Tone/Marker Feedback
+    and Historian Analysis
+        UI->>C_Historian: councilDiscovery(context)
+        C_Historian-->>UI: Evolutionary/Scar Feedback
+    end
+    end
+
+    rect rgb(50, 30, 30)
+    Note over UI, C_Strategist: Phase 2: Synthesis (Chair)
+    UI->>C_Strategist: councilSynthesis(feedbacks)
+    C_Strategist-->>UI: Draft Manifest (JSON)
+    end
+
+    rect rgb(30, 50, 30)
+    Note over UI, C_Historian: Phase 3: Parallel Critique
+    par Strategist Critique
+        UI->>C_Strategist: councilCritique(draft)
+        C_Strategist-->>UI: Endorse/Critique
+    and Immunologist Critique
+        UI->>C_Immunologist: councilCritique(draft)
+        C_Immunologist-->>UI: Endorse/Critique
+    and Engineer Critique
+        UI->>C_Engineer: councilCritique(draft)
+        C_Engineer-->>UI: Endorse/Critique
+    and Linguist Critique
+        UI->>C_Linguist: councilCritique(draft)
+        C_Linguist-->>UI: Endorse/Critique
+    and Historian Critique
+        UI->>C_Historian: councilCritique(draft)
+        C_Historian-->>UI: Endorse/Critique
+    end
+    end
+
+    rect rgb(50, 30, 50)
+    Note over UI, C_Strategist: Phase 4: Finalization
+    UI->>C_Strategist: councilFinalize(draft, critiques)
+    C_Strategist-->>UI: Final Sovereign Manifest
+    UI-->>User: Present Minted Artifact
+    end
+```
