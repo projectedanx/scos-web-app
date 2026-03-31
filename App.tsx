@@ -172,10 +172,10 @@ function App() {
     if (!user) {
       // Fallback to LocalStorage if offline/logged out
       try {
-        setVault(JSON.parse(localStorage.getItem('sovereign_vault_agents') || '[]'));
-        setCapsules(JSON.parse(localStorage.getItem('sovereign_capsules_db') || '[]'));
-        setPrompts(JSON.parse(localStorage.getItem('sovereign_prompts_db') || '[]'));
-        setContracts(JSON.parse(localStorage.getItem('sovereign_contracts_db') || '[]'));
+        setVault(JSON.parse(localStorage.getItem('sovereign_vault_agents') ?? '[]'));
+        setCapsules(JSON.parse(localStorage.getItem('sovereign_capsules_db') ?? '[]'));
+        setPrompts(JSON.parse(localStorage.getItem('sovereign_prompts_db') ?? '[]'));
+        setContracts(JSON.parse(localStorage.getItem('sovereign_contracts_db') ?? '[]'));
         // We don't typically persist provenance index in LS for offline mode due to size, but could if needed.
       } catch (e) {
         console.warn("Failed to load local storage fallback", e);
