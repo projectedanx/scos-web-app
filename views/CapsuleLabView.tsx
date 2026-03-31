@@ -124,7 +124,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
       title,
       content: inputValue,
       capsuleResult: capsule,
-      usage: lastUsage || undefined
+      usage: lastUsage ?? undefined
     };
 
     const updatedDrafts = [newDraft, ...drafts];
@@ -137,7 +137,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
       setInputValue(draft.content);
       setCapsule(draft.capsuleResult);
       setSuggestedTags([]);
-      setLastUsage(draft.usage || null);
+      setLastUsage(draft.usage ?? null);
       setActiveMode('LAB');
     });
   };
@@ -166,7 +166,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
           agentName: 'Capsule Architect',
           timestamp: Date.now(),
           sourceType: 'CONTEXT_CAPSULE',
-          snippet: `Capsule Minted: ${capsule.meta.title} [State: ${capsule.meta.research_date || 'Current'}]`,
+          snippet: `Capsule Minted: ${capsule.meta.title} [State: ${capsule.meta.research_date ?? 'Current'}]`,
           analysis: {
              wordCount: JSON.stringify(capsule).length, // Rough size
              sentiment: 'NEUTRAL',
@@ -197,7 +197,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
       ...capsule,
       meta: {
         ...capsule.meta,
-        source_papers: [...(capsule.meta.source_papers || []), newSourcePaper.trim()]
+        source_papers: [...(capsule.meta.source_papers ?? []), newSourcePaper.trim()]
       }
     });
     setNewSourcePaper('');
@@ -205,7 +205,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
 
   const handleRemoveSourcePaper = (idx: number) => {
     if (!capsule) return;
-    const newPapers = [...(capsule.meta.source_papers || [])];
+    const newPapers = [...(capsule.meta.source_papers ?? [])];
     newPapers.splice(idx, 1);
     setCapsule({
       ...capsule,
@@ -221,13 +221,13 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
   const handleAddTag = (tagToAdd: string) => {
     if (!capsule || !tagToAdd.trim()) return;
     const cleanTag = tagToAdd.trim();
-    if ((capsule.meta.tags || []).some(t => t.toLowerCase() === cleanTag.toLowerCase())) return;
+    if ((capsule.meta.tags ?? []).some(t => t.toLowerCase() === cleanTag.toLowerCase())) return;
 
     setCapsule({
       ...capsule,
       meta: {
         ...capsule.meta,
-        tags: [...(capsule.meta.tags || []), cleanTag]
+        tags: [...(capsule.meta.tags ?? []), cleanTag]
       }
     });
     setNewTagInput('');
@@ -240,7 +240,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
       ...capsule,
       meta: {
         ...capsule.meta,
-        tags: (capsule.meta.tags || []).filter(t => t !== tagToRemove)
+        tags: (capsule.meta.tags ?? []).filter(t => t !== tagToRemove)
       }
     });
   };
@@ -251,10 +251,10 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
     try {
       const context = `
         Title: ${capsule.meta.title}
-        Overview: ${capsule.sections.overview?.intro || ''}
-        Key Concepts: ${capsule.sections.key_concepts?.cards.map(c => c.title).join(', ') || ''}
-        Workflow Steps: ${capsule.sections.workflow?.steps.map(s => s.label).join(', ') || ''}
-        Resilience Modes: ${capsule.sections.resilience?.failure_modes.map(f => f.name).join(', ') || ''}
+        Overview: ${capsule.sections.overview?.intro ?? ''}
+        Key Concepts: ${capsule.sections.key_concepts?.cards.map(c => c.title).join(', ') ?? ''}
+        Workflow Steps: ${capsule.sections.workflow?.steps.map(s => s.label).join(', ') ?? ''}
+        Resilience Modes: ${capsule.sections.resilience?.failure_modes.map(f => f.name).join(', ') ?? ''}
       `;
       
       const result = await analyzeDocument(context);
@@ -267,7 +267,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
           } : result.usage);
       }
       
-      const currentTags = (capsule.meta.tags || []).map(t => t.toLowerCase());
+      const currentTags = (capsule.meta.tags ?? []).map(t => t.toLowerCase());
       const novelTags = result.data.topics.filter(t => !currentTags.includes(t.toLowerCase()));
       
       setSuggestedTags(novelTags);
@@ -280,7 +280,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
 
   const handleAcceptAllTags = () => {
     if (!capsule) return;
-    const currentTags = capsule.meta.tags || [];
+    const currentTags = capsule.meta.tags ?? [];
     const combined = [...currentTags];
     suggestedTags.forEach(st => {
        if (!combined.some(ct => ct.toLowerCase() === st.toLowerCase())) {
@@ -726,10 +726,10 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
                         <div>
                            <label className="text-[10px] text-zinc-500 font-mono uppercase mb-2 block flex justify-between">
                               <span>Source Papers / Provenance</span>
-                              <span className="text-zinc-600">{(capsule.meta.source_papers || []).length} refs</span>
+                              <span className="text-zinc-600">{(capsule.meta.source_papers ?? []).length} refs</span>
                            </label>
                            <div className="space-y-2 mb-2">
-                              {(capsule.meta.source_papers || []).map((paper, idx) => (
+                              {(capsule.meta.source_papers ?? []).map((paper, idx) => (
                                  <div key={idx} className="flex items-center justify-between text-xs bg-zinc-950/30 px-2 py-1.5 rounded border border-zinc-800/50 group">
                                     <span className="truncate text-zinc-400 max-w-[90%]">{paper}</span>
                                     <button onClick={() => handleRemoveSourcePaper(idx)} className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -787,7 +787,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                 {(capsule.meta.tags || []).map((tag, idx) => (
+                 {(capsule.meta.tags ?? []).map((tag, idx) => (
                     <span key={idx} className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-200 text-xs border border-zinc-700 group animate-in zoom-in duration-200">
                        <span>{tag}</span>
                        <button 
