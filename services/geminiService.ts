@@ -12,6 +12,15 @@ if (!apiKey) {
 }
 const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
+/**
+ * Creates an AbortController with a 15-second timeout to prevent application hangs
+ */
+const withTimeout = (): AbortSignal => {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 15000);
+  return controller.signal;
+};
+
 const SYSTEM_INSTRUCTION = `
 ### DRP_ID: PDL-GENERATOR-META-PRP-v1.0
 ### DESIGNATION: Causal Latent Space Compiler (Meta-Prompt Designer)
@@ -538,11 +547,23 @@ const sumUsage = (u1: TokenUsage, u2: TokenUsage): TokenUsage => ({
 });
 
 /**
+ * Secure JSON parsing shielding against Prototype Pollution.
+ */
+const secureJSONParse = (jsonStr: string): any => {
+  return JSON.parse(jsonStr, (key, value) => {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return undefined;
+    }
+    return value;
+  });
+};
+
+/**
  * Attempts to repair truncated JSON by closing open strings, arrays, and objects.
  */
 function repairJson(jsonString: string): any {
   try {
-    return JSON.parse(jsonString);
+    return secureJSONParse(jsonString);
   } catch (e) {
     let repaired = jsonString.trim();
     
@@ -583,13 +604,66 @@ function repairJson(jsonString: string): any {
     }
 
     try {
-      return JSON.parse(repaired);
+      return secureJSONParse(repaired);
     } catch (finalError) {
        console.error("JSON Repair Failed", finalError);
        // Throw original error to preserve context if repair fails
        throw e; 
     }
   }
+}
+
+/**
+ * Structural Validation
+ */
+function validateResearchPlan(data: any): { queries: string[] } {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.queries)) {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Research plan missing 'queries' array.");
+  }
+  return { queries: data.queries.filter((q: any) => typeof q === 'string') };
+}
+
+function validateAgentManifest(data: any): Omit<SovereignAgentManifest, 'provenance'> {
+  if (!data || typeof data !== 'object') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Agent manifest must be an object.");
+  }
+  if (!data.identity || typeof data.identity.name !== 'string') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Agent manifest missing 'identity.name'.");
+  }
+  if (!data.epistemicMatrix || typeof data.epistemicMatrix !== 'object') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Agent manifest missing 'epistemicMatrix'.");
+  }
+  return data as Omit<SovereignAgentManifest, 'provenance'>;
+}
+
+function validateContextCapsule(data: any): ContextCapsule {
+  if (!data || typeof data !== 'object') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Context capsule must be an object.");
+  }
+  if (!data.meta || typeof data.meta.id !== 'string') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Context capsule missing 'meta.id'.");
+  }
+  if (!data.sections || typeof data.sections !== 'object') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Context capsule missing 'sections'.");
+  }
+  return data as ContextCapsule;
+}
+
+function validateAnalysisResult(data: any): ContextAnalysisResult {
+  if (!data || typeof data !== 'object') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Analysis result must be an object.");
+  }
+  const validSentiments = ['POSITIVE', 'NEUTRAL', 'NEGATIVE', 'COMPLEX'];
+  if (!validSentiments.includes(data.sentiment)) {
+    data.sentiment = 'COMPLEX';
+  }
+  if (!Array.isArray(data.topics)) {
+    data.topics = [];
+  }
+  return {
+    sentiment: data.sentiment as 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' | 'COMPLEX',
+    topics: data.topics.filter((t: any) => typeof t === 'string')
+  };
 }
 
 // ... (Deep Research Loop - researchTopic - stays the same) ...
@@ -622,6 +696,7 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
         model: planningModelId,
         contents: planPrompt,
         config: {
+          abortSignal: withTimeout(),
           responseMimeType: "application/json",
           responseSchema: RESEARCH_PLAN_SCHEMA,
         }
@@ -630,8 +705,16 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
     );
 
     totalUsage = sumUsage(totalUsage, getUsage(planResponse));
-    const planData = repairJson(planResponse.text || "{}");
-    const queries: string[] = planData.queries || [
+
+    let planData;
+    try {
+      planData = validateResearchPlan(repairJson(planResponse.text || "{}"));
+    } catch (e) {
+      console.warn("Research Plan Validation Failed", e);
+      planData = { queries: [] };
+    }
+
+    const queries: string[] = planData.queries.length > 0 ? planData.queries : [
       `${topic} technical documentation`, 
       `${topic} implementation patterns`, 
       `${topic} security analysis`
@@ -648,6 +731,7 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
               model: searchModelId,
               contents: `Find detailed, technical information for: "${query}". Focus on facts, code snippets, and architectural details.`,
               config: {
+                abortSignal: withTimeout(),
                 tools: [{ googleSearch: {} }],
               }
            }),
@@ -698,6 +782,7 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
       () => ai.models.generateContent({
         model: planningModelId, // Use Pro for synthesis
         contents: synthesisPrompt,
+        config: { abortSignal: withTimeout() }
       }),
       { operationName: 'Research Synthesis' }
     );
@@ -769,6 +854,7 @@ export const fabricateAgent = async (
               model: modelId,
               contents: currentPrompt,
               config: {
+                abortSignal: withTimeout(),
                 systemInstruction: SYSTEM_INSTRUCTION,
                 responseMimeType: "application/json",
                 responseSchema: AGENT_SCHEMA,
@@ -806,7 +892,7 @@ export const fabricateAgent = async (
           throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
         }
 
-        const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
+        const data = validateAgentManifest(repairJson(resultText));
         return { data, usage: accumulatedUsage };
 
       } catch (error: any) {
@@ -872,6 +958,7 @@ export const councilDiscovery = async (
       model: modelId,
       contents: prompt,
       config: {
+        abortSignal: withTimeout(),
         systemInstruction: COUNCIL_INSTRUCTIONS[member],
       }
     }),
@@ -927,6 +1014,7 @@ export const councilSynthesis = async (
           model: modelId,
           contents: currentPrompt,
           config: {
+            abortSignal: withTimeout(),
             systemInstruction: SYSTEM_INSTRUCTION, // Use the master schema instruction
             responseMimeType: "application/json",
             responseSchema: AGENT_SCHEMA,
@@ -946,7 +1034,7 @@ export const councilSynthesis = async (
         throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
       }
 
-      const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
+      const data = validateAgentManifest(repairJson(resultText));
       return { data, usage: accumulatedUsage };
 
     } catch (error: any) {
@@ -1004,6 +1092,7 @@ export const councilCritique = async (
       model: modelId,
       contents: prompt,
       config: {
+        abortSignal: withTimeout(),
         systemInstruction: COUNCIL_INSTRUCTIONS[member],
       }
     }),
@@ -1060,6 +1149,7 @@ export const councilFinalize = async (
           model: modelId,
           contents: currentPrompt,
           config: {
+            abortSignal: withTimeout(),
             systemInstruction: SYSTEM_INSTRUCTION,
             responseMimeType: "application/json",
             responseSchema: AGENT_SCHEMA,
@@ -1079,7 +1169,7 @@ export const councilFinalize = async (
         throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
       }
 
-      const data = repairJson(resultText) as Omit<SovereignAgentManifest, 'provenance'>;
+      const data = validateAgentManifest(repairJson(resultText));
       return { data, usage: accumulatedUsage };
 
     } catch (error: unknown) {
@@ -1143,6 +1233,7 @@ export const distillCapsule = async (context: string): Promise<GenAIResult<Conte
         model: modelId,
         contents: prompt,
         config: {
+          abortSignal: withTimeout(),
           systemInstruction: CAPSULE_SYSTEM_INSTRUCTION,
           responseMimeType: "application/json",
           responseSchema: CAPSULE_SCHEMA,
@@ -1159,7 +1250,7 @@ export const distillCapsule = async (context: string): Promise<GenAIResult<Conte
       throw new Error("ERR_VOID_CAPSULE: The cognitive engine returned no data.");
     }
 
-    const capsule = repairJson(resultText) as ContextCapsule;
+    const capsule = validateContextCapsule(repairJson(resultText));
     if (!capsule.meta.created_at) {
         capsule.meta.created_at = Date.now();
     }
@@ -1203,6 +1294,7 @@ export const generateMetaPrompt = async (
          model: modelId,
          contents: userPrompt,
          config: {
+           abortSignal: withTimeout(),
            systemInstruction: engine.metaSystemPrompt,
            thinkingConfig: { thinkingBudget: 1024 } 
          }
@@ -1279,6 +1371,7 @@ export const analyzeDocument = async (context: string): Promise<GenAIResult<Cont
         model: modelId,
         contents: prompt,
         config: {
+          abortSignal: withTimeout(),
           responseMimeType: "application/json",
           responseSchema: ANALYSIS_SCHEMA
         }
@@ -1295,7 +1388,7 @@ export const analyzeDocument = async (context: string): Promise<GenAIResult<Cont
     const text = response.text || JSON.stringify({ sentiment: 'COMPLEX', topics: ['Unanalyzed'] });
     
     return {
-        data: JSON.parse(text) as ContextAnalysisResult,
+        data: validateAnalysisResult(secureJSONParse(text)),
         usage: getUsage(response)
     };
   } catch (e) {
