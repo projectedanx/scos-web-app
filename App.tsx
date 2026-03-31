@@ -411,7 +411,7 @@ function App() {
         if(user && newAgents.length > 0) operations.push(batchSaveAgentsToCloud(user.uid, newAgents));
 
         // 2. Capsules
-        const existingCapsuleIds = new Set(capsules.map(c => c.meta.id));
+
         const newCapsules = (data.capsules as ContextCapsule[] || []).filter(
             c => !existingCapsuleIds.has(c.meta.id)
         );
@@ -419,7 +419,7 @@ function App() {
         if(user && newCapsules.length > 0) operations.push(batchSaveCapsulesToCloud(user.uid, newCapsules));
 
         // 3. Prompts
-        const existingPromptIds = new Set(prompts.map(p => p.id));
+
         const newPrompts = (data.prompts as SovereignPrompt[] || []).filter(
             p => !existingPromptIds.has(p.id)
         );
@@ -427,7 +427,7 @@ function App() {
         if(user && newPrompts.length > 0) operations.push(batchSavePromptsToCloud(user.uid, newPrompts));
 
         // 4. Contracts
-        const existingContractIds = new Set(contracts.map(c => c.id));
+
         const newContracts = (data.contracts as CognitiveContract[] || []).filter(
             c => !existingContractIds.has(c.id)
         );
@@ -435,7 +435,7 @@ function App() {
         if(user && newContracts.length > 0) operations.push(batchSaveContractsToCloud(user.uid, newContracts));
 
         // 5. Provenance Index
-        const existingProvenanceHashes = new Set(provenanceIndex.map(p => p.hash));
+
         const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] || []).filter(
             entry => !existingProvenanceHashes.has(entry.hash)
         );
