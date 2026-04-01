@@ -72,7 +72,6 @@ async function fetchConceptNet(seed: string): Promise<string[]> {
       const response = await fetch(`https://api.conceptnet.io/c/en/${encodeURIComponent(seed)}?limit=10`, {
         signal: controller.signal
       });
-      clearTimeout(timeoutId);
       
       if (!response.ok) return [];
       const data = await response.json();
@@ -84,6 +83,8 @@ async function fetchConceptNet(seed: string): Promise<string[]> {
         .filter((label: string) => label.toLowerCase() !== seed.toLowerCase());
     } catch (e) {
       throw e; // Rethrow for retry logic
+    } finally {
+      clearTimeout(timeoutId);
     }
   }, { 
     operationName: `ConceptNet(${seed})`,

@@ -13,12 +13,17 @@ if (!apiKey) {
 const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
 /**
- * Creates an AbortController with a 15-second timeout to prevent application hangs
+ * Creates an AbortController with a 15-second timeout to prevent application hangs.
+ * Executes the function and clears the timeout in a finally block to prevent memory leaks.
  */
-const withTimeout = (): AbortSignal => {
+const invokeWithTimeout = async <T>(fn: (signal: AbortSignal) => Promise<T>, timeoutMs = 15000): Promise<T> => {
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), 15000);
-  return controller.signal;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fn(controller.signal);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 const SYSTEM_INSTRUCTION = `
@@ -692,15 +697,15 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
     `;
 
     const planResponse = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => invokeWithTimeout((signal) => ai.models.generateContent({
         model: planningModelId,
         contents: planPrompt,
         config: {
-          abortSignal: withTimeout(),
+          abortSignal: signal,
           responseMimeType: "application/json",
           responseSchema: RESEARCH_PLAN_SCHEMA,
         }
-      }),
+      })),
       { operationName: 'Research Planning' }
     );
 
@@ -727,14 +732,14 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
       try {
          // We wrap the individual vector search with retry to be robust against transient errors
          const searchResponse = await executeWithRetry<GenerateContentResponse>(
-           () => ai.models.generateContent({
+           () => invokeWithTimeout((signal) => ai.models.generateContent({
               model: searchModelId,
               contents: `Find detailed, technical information for: "${query}". Focus on facts, code snippets, and architectural details.`,
               config: {
-                abortSignal: withTimeout(),
+                abortSignal: signal,
                 tools: [{ googleSearch: {} }],
               }
-           }),
+           })),
            { operationName: `Vector Search: ${query.substring(0, 10)}...` }
          );
          
@@ -779,11 +784,11 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
     `;
 
     const finalResponse = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => invokeWithTimeout((signal) => ai.models.generateContent({
         model: planningModelId, // Use Pro for synthesis
         contents: synthesisPrompt,
-        config: { abortSignal: withTimeout() }
-      }),
+        config: { abortSignal: signal }
+      })),
       { operationName: 'Research Synthesis' }
     );
     
@@ -850,17 +855,17 @@ export const fabricateAgent = async (
 
         while (apiAttempt < maxApiAttempts) {
           try {
-            response = await ai.models.generateContent({
+            response = await invokeWithTimeout((signal) => ai.models.generateContent({
               model: modelId,
               contents: currentPrompt,
               config: {
-                abortSignal: withTimeout(),
+                abortSignal: signal,
                 systemInstruction: SYSTEM_INSTRUCTION,
                 responseMimeType: "application/json",
                 responseSchema: AGENT_SCHEMA,
                 tools: tools,
               }
-            });
+            }));
             break; // Success
           } catch (apiError: any) {
             apiAttempt++;
@@ -954,14 +959,14 @@ export const councilDiscovery = async (
   `;
 
   const response = await executeWithRetry<GenerateContentResponse>(
-    () => ai.models.generateContent({
+    () => invokeWithTimeout((signal) => ai.models.generateContent({
       model: modelId,
       contents: prompt,
       config: {
-        abortSignal: withTimeout(),
+        abortSignal: signal,
         systemInstruction: COUNCIL_INSTRUCTIONS[member],
       }
-    }),
+    })),
     { operationName: `Council Discovery (${member})` }
   );
 
@@ -1010,16 +1015,16 @@ export const councilSynthesis = async (
   while (attempt < maxAttempts) {
     try {
       const response = await executeWithRetry<GenerateContentResponse>(
-        () => ai.models.generateContent({
+        () => invokeWithTimeout((signal) => ai.models.generateContent({
           model: modelId,
           contents: currentPrompt,
           config: {
-            abortSignal: withTimeout(),
+            abortSignal: signal,
             systemInstruction: SYSTEM_INSTRUCTION, // Use the master schema instruction
             responseMimeType: "application/json",
             responseSchema: AGENT_SCHEMA,
           }
-        }),
+        })),
         { operationName: 'Council Synthesis' }
       );
 
@@ -1088,14 +1093,14 @@ export const councilCritique = async (
   `;
 
   const response = await executeWithRetry<GenerateContentResponse>(
-    () => ai.models.generateContent({
+    () => invokeWithTimeout((signal) => ai.models.generateContent({
       model: modelId,
       contents: prompt,
       config: {
-        abortSignal: withTimeout(),
+        abortSignal: signal,
         systemInstruction: COUNCIL_INSTRUCTIONS[member],
       }
-    }),
+    })),
     { operationName: `Council Critique (${member})` }
   );
 
@@ -1145,16 +1150,16 @@ export const councilFinalize = async (
   while (attempt < maxAttempts) {
     try {
       const response = await executeWithRetry<GenerateContentResponse>(
-        () => ai.models.generateContent({
+        () => invokeWithTimeout((signal) => ai.models.generateContent({
           model: modelId,
           contents: currentPrompt,
           config: {
-            abortSignal: withTimeout(),
+            abortSignal: signal,
             systemInstruction: SYSTEM_INSTRUCTION,
             responseMimeType: "application/json",
             responseSchema: AGENT_SCHEMA,
           }
-        }),
+        })),
         { operationName: 'Council Finalization' }
       );
 
@@ -1229,16 +1234,16 @@ export const distillCapsule = async (context: string): Promise<GenAIResult<Conte
     `;
 
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => invokeWithTimeout((signal) => ai.models.generateContent({
         model: modelId,
         contents: prompt,
         config: {
-          abortSignal: withTimeout(),
+          abortSignal: signal,
           systemInstruction: CAPSULE_SYSTEM_INSTRUCTION,
           responseMimeType: "application/json",
           responseSchema: CAPSULE_SCHEMA,
         }
-      }),
+      })),
       { 
         operationName: 'Capsule Distillation',
         retries: 3 
@@ -1290,15 +1295,15 @@ export const generateMetaPrompt = async (
     `;
 
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => invokeWithTimeout((signal) => ai.models.generateContent({
          model: modelId,
          contents: userPrompt,
          config: {
-           abortSignal: withTimeout(),
+           abortSignal: signal,
            systemInstruction: engine.metaSystemPrompt,
            thinkingConfig: { thinkingBudget: 1024 } 
          }
-      }),
+      })),
       { operationName: 'Meta-Prompt Generation' }
     );
 
@@ -1367,15 +1372,15 @@ export const analyzeDocument = async (context: string): Promise<GenAIResult<Cont
     `;
 
     const response = await executeWithRetry<GenerateContentResponse>(
-      () => ai.models.generateContent({
+      () => invokeWithTimeout((signal) => ai.models.generateContent({
         model: modelId,
         contents: prompt,
         config: {
-          abortSignal: withTimeout(),
+          abortSignal: signal,
           responseMimeType: "application/json",
           responseSchema: ANALYSIS_SCHEMA
         }
-      }),
+      })),
       { 
         operationName: 'Document Analysis',
         retries: 2,
