@@ -1,5 +1,5 @@
 
-import type { SovereignAgentManifest } from '../types.ts';
+import type { SovereignAgentManifest } from '../types';
 
 /**
  * Conductor / MCP Compatibility Layer

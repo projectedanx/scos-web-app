@@ -1,7 +1,7 @@
-## Cortex — Agnostic Client Unification
-**Learning:** Legacy `JSON.parse()` on `httpsCallable` returns lack structural validation and execution timeouts, risking application hangs when the LLM core response is non-deterministic.
-**Action:** Unify disparate AI client instantiations into a single, shared utility with hardened, centralized configuration defaults. Enforce strict deterministic boundaries by upgrading `secureProxy` backend logic to utilize `ai.models.generateContent` calls injected with 15-second `AbortController` signals, and replace naive parsing on the frontend with defensive runtime schema validators mimicking Pydantic/Zod structures natively.
+## Cortex — Agnostic Client Unification & Synaptic Timeout Hardening
+**Learning:** Initializing an `AbortController` and passing its signal to SDK calls is insufficient without clearing the timeout in a strict `try/finally` block to prevent memory leaks. Furthermore, legacy naive parsing on AI output must be structurally validated natively.
+**Action:** Unify disparate AI clients and wrap all network executions containing an `AbortController` within a strict `try/finally` block to explicitly clear the timeout. Replace naive parsing with defensive runtime schema validators mimicking Zod structures natively.
 
-## Cortex — The Synaptic Timeout Hardening
-**Learning:** Initializing an `AbortController` and passing its signal to `fetch` or SDK calls like `ai.models.generateContent` is insufficient if the `setTimeout` identifier is not strictly cleared. Unhandled timeouts in long-running processes or retry loops create silent memory leaks.
-**Action:** Wrap all network SDK executions containing an `AbortController` within a strict `try/finally` block that explicitly calls `clearTimeout(timeoutId)`, ensuring the timer is cleared regardless of execution success, API failure, or rate-limit retry.
+## Cortex — Zero Targets Compliance
+**Learning:** Upon deep inspection of the repository for legacy `fetch` calls, unvalidated `JSON.parse` operations on AI outputs, and missing timeout boundaries, no non-deterministic hazards or outdated model targets were discovered, indicating full compliance with current standards.
+**Action:** Stop immediately and execute the Category Fallback to generate a Compliance PR, as zero legacy targets require structural wiring or migration at this time.
