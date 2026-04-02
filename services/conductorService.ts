@@ -65,7 +65,7 @@ export const validateConductorSchema = (agent: SovereignAgentManifest): { valid:
 
   agent.tools.forEach((tool, index) => {
     if (!tool.name || !tool.name.match(/^[a-zA-Z0-9_-]+$/)) {
-      errors.push(`Tool '${tool.name || `at index ${index}`}' has an invalid name. Must be alphanumeric, dashes, or underscores.`);
+      errors.push(`Tool '${tool.name ?? `at index ${index}`}' has an invalid name. Must be alphanumeric, dashes, or underscores.`);
     }
     try {
       const schema = secureJSONParse(tool.inputSchema);
@@ -137,7 +137,7 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
 
   return `
 # Sovereign Swarm Node: ${agent.identity.name}
-# Protocol: ${agent.protocol?.standard || 'DRP-2025'}
+# Protocol: ${agent.protocol?.standard ?? 'DRP-2025'}
 # Designation: ${agent.identity.designation}
 
 import json
@@ -147,7 +147,7 @@ from scos_core.types import AgentContext
 
 @agent(
     name="${agent.identity.name}",
-    role="${agent.protocol?.role || 'SPECIALIST'}",
+    role="${agent.protocol?.role ?? 'SPECIALIST'}",
     budget={
         "tokens": ${agent.budget.tokenBudget},
         "drift": ${agent.budget.driftAllowance}
