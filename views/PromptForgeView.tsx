@@ -193,7 +193,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
   const { addToast } = useToast();
   const { confirm, prompt } = useDialog();
 
-  const activeEngine = engines.find(e => e.id === activeEngineId) || null;
+  const activeEngine = engines.find(e => e.id === activeEngineId) ?? null;
 
   // Persist templates
   useEffect(() => {
@@ -227,7 +227,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
     reader.onload = (event) => {
       const text = event.target?.result as string;
       // Append or replace? Let's append with a newline
-      const current = activeEngine.knowledgeContext || '';
+      const current = activeEngine.knowledgeContext ?? '';
       handleUpdateEngine('knowledgeContext', current ? current + '\n\n' + text : text);
     };
     reader.readAsText(file);
@@ -245,7 +245,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
         id: crypto.randomUUID(),
         name,
         systemPrompt: activeEngine.metaSystemPrompt,
-        knowledgeContext: activeEngine.knowledgeContext || '',
+        knowledgeContext: activeEngine.knowledgeContext ?? '',
         timestamp: Date.now()
       };
 
@@ -274,13 +274,13 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
       const template = savedTemplates.find(t => t.id === value);
       if (template) {
         // Support legacy templates that might use 'content' key, vs new 'systemPrompt' key
-        const sysPrompt = template.systemPrompt || (template as any).content || '';
+        const sysPrompt = template.systemPrompt ?? (template as any).content ?? '';
         
         setEngines(prev => prev.map(eng => 
             eng.id === activeEngine.id ? { 
                 ...eng, 
                 metaSystemPrompt: sysPrompt,
-                knowledgeContext: template.knowledgeContext || ''
+                knowledgeContext: template.knowledgeContext ?? ''
             } : eng
         ));
       }
