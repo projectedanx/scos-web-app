@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { validateConductorSchema, safeParseSchema, transformToConductor, generatePythonStubs, generateSkillReadme } from '../conductorService.ts';
-import type { SovereignAgentManifest } from '../types.ts';
+import type { SovereignAgentManifest } from '../../types';
 
 const validManifest: any = {
   identity: {

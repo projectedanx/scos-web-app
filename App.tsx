@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Shield, HardDrive, Key, ChevronLeft, Trash2, Download, Upload, Cloud, LogOut, Wifi, WifiOff, FolderInput, FileUp, Loader2 } from 'lucide-react';
+import { User, Shield, HardDrive, Key, ChevronLeft, Trash2, Download, Cloud, LogOut, WifiOff, FolderInput, FileUp, Loader2 } from 'lucide-react';
 import { generateCommanderKeys, CommanderKeyPair } from './services/cryptoService';
 import { SovereignAgentManifest, SovereignVault, ProvenanceIndexEntry, ViewMode, ScarEntry, SovereignPrompt, ContextCapsule, CognitiveContract } from './types';
 import { Sidebar } from './components/Layout/Sidebar';
@@ -42,6 +42,7 @@ import {
 } from './services/firestoreService';
 
 // --- Legacy Migration Utility (Preserved) ---
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest => {
   const identity = data.identity || {
       name: data.name || filename.replace('.json', ''),
@@ -124,7 +125,7 @@ const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest
  */
 function App() {
   const { addToast } = useToast();
-  const { confirm, prompt } = useDialog();
+  const { confirm } = useDialog();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.DASHBOARD); 
   
   // State
@@ -147,7 +148,7 @@ function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const [scars, setScars] = useState<ScarEntry[]>([]);
+  const [, setScars] = useState<ScarEntry[]>([]);
 
   // --- Key Initialization ---
   useEffect(() => {
@@ -631,7 +632,7 @@ function App() {
              onChange={handleFolderImport} 
              className="hidden" 
              multiple 
-             {...{ webkitdirectory: "", directory: "" } as any} 
+             {...{ webkitdirectory: "", directory: "" } as React.InputHTMLAttributes<HTMLInputElement>}
            />
         </div>
       </div>
