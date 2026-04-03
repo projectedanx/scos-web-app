@@ -13,30 +13,30 @@ The Sovereign Cognitive OS is a **Hybrid Local/Cloud System** designed to ensure
 
 ```mermaid
 graph TD
-    User[Architect (User)] -->|Fabricates| Forge[Agent Forge (Web)]
-    Forge -->|Signs (ECDSA P-256)| Manifest[Sovereign Manifest (JSON)]
+    User["Architect (User)"] -->|Fabricates| Forge["Agent Forge (Web)"]
+    Forge -->|"Signs (ECDSA P-256)"| Manifest["Sovereign Manifest (JSON)"]
     
     subgraph "Local Sovereignty (Browser)"
-        Vault[Local Vault (IndexedDB/LocalStorage)]
-        Keys[Commander Keys (WebCrypto)]
-        Capsule[Capsule Lab]
-        Mapper[Word Mapper]
+        Vault["Local Vault (IndexedDB/LocalStorage)"]
+        Keys["Commander Keys (WebCrypto)"]
+        Capsule["Capsule Lab"]
+        Mapper["Word Mapper"]
     end
     
     Manifest --> Vault
     Keys -->|Signs| Manifest
     
     subgraph "The Bridge (Firebase)"
-        Auth[Auth (Google)]
-        DB[Firestore (Sync - scos-17fbf)]
+        Auth["Auth (Google)"]
+        DB["Firestore (Sync - scos-17fbf)"]
     end
     
-    Vault -->|Syncs (Encrypted)| DB
+    Vault -->|"Syncs (Encrypted)"| DB
     
     subgraph "Execution Layer (Swarm)"
-        Python[scos-core (Python Node)]
-        Gemini[Google Gemini API]
-        Tools[External Tools/APIs]
+        Python["scos-core (Python Node)"]
+        Gemini["Google Gemini API"]
+        Tools["External Tools/APIs"]
     end
     
     DB -->|Hydrates| Python
@@ -207,7 +207,7 @@ erDiagram
         string title "Mission Title"
         string status "DRAFT | ACTIVE | COMPLETED"
         json anchors "Goals, Constraints, Invariants"
-        string array assignedAgentNames "Bound Manifests"
+        string_array assignedAgentNames "Bound Manifests"
     }
 
     PROVENANCE {

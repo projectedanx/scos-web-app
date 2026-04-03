@@ -1,7 +1,4 @@
-💡 **What:** Replaced concurrent `setDoc` calls during vault import and folder import operations with Firestore `writeBatch` bulk commits for agents, capsules, prompts, contracts, and provenance entries. Added new dedicated batch functions to `firestoreService.ts`.
-🎯 **Why:** Previously, importing a large number of agents (e.g., 100 items) invoked `Promise.all` with multiple concurrent Firestore `setDoc` API calls. Each call incurred HTTP connection queuing overhead and individual network latency. By using `writeBatch`, all item writes for a collection are bundled into a single network payload, massively reducing latency overhead.
-📊 **Measured Improvement:**
-We simulated network latency by writing a local benchmark `benchmark.ts` comparing 100 iterations of concurrent database saves (`Promise.all`) vs 1 batch commit via `writeBatch`.
-- **Baseline (Promise.all concurrent setDoc):** 885.38ms
-- **Optimized (Firestore writeBatch):** 150.64ms
-- **Improvement:** 82.99% faster
+🎯 What: Fixed Mermaid diagram syntax errors in `ARCHITECTURE.md` specifically where node labels contained unquoted parentheses (e.g., `User[Architect (User)]` to `User["Architect (User)"]`).
+📊 Scope: Architecture documentation `ARCHITECTURE.md`
+✨ Result: The Mermaid syntax is fully compatible with `@mermaid-js/mermaid-cli`, resolving build/parsing errors when visually mapping the architecture.
+✅ Verification: Successfully executed `npx -p @mermaid-js/mermaid-cli mmdc -i ARCHITECTURE.md -o .test_arch.md` without errors, confirming all 5 diagrams compile. Cleaned up all generated artifacts and successfully ran all 47 project tests (`node --experimental-strip-types --test services/*.test.ts`).
