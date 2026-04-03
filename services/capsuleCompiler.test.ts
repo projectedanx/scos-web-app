@@ -84,6 +84,47 @@ test('capsuleCompiler', async (t) => {
     assert.ok(html.includes('Data1'), 'Row cell rendered');
   });
 
+  await t.test('compileCapsuleHtml - key_concepts and personas rendering', () => {
+    const html = compileCapsuleHtml({
+      meta: {} as CapsuleMeta,
+      sections: {
+        key_concepts: {
+          id: '1',
+          title: 'Concepts',
+          intro: 'Intro',
+          cards: [
+            { title: 'Card1', body: 'Body1' },
+            { title: undefined as any, body: undefined as any } // Edge case fallback test
+          ]
+        },
+        personas: {
+          id: '1',
+          title: 'PersonasTitle',
+          intro: 'Intro',
+          table: {
+            columns: ['C1'],
+            rows: [{ cells: ['R1'] }]
+          }
+        }
+      }
+    });
+
+    assert.ok(html.includes('Card1'), 'Key concept card rendered');
+    assert.ok(html.includes('Body1'), 'Key concept body rendered');
+
+    // Explicitly assert that undefined properties fall back to empty string
+    // In our implementation, escapeHtml(undefined) -> "undefined", so let's verify exact behavior.
+    // The implementation of escapeHtml is `String(str).replace(...)`. If it is passed `undefined ?? ""` it will be `escapeHtml("")` which is `""`.
+    // Let's check `escapeHtml(c.title ?? "")`. Yes, it defaults to `""`.
+    // So there should be an empty <h3> and <p> for the second card.
+    assert.ok(html.includes('<h3 class="font-bold text-lg text-white group-hover:text-indigo-300 transition-colors"></h3>'), 'Undefined title falls back securely to empty string');
+    assert.ok(html.includes('<p class="text-sm text-slate-300 leading-relaxed"></p>'), 'Undefined body falls back securely to empty string');
+    assert.ok(!html.includes('undefined'), 'Does not leak literal undefined into HTML');
+
+    assert.ok(html.includes('PersonasTitle'), 'Personas title rendered');
+    assert.ok(html.includes('C1'), 'Personas table header rendered');
+  });
+
   await t.test('compileCapsuleHtml - sections conditional rendering', () => {
     const html = compileCapsuleHtml({
       meta: {
