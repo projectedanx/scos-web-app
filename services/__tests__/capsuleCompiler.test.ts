@@ -68,17 +68,17 @@ test('compileCapsuleHtml - The Boundary Interrogation', async (t) => {
         tags: ['A', 'B'],
         hero_cta_label: 'Go',
         hero_cta_target: '#go'
-      },
+      } as Partial<ContextCapsule['meta']> as ContextCapsule['meta'],
       sections: {
-        overview: { title: 'Overview', intro: 'Hello World', hero_pills: ['A'] },
-        key_concepts: { cards: [{ title: 'C1', body: 'B1' }] },
-        structure: { table: { columns: ['A'], rows: [{ cells: ['1'] }] } },
-        personas: { table: { columns: ['P'], rows: [{ cells: ['2'] }] } },
-        workflow: { steps: [{ label: 'S1', summary: 'S1', bullets: ['B1'] }] },
-        resilience: { failure_modes: [{ name: 'F1', description: 'D1', mitigations: ['M1'] }] },
-        metrics: { items: [{ name: 'M1', description: 'MD', signals: ['S'] }] },
-        checklist: { items: [{ label: 'C1', bullets: ['B'] }] }
-      }
+        overview: { title: 'Overview', intro: 'Hello World', hero_pills: ['A'] } as Partial<ContextCapsule['sections']['overview']> as ContextCapsule['sections']['overview'],
+        key_concepts: { cards: [{ title: 'C1', body: 'B1' }] } as Partial<ContextCapsule['sections']['key_concepts']> as ContextCapsule['sections']['key_concepts'],
+        structure: { table: { columns: ['A'], rows: [{ cells: ['1'] }] } } as Partial<ContextCapsule['sections']['structure']> as ContextCapsule['sections']['structure'],
+        personas: { table: { columns: ['P'], rows: [{ cells: ['2'] }] } } as Partial<ContextCapsule['sections']['personas']> as ContextCapsule['sections']['personas'],
+        workflow: { steps: [{ label: 'S1', summary: 'S1', bullets: ['B1'] } as Partial<ContextCapsule['sections']['workflow']['steps'][number]> as ContextCapsule['sections']['workflow']['steps'][number]] } as Partial<ContextCapsule['sections']['workflow']> as ContextCapsule['sections']['workflow'],
+        resilience: { failure_modes: [{ name: 'F1', description: 'D1', mitigations: ['M1'] }] } as Partial<ContextCapsule['sections']['resilience']> as ContextCapsule['sections']['resilience'],
+        metrics: { items: [{ name: 'M1', description: 'MD', signals: ['S'] }] } as Partial<ContextCapsule['sections']['metrics']> as ContextCapsule['sections']['metrics'],
+        checklist: { items: [{ label: 'C1', bullets: ['B'] }] } as Partial<ContextCapsule['sections']['checklist']> as ContextCapsule['sections']['checklist']
+      } as Partial<ContextCapsule['sections']> as ContextCapsule['sections']
     };
 
     const result = compileCapsuleHtml(validPayload);
