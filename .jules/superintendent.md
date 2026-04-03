@@ -3,3 +3,4 @@ Instability: Dependency rot in the root `package.json` with outdated versions ac
 Instability: Unused `Upload` and `Wifi` imports from `lucide-react` in `App.tsx` | Fortification: Removed unused imports.
 Instability: Unused variables `prompt` and `scars` (along with `ScarEntry` import) in `App.tsx` | Fortification: Removed unused state variables and imports.
 Instability: Explicit `any` usage in `App.tsx` for legacy migration function parameter and DOM attributes | Fortification: Replaced `any` with `Record<string, unknown>` and `React.InputHTMLAttributes<HTMLInputElement>` respectively.
+Instability: Leaky wildcard dependencies `^` found in `package.json` devDependencies. | Fortification: Replaced dangerous leaky `^` tags in `package.json` with explicit, pinned semantic constraints (`~`) and executed `npm install` and `npm dedupe` to tighten foundation.
