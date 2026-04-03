@@ -41,12 +41,16 @@ export enum MapStrategy {
 async function fetchDatamuse(seed: string): Promise<string[]> {
   try {
     const response = await executeWithRetry(
-      () => {
+      async () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-        return fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(seed)}&max=15`, {
-          signal: controller.signal
-        }).finally(() => clearTimeout(timeoutId));
+        try {
+          return await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(seed)}&max=15`, {
+            signal: controller.signal
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
       },
       { operationName: `Datamuse(${seed})` }
     );
@@ -109,12 +113,16 @@ export async function fetchWikipediaDefinition(term: string): Promise<string | n
     });
     
     const response = await executeWithRetry(
-      () => {
+      async () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-        return fetch(`https://en.wikipedia.org/w/api.php?${params.toString()}`, {
-          signal: controller.signal
-        }).finally(() => clearTimeout(timeoutId));
+        try {
+          return await fetch(`https://en.wikipedia.org/w/api.php?${params.toString()}`, {
+            signal: controller.signal
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
       },
       { operationName: `Wiki(${term})` }
     );
