@@ -81,17 +81,17 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
     if (!editingPrompt.title || !editingPrompt.content) return;
 
     const finalPrompt: SovereignPrompt = {
-      id: editingPrompt.id || crypto.randomUUID(),
-      title: editingPrompt.title || 'Untitled Prompt',
-      content: editingPrompt.content || '',
-      category: editingPrompt.category || 'General',
+      id: editingPrompt.id ?? crypto.randomUUID(),
+      title: editingPrompt.title ?? 'Untitled Prompt',
+      content: editingPrompt.content ?? '',
+      category: editingPrompt.category ?? 'General',
       subcategory: editingPrompt.subcategory,
       description: editingPrompt.description,
-      tags: editingPrompt.tags || [],
-      linkedAgentNames: editingPrompt.linkedAgentNames || [],
-      createdAt: editingPrompt.createdAt || Date.now(),
+      tags: editingPrompt.tags ?? [],
+      linkedAgentNames: editingPrompt.linkedAgentNames ?? [],
+      createdAt: editingPrompt.createdAt ?? Date.now(),
       updatedAt: Date.now(),
-      version: (editingPrompt.version || 0) + 1
+      version: (editingPrompt.version ?? 0) + 1
     };
 
     onSavePrompt(finalPrompt);
@@ -120,7 +120,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
 
   const toggleAgentLink = (agentName: string) => {
     setEditingPrompt(prev => {
-      const current = prev.linkedAgentNames || [];
+      const current = prev.linkedAgentNames ?? [];
       const updated = current.includes(agentName)
         ? current.filter(n => n !== agentName)
         : [...current, agentName];
@@ -135,7 +135,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
       if (val && !editingPrompt.tags?.includes(val)) {
         setEditingPrompt(prev => ({
           ...prev,
-          tags: [...(prev.tags || []), val]
+          tags: [...(prev.tags ?? []), val]
         }));
         e.currentTarget.value = '';
       }
@@ -212,7 +212,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
          <div className="flex items-center justify-between mb-8 sticky top-0 z-20 bg-void/90 backdrop-blur pb-4 border-b border-zinc-900">
             <div>
                <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                  {selectedCategory || "Global Registry"}
+                  {selectedCategory ?? "Global Registry"}
                   <span className="text-sm font-normal text-zinc-500 font-mono bg-zinc-900 px-2 py-0.5 rounded">
                      {filteredPrompts.length} Assets
                   </span>
@@ -251,7 +251,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
                         </div>
                      </div>
 
-                     <p className="text-xs text-zinc-400 mb-4 line-clamp-2">{prompt.description || "No description provided."}</p>
+                     <p className="text-xs text-zinc-400 mb-4 line-clamp-2">{prompt.description ?? "No description provided."}</p>
                      
                      <div className="bg-black/30 rounded border border-zinc-800/50 p-3 mb-4 font-mono text-xs text-zinc-300 overflow-hidden relative h-32">
                         <p className="line-clamp-6 opacity-70">{prompt.content}</p>
@@ -382,7 +382,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
                   <div>
                      <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1 flex justify-between">
                         <span>Prompt Payload</span>
-                        <span className="text-zinc-600 font-mono">{editingPrompt.content?.length || 0} chars</span>
+                        <span className="text-zinc-600 font-mono">{editingPrompt.content?.length ?? 0} chars</span>
                      </label>
                      <div className="relative">
                         <textarea 
@@ -398,7 +398,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
                   <div>
                      <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">Semantic Tags</label>
                      <div className="flex flex-wrap gap-2 mb-2 p-2 bg-zinc-900 border border-zinc-800 rounded min-h-[40px]">
-                        {(editingPrompt.tags || []).map(tag => (
+                        {(editingPrompt.tags ?? []).map(tag => (
                            <span key={tag} className="flex items-center gap-1 bg-black text-zinc-300 px-2 py-1 rounded text-xs border border-zinc-700">
                               {tag}
                               <button onClick={() => removeTag(tag)} className="hover:text-red-400"><X className="w-3 h-3" /></button>
@@ -423,7 +423,7 @@ export const PromptLibraryView: React.FC<PromptLibraryViewProps> = ({
                      
                      <div className="flex flex-col gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                         {agents.map(agent => {
-                           const isLinked = (editingPrompt.linkedAgentNames || []).includes(agent.identity.name);
+                           const isLinked = (editingPrompt.linkedAgentNames ?? []).includes(agent.identity.name);
                            return (
                               <label
                                  key={agent.identity.name}
