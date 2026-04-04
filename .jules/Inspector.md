@@ -5,3 +5,7 @@
 ## Inspector — Capsule Compiler Key Concepts & Personas Interrogation
 **Edge Case:** The `renderPersonas` and `renderKeyConcepts` HTML generation functions in `capsuleCompiler.ts` completely lacked test coverage, leaving potential edge cases involving undefined arrays and missing literal string properties untested.
 **Assertion:** Targeted the generator pure functions with null array properties and explicit `undefined` object fields within the payload to mathematically verify that the implementation securely defaulted to empty strings rather than leaking "undefined" text or crashing the loop. Sabotaged the function boundary logic to prove the failure.
+
+## Inspector — CryptoService Boundary Interrogation
+**Edge Case:** The `hashContent`, `signData`, and `verifySignature` functions in `cryptoService.ts` lacked test coverage, creating vulnerabilities around deterministic hashing and the parsing of malformed or invalid hex strings when verifying ECDSA signatures.
+**Assertion:** Assailed the crypto validation logic with corrupted input objects, invalid ECDSA signature hashes, and malformed strings designed to crash the `Uint8Array` parser boundary. Mathematically verified that catch blocks degrade securely and simulated a Sabotage Check by mutating the signature algorithm to SHA-1 to prove the tests actively police the SHA-256 requirement.
