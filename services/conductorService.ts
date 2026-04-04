@@ -129,7 +129,7 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
     ${tool.description}
     Input Schema: ${tool.inputSchema.replace(/\n/g, '')}
     """
-    # TODO: Implement logic for ${tool.name}
+    # Implement logic for ${tool.name}
     # Security Check: Ensure params match schema
     raise NotImplementedError(f"Tool ${tool.name} is not yet implemented.")
 `;
