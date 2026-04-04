@@ -125,6 +125,50 @@ test('capsuleCompiler', async (t) => {
     assert.ok(html.includes('C1'), 'Personas table header rendered');
   });
 
+  await t.test('compileCapsuleHtml - escapeHtml edge cases', () => {
+    // Test the complete set of characters that require escaping
+    const escapeCharsCapsule: ContextCapsule = {
+      meta: {
+        title: '& < > "',
+      } as CapsuleMeta,
+      sections: {}
+    };
+    const htmlEscape = compileCapsuleHtml(escapeCharsCapsule);
+    assert.ok(htmlEscape.includes('&amp; &lt; &gt; &quot;'), 'All HTML special characters are escaped properly');
+
+    // Test non-string inputs
+    const nonStringInputs = [
+      { input: 123, expected: '123' },
+      { input: null, expected: 'null' },
+      { input: { key: 'value' }, expected: '[object Object]' },
+      { input: [1, 2], expected: '1,2' }
+    ];
+
+    const pillsCapsule: ContextCapsule = {
+      meta: {
+        tags: [null, undefined, 123, { key: 'value' }, [1, 2]] as any[]
+      } as CapsuleMeta,
+      sections: {}
+    };
+    const htmlPills = compileCapsuleHtml(pillsCapsule);
+    assert.ok(htmlPills.includes('null'), 'escapeHtml gracefully handles null');
+    assert.ok(!htmlPills.includes('undefined'), 'escapeHtml gracefully handles undefined by defaulting to empty string');
+    assert.ok(htmlPills.includes('123'), 'escapeHtml gracefully handles numbers');
+    assert.ok(htmlPills.includes('[object Object]'), 'escapeHtml gracefully handles objects');
+    assert.ok(htmlPills.includes('1,2'), 'escapeHtml gracefully handles arrays');
+
+    // Explicitly test malicious string mentioned in requirements
+    const maliciousPayloadCapsule: ContextCapsule = {
+      meta: {
+        title: '<script>alert(1)</script>',
+      } as CapsuleMeta,
+      sections: {}
+    };
+    const maliciousHtml = compileCapsuleHtml(maliciousPayloadCapsule);
+    assert.ok(!maliciousHtml.includes('<script>alert(1)</script>'), 'Malicious string is completely sanitized');
+    assert.ok(maliciousHtml.includes('&lt;script&gt;alert(1)&lt;/script&gt;'), 'Malicious string is encoded properly');
+  });
+
   await t.test('compileCapsuleHtml - sections conditional rendering', () => {
     const html = compileCapsuleHtml({
       meta: {
