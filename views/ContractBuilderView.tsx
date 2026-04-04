@@ -107,11 +107,11 @@ export const ContractBuilderView: React.FC<ContractBuilderViewProps> = ({
     const finalContract: CognitiveContract = {
       id: editForm.id,
       title: editForm.title,
-      missionStatement: editForm.missionStatement || '',
-      status: editForm.status || ContractStatus.DRAFT,
-      anchors: editForm.anchors || [],
-      assignedAgentNames: editForm.assignedAgentNames || [],
-      createdAt: editForm.createdAt || Date.now(),
+      missionStatement: editForm.missionStatement ?? '',
+      status: editForm.status ?? ContractStatus.DRAFT,
+      anchors: editForm.anchors ?? [],
+      assignedAgentNames: editForm.assignedAgentNames ?? [],
+      createdAt: editForm.createdAt ?? Date.now(),
       updatedAt: Date.now()
     };
 
@@ -140,7 +140,7 @@ export const ContractBuilderView: React.FC<ContractBuilderViewProps> = ({
     setEditForm(prev => ({
       ...prev,
       anchors: [
-        ...(prev.anchors || []),
+        ...(prev.anchors ?? []),
         {
           id: crypto.randomUUID(),
           type: newAnchorType,
@@ -160,7 +160,7 @@ export const ContractBuilderView: React.FC<ContractBuilderViewProps> = ({
 
   const toggleAgentAssignment = (agentName: string) => {
     setEditForm(prev => {
-      const current = prev.assignedAgentNames || [];
+      const current = prev.assignedAgentNames ?? [];
       const updated = current.includes(agentName)
         ? current.filter(n => n !== agentName)
         : [...current, agentName];
