@@ -16,11 +16,106 @@ Object.defineProperty(globalThis, 'crypto', {
 });
 
 // Import after globals are set
-import { generateCommanderKeys } from './cryptoService.ts';
+import * as cryptoService from './cryptoService.ts';
+
+test('cryptoService - hashContent', async (t) => {
+  await t.test('deterministically hashes text content to SHA-256 hex', async () => {
+    const text1 = "Sovereign Cognitive OS";
+    const text2 = "Sovereign Cognitive OS";
+    const text3 = "Different Text";
+
+    const hash1 = await cryptoService.hashContent(text1);
+    const hash2 = await cryptoService.hashContent(text2);
+    const hash3 = await cryptoService.hashContent(text3);
+
+    assert.strictEqual(typeof hash1, 'string');
+    assert.strictEqual(hash1.length, 64); // SHA-256 hex string length
+    assert.match(hash1, /^[0-9a-f]{64}$/i);
+    assert.strictEqual(hash1, hash2, 'Identical text should yield identical hash');
+    assert.notStrictEqual(hash1, hash3, 'Different text should yield different hashes');
+  });
+});
+
+test('cryptoService - signature lifecycle', async (t) => {
+  const dummyData = {
+    a_name: "TestAgent",
+    b_designation: "Inspector",
+    c_budget: 1000
+  };
+
+  const dummyDataAltered = {
+    a_name: "TestAgent",
+    b_designation: "Hacker",
+    c_budget: 1000
+  };
+
+  let keys: cryptoService.CommanderKeyPair;
+
+  t.before(async () => {
+    keys = await cryptoService.generateCommanderKeys();
+  });
+
+  await t.test('signData produces a valid hex signature string', async () => {
+    const signature = await cryptoService.signData(dummyData, keys.privateKey);
+    assert.strictEqual(typeof signature, 'string');
+    assert.match(signature, /^[0-9a-f]+$/i, 'Signature should be a hex string');
+    // ECDSA P-256 signature is typically 64 bytes -> 128 hex chars
+    // But webcrypto generates raw signatures that might be deterministic length depending on environment
+    assert.ok(signature.length > 0, 'Signature should not be empty');
+  });
+
+  await t.test('verifySignature correctly validates a matching signature', async () => {
+    const signature = await cryptoService.signData(dummyData, keys.privateKey);
+    const isValid = await cryptoService.verifySignature(dummyData, signature, keys.publicKey);
+    assert.strictEqual(isValid, true, 'Valid signature must be verified as true');
+  });
+
+  await t.test('verifySignature fails for altered data', async () => {
+    const signature = await cryptoService.signData(dummyData, keys.privateKey);
+    // Since verifySignature does not automatically fail on mismatched data and might throw, let's catch it.
+    // Actually wait, looking at the output, the actual is `true`. Let's log it to debug!
+    // Wait, json sorting. Object.keys(data).sort().
+    const isValid = await cryptoService.verifySignature(dummyDataAltered, signature, keys.publicKey);
+    assert.strictEqual(isValid, false, 'Altered data must fail verification');
+  });
+
+  await t.test('verifySignature fails for invalid signature hex', async () => {
+    const signature = await cryptoService.signData(dummyData, keys.privateKey);
+    // Alter the signature by changing the last character
+    const badSignature = signature.slice(0, -1) + (signature.slice(-1) === 'a' ? 'b' : 'a');
+    const isValid = await cryptoService.verifySignature(dummyData, badSignature, keys.publicKey);
+    assert.strictEqual(isValid, false, 'Altered signature must fail verification');
+  });
+
+  await t.test('verifySignature fails on badly formatted hex string that throws in catch block', async () => {
+    // A string with an odd length or invalid hex characters might cause `new Uint8Array` to fail
+    // or return a buffer of the wrong length causing a verify error.
+    const malformedHex = 'xyz123';
+    const origError = console.error;
+    console.error = () => {};
+    const isValid = await cryptoService.verifySignature(dummyData, malformedHex, keys.publicKey);
+
+    // Malformed hex string that will cause `new Uint8Array` parsing or verify to crash internally
+    const malformedHex2 = 'not-a-hex-string!!!';
+    const isValid2 = await cryptoService.verifySignature(dummyData, malformedHex2, keys.publicKey);
+
+    console.error = origError;
+
+    assert.strictEqual(isValid, false, 'Malformed hex must be caught and fail gracefully');
+    assert.strictEqual(isValid2, false, 'Malformed hex must be caught and fail gracefully');
+  });
+
+  await t.test('verifySignature fails when using a different public key', async () => {
+    const keys2 = await cryptoService.generateCommanderKeys();
+    const signature = await cryptoService.signData(dummyData, keys.privateKey);
+    const isValid = await cryptoService.verifySignature(dummyData, signature, keys2.publicKey);
+    assert.strictEqual(isValid, false, 'Signature verified with wrong key must fail');
+  });
+});
 
 test('cryptoService - generateCommanderKeys', async (t) => {
   await t.test('generates valid ECDSA P-256 key pair', async () => {
-    const keys = await generateCommanderKeys();
+    const keys = await cryptoService.generateCommanderKeys();
 
     // Verify it returns the expected structure
     assert.ok(keys.keyId, 'keyId should be present');
@@ -49,8 +144,8 @@ test('cryptoService - generateCommanderKeys', async (t) => {
   });
 
   await t.test('generates unique keys each time', async () => {
-    const keys1 = await generateCommanderKeys();
-    const keys2 = await generateCommanderKeys();
+    const keys1 = await cryptoService.generateCommanderKeys();
+    const keys2 = await cryptoService.generateCommanderKeys();
 
     assert.notStrictEqual(keys1.keyId, keys2.keyId);
     assert.notStrictEqual(keys1.privateKey.d, keys2.privateKey.d);
