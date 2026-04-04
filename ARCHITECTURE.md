@@ -349,3 +349,49 @@ sequenceDiagram
     UI-->>User: Present Minted Artifact
     end
 ```
+
+## 13. Semantic Word Mapper & External Trust Boundaries
+
+The `wordMapperService.ts` implements the Tactical Semantic Engine, performing an external "Triangulation" to expand knowledge vectors while strictly enforcing structural validation natively to prevent Prototype Pollution.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as SCOS UI (React)
+    participant Mapper as wordMapperService.ts
+    participant Datamuse as Datamuse API
+    participant ConceptNet as ConceptNet API
+    participant SecureProxy as Firebase Functions (secureProxy)
+    participant Gemini as Gemini API
+
+    UI->>Mapper: triangulateConcepts(seeds, strategy)
+
+    rect rgb(30, 30, 50)
+    Note over Mapper, ConceptNet: Phase 1: Parallel Context Gathering
+    par Fetch Datamuse
+        Mapper->>Datamuse: GET /words?ml={seed}
+        Datamuse-->>Mapper: Array of words
+    and Fetch ConceptNet
+        Mapper->>ConceptNet: GET /c/en/{seed}
+        ConceptNet-->>Mapper: Array of edges (end labels)
+    end
+    end
+
+    Mapper->>Mapper: Aggregate raw associations
+
+    rect rgb(50, 30, 30)
+    Note over Mapper, Gemini: Phase 2: Secure Synthesis & Mapping
+    Mapper->>SecureProxy: Call secureProxy(prompt, model, schema)
+    SecureProxy->>Gemini: generateContent()
+    Gemini-->>SecureProxy: Raw Text (JSON representation)
+    SecureProxy-->>Mapper: Function Response
+    end
+
+    rect rgb(50, 50, 30)
+    Note over Mapper: Phase 3: Native Structural Validation
+    Mapper->>Mapper: SchemaValidator.parse(text)
+    Note right of Mapper: Rejects __proto__ & verifies strict object structure.
+    end
+
+    Mapper-->>UI: TriangulationResult (SemanticNodes & Usage)
+```
