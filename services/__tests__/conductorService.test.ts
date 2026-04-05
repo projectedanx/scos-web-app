@@ -128,3 +128,55 @@ test('validateConductorSchema - tool schema properties not an object', () => {
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors.includes("Tool 'tool1' inputSchema must define a valid 'properties' object."));
   });
+
+test('validateConductorSchema - tool name missing (index fallback)', () => {
+  const manifest = {
+    ...validManifest,
+    tools: [{ ...validManifest.tools[0], name: "" }]
+  };
+  const result = validateConductorSchema(manifest as any);
+  assert.strictEqual(result.valid, false);
+  assert.ok(result.errors.includes("Tool 'at index 0' has an invalid name. Must be alphanumeric, dashes, or underscores."));
+});
+
+test('validateConductorSchema - schema.properties is an array', () => {
+  const manifest = {
+    ...validManifest,
+    tools: [{ ...validManifest.tools[0], name: "tool1", inputSchema: JSON.stringify({ type: "object", properties: [] }) }]
+  };
+  const result = validateConductorSchema(manifest as any);
+  assert.strictEqual(result.valid, false);
+  assert.ok(result.errors.includes("Tool 'tool1' inputSchema must define a valid 'properties' object."));
+});
+
+test('validateConductorSchema - empty tools array', () => {
+  const manifest = {
+    ...validManifest,
+    tools: []
+  };
+  const result = validateConductorSchema(manifest as any);
+  assert.strictEqual(result.valid, true);
+  assert.strictEqual(result.errors.length, 0);
+});
+
+test('validateConductorSchema - multiple errors accumulate', () => {
+  const manifest = {
+    identity: {
+      name: "", // Error 1
+      primeDirective: "" // Error 2
+    },
+    tools: [
+      {
+        name: "invalid name!", // Error 3
+        inputSchema: "not json" // Error 4
+      }
+    ]
+  };
+  const result = validateConductorSchema(manifest as any);
+  assert.strictEqual(result.valid, false);
+  assert.strictEqual(result.errors.length, 4);
+  assert.ok(result.errors.includes("Agent name is required."));
+  assert.ok(result.errors.includes("Prime directive is required."));
+  assert.ok(result.errors.some(e => e.includes("has an invalid name")));
+  assert.ok(result.errors.includes("Tool 'invalid name!' has invalid JSON in inputSchema."));
+});
