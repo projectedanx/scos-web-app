@@ -51,6 +51,17 @@ test('validateConductorSchema - missing prime directive', () => {
   assert.ok(result.errors.includes("Prime directive is required."));
 });
 
+
+test('validateConductorSchema - missing tool name shows index', () => {
+  const manifest = {
+    ...validManifest,
+    tools: [{ ...validManifest.tools[0], name: undefined }]
+  };
+  const result = validateConductorSchema(manifest as any);
+  assert.strictEqual(result.valid, false);
+  assert.ok(result.errors.some(e => e.includes("Tool 'at index 0' has an invalid name")));
+});
+
 test('validateConductorSchema - invalid tool name', () => {
   const manifest = {
     ...validManifest,
@@ -129,6 +140,33 @@ test('validateConductorSchema - tool schema properties not an object', () => {
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors.includes("Tool 'tool1' inputSchema must define a valid 'properties' object."));
   });
+
+
+test('safeParseSchema - prevents prototype pollution', () => {
+  const maliciousJson = '{"__proto__": {"polluted": true}, "constructor": {"prototype": {"polluted": true}}, "prototype": {"polluted": true}, "normal": "value"}';
+  const result = safeParseSchema(maliciousJson);
+
+  assert.strictEqual(result.normal, "value");
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(result, '__proto__'), false);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'constructor'), false);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'prototype'), false);
+
+  // Verify it didn't actually pollute Object prototype
+  assert.strictEqual(({} as any).polluted, undefined);
+});
+
+test('validateConductorSchema - strips prototype pollution from inputSchema without failing validation', () => {
+  const manifest = {
+    ...validManifest,
+    tools: [{
+      ...validManifest.tools[0],
+      name: "tool_pollution",
+      inputSchema: '{"type": "object", "properties": {"param": {"type": "string"}}, "__proto__": {"polluted": true}}'
+    }]
+  };
+  const result = validateConductorSchema(manifest as any);
+  assert.strictEqual(result.valid, true);
+});
 
 test('safeParseSchema - valid json', () => {
   const result = safeParseSchema('{"type": "string"}');
