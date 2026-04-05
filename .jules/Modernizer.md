@@ -13,3 +13,7 @@
 ## Modernizer — Pruning Logical OR Fallbacks in Service Configuration
 **Learning:** In `services/conductorService.ts`, legacy logical OR (`||`) operators were used extensively for fallback values when constructing Swarm configurations (`agent.protocol?.standard || 'DRP-2025'`) and generating template literals. Transforming these instances to strictly use nullish coalescing (`??`) clarifies the developer's intent and structurally guards against potential false-falsy edge cases (such as an empty string being explicitly passed as a configuration value).
 **Action:** Consistently replace `||` with `??` across service files when handling default assignments, taking extra care to isolate changes to a single target file to respect blast-radius restrictions. Furthermore, ensure coverage and test artifacts generated natively (e.g., via `npx c8`) are explicitly cleaned from the repository prior to code reviews.
+## Modernizer — Remove unused CouncilSessionLog import
+
+**Learning:** `CouncilSessionLog` was imported from `../types` in `services/geminiService.ts` but wasn't used anywhere in the file.
+**Action:** Removed `CouncilSessionLog` from the import statement to improve code maintainability and reduce dead code.

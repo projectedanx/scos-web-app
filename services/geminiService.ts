@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema, Chat, GenerateContentResponse } from "@google/genai";
-import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, CouncilSessionLog, ScarEntry } from "../types";
+import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, ScarEntry } from "../types";
 import { executeWithRetry } from "./retryService";
 import { getGeminiApiKey } from "./envService";
 
