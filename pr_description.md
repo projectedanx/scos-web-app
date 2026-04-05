@@ -1,4 +1,0 @@
-🎯 What: Fixed Mermaid diagram syntax errors in `ARCHITECTURE.md` specifically where node labels contained unquoted parentheses (e.g., `User[Architect (User)]` to `User["Architect (User)"]`).
-📊 Scope: Architecture documentation `ARCHITECTURE.md`
-✨ Result: The Mermaid syntax is fully compatible with `@mermaid-js/mermaid-cli`, resolving build/parsing errors when visually mapping the architecture.
-✅ Verification: Successfully executed `npx -p @mermaid-js/mermaid-cli mmdc -i ARCHITECTURE.md -o .test_arch.md` without errors, confirming all 5 diagrams compile. Cleaned up all generated artifacts and successfully ran all 47 project tests (`node --experimental-strip-types --test services/*.test.ts`).
