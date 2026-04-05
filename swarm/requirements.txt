@@ -1,0 +1,5 @@
+# /// file: swarm/requirements.txt ///
+firebase-admin
+google-generativeai
+pydantic
+ecdsa
