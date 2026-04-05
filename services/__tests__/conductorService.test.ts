@@ -145,6 +145,16 @@ test('safeParseSchema - empty string returns fallback schema', () => {
   assert.deepStrictEqual(result, { type: "object", properties: {}, description: "Schema parsing failed." });
 });
 
+test('safeParseSchema - filters prototype pollution keys', () => {
+  const payload = '{"normal": "value", "__proto__": {"polluted": true}, "constructor": {"polluted": true}, "prototype": {"polluted": true}}';
+  const result = safeParseSchema(payload);
+
+  assert.strictEqual(result.normal, "value");
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(result, "__proto__"), false);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(result, "constructor"), false);
+  assert.strictEqual(Object.prototype.hasOwnProperty.call(result, "prototype"), false);
+});
+
 // THE BOUNDARY INTERROGATION: transformToConductor
 test('transformToConductor - accurately maps standard manifest structural fields', () => {
   const manifest = {
