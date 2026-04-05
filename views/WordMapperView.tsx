@@ -115,7 +115,7 @@ export const WordMapperView: React.FC<WordMapperViewProps> = ({ onRegisterConste
     
     // Attempt to fetch real wikipedia definition
     const def = await fetchWikipediaDefinition(node.concept);
-    setWikiDefinition(def || node.definition || "No further definition available.");
+    setWikiDefinition(def ?? node.definition ?? "No further definition available.");
     setLoadingWiki(false);
   };
 
