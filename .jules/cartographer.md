@@ -1,4 +1,2 @@
-Learning: The mermaid diagrams in ARCHITECTURE.md currently contain syntax errors such as 'User[Architect (User)]' (parentheses are not valid inside [] without quotes like ["Architect (User)"]). Needs fixing to pass mmdc. Also the repository has a BACKEND.md file containing more diagrams that might need checks.
-Action: Fix the Mermaid syntax in ARCHITECTURE.md and BACKEND.md.
-Learning: Discovered the Semantic Word Mapper Flow acts as a primary external trust boundary, brokering parallel requests to Datamuse and ConceptNet before synthesizing with Gemini API, requiring strict schema validation.
-Action: Append sequenceDiagram to ARCHITECTURE.md detailing the triangulateConcepts workflow to visualize this critical API integration layer.
+Learning: Discovered an undocumented Cryptographic Sovereignty execution boundary mapped in `services/cryptoService.ts` utilizing `window.crypto.subtle` for key generation, payload hashing, and payload signing to guarantee Client-Side identity sovereignty and verifiable execution.
+Action: Implement a Mermaid `sequenceDiagram` in `ARCHITECTURE.md` specifically under "## 4. Cryptographic Sovereignty" to visualize the complete lifecycle of `generateCommanderKeys`, `hashContent`, `signData`, and `verifySignature` between the Forge, Vault, and the Python Swarm node.

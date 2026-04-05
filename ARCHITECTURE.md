@@ -109,6 +109,49 @@ To prevent **Token Collapse** (loss of instruction adherence in long contexts), 
 3.  **Attestation:** When the Python Swarm loads an agent, it verifies the signature against the User's Public Key (stored in Firestore).
 4.  **Immutability:** If the Manifest JSON is altered in transit (e.g., a hacker changes the Primary Goal), the signature verification fails, and the Swarm refuses to boot the agent.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Architect
+    participant Forge as Agent Forge (Web)
+    participant Crypto as cryptoService.ts
+    participant Vault as Local Vault
+    participant Swarm as scos-core (Python Swarm)
+
+    User->>Forge: Initiates Identity Creation
+
+    rect rgb(30, 30, 50)
+    Note over Forge, Crypto: Phase 1: Sovereign Key Generation
+    Forge->>Crypto: generateCommanderKeys()
+    Crypto->>Crypto: window.crypto.subtle.generateKey(ECDSA P-256)
+    Crypto-->>Forge: CommanderKeyPair (Public/Private)
+    Forge->>Vault: Store Keys Securely
+    end
+
+    rect rgb(50, 30, 30)
+    Note over Forge, Crypto: Phase 2: Cryptographic Sealing
+    Forge->>Crypto: hashContent(Manifest Data)
+    Crypto->>Crypto: window.crypto.subtle.digest(SHA-256)
+    Crypto-->>Forge: Hex Hash
+    Forge->>Crypto: signData(Manifest, PrivateKey)
+    Crypto->>Crypto: Canonicalize JSON & sign()
+    Crypto-->>Forge: Hex Signature
+    Forge->>Vault: Persist Signed Manifest
+    end
+
+    rect rgb(30, 50, 30)
+    Note over Vault, Swarm: Phase 3: Swarm Attestation
+    Vault->>Swarm: Deploy Signed Manifest
+    Swarm->>Crypto: verifySignature(Manifest, Signature, PublicKey)
+    Crypto->>Crypto: window.crypto.subtle.verify()
+    alt Verification Success
+        Crypto-->>Swarm: true (Boot Agent)
+    else Verification Failed
+        Crypto-->>Swarm: false (Reject Boot - Immutability Breach)
+    end
+    end
+```
+
 ---
 
 ## 5. Provenance & Observability
