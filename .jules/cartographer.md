@@ -1,2 +1,2 @@
-Learning: Discovered an undocumented Cryptographic Sovereignty execution boundary mapped in `services/cryptoService.ts` utilizing `window.crypto.subtle` for key generation, payload hashing, and payload signing to guarantee Client-Side identity sovereignty and verifiable execution.
-Action: Implement a Mermaid `sequenceDiagram` in `ARCHITECTURE.md` specifically under "## 4. Cryptographic Sovereignty" to visualize the complete lifecycle of `generateCommanderKeys`, `hashContent`, `signData`, and `verifySignature` between the Forge, Vault, and the Python Swarm node.
+Learning: Discovered an undocumented Sovereign Retry System mapping in `services/retryService.ts` representing a resilient execution boundary that mitigates transient failures (429, 5xx) via an exponential backoff loop and a fallback mechanism.
+Action: Append a new Mermaid `sequenceDiagram` to `ARCHITECTURE.md` precisely mapping the resilient retry loop and its fallback execution paths.
