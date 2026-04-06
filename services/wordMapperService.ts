@@ -1,5 +1,5 @@
 
-import { Schema, Type } from "@google/genai";
+import { GoogleGenAI, Schema, Type } from "@google/genai";
 import { SemanticNode } from "../views/WordMapperView";
 import { TokenUsage } from "../types";
 import { executeWithRetry } from "./retryService";
