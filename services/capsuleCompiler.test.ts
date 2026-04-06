@@ -10,6 +10,23 @@ test('capsuleCompiler', async (t) => {
     const html = compileCapsuleHtml({} as ContextCapsule);
     assert.ok(html.includes('<title>Capsule</title>'), 'Falls back to default title');
     assert.ok(!html.includes('id="overview"'), 'Does not render overview container if empty');
+
+    // Should also safely fallback when structure is present but empty
+    const emptyHtml = compileCapsuleHtml({
+      meta: {} as CapsuleMeta,
+      sections: {
+        overview: {} as any,
+        key_concepts: {} as any,
+        structure: {} as any,
+        personas: {} as any,
+        workflow: {} as any,
+        resilience: {} as any,
+        metrics: {} as any,
+        checklist: {} as any
+      }
+    });
+    assert.ok(emptyHtml.includes('<title>Capsule</title>'), 'Falls back to default title for empty structured capsule');
+    assert.ok(!emptyHtml.includes('undefined'), 'Does not render undefined for missing deeply nested fields');
   });
 
   await t.test('compileCapsuleHtml - XSS payload in meta and sections', () => {
