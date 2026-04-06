@@ -24,10 +24,11 @@ export const AgentLibraryView: React.FC<AgentLibraryViewProps> = ({ agents, onSe
 
   // --- Filtering & Sorting Logic ---
   const filteredAgents = useMemo(() => {
+    const q = searchQuery.toLowerCase();
     return agents.filter(agent => {
       // 1. Search Filter
-      const q = searchQuery.toLowerCase();
       const matchSearch = 
+        !q ||
         agent.identity.name.toLowerCase().includes(q) ||
         agent.identity.designation.toLowerCase().includes(q) ||
         agent.identity.corePhilosophy.toLowerCase().includes(q);

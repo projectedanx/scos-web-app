@@ -159,8 +159,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastHandshake: Date.now(),
         keyId: keys.keyId
       }, { merge: true });
-      
-      console.log("Sovereign Handshake Complete: Cloud Profile Linked.");
     } catch (e) {
       console.error("Failed to sync sovereign profile", e);
       handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
