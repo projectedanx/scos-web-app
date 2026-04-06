@@ -9,6 +9,24 @@ test('compileCapsuleHtml - The Boundary Interrogation', async (t) => {
     const result = compileCapsuleHtml({} as ContextCapsule);
     assert.ok(result.includes('<!DOCTYPE html>'));
     assert.ok(result.includes('<title>Capsule</title>'));
+
+    // Test with a context capsule that has empty sub-objects rather than just {}
+    const emptySubObjectsResult = compileCapsuleHtml({
+      meta: {} as any,
+      sections: {
+        overview: {} as any,
+        key_concepts: {} as any,
+        structure: {} as any,
+        personas: {} as any,
+        workflow: {} as any,
+        resilience: {} as any,
+        metrics: {} as any,
+        checklist: {} as any
+      }
+    });
+    assert.ok(emptySubObjectsResult.includes('<!DOCTYPE html>'));
+    assert.ok(emptySubObjectsResult.includes('<title>Capsule</title>'));
+    assert.ok(!emptySubObjectsResult.includes('undefined'));
   });
 
   await t.test('fails securely when bombarded with XSS payloads', () => {
