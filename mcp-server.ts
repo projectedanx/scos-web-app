@@ -53,24 +53,41 @@ function sendError(id: string | number, code: number, message: string, data?: an
   });
 }
 
-// Local Vault Simulation for Server Use
-// In a real deployed scenario, this might need to connect to Firebase.
-// Since this is a local stdio server, we'll try to read from a local file if available,
-// or provide a mock/empty vault for demonstration of protocol adherence.
-const getVaultAgents = (): any[] => {
-  // Try to read an exported vault file if passed as env var, or just return empty for now.
+function sendSerfError(id: string | number, faultCategory: string, violation: string, detail: any = {}, retryViable: boolean = false, suggestedDecomposition: string | null = null) {
+  sendResponse({
+    jsonrpc: "2.0",
+    id,
+    result: {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          error_code: `TOOL_FAULT_${faultCategory}`,
+          fault_category: faultCategory,
+          structured_detail: { violation, ...detail },
+          retry_viable: retryViable,
+          suggested_decomposition: suggestedDecomposition
+        })
+      }],
+      isError: true
+    }
+  });
+}
+
+const getVaultData = (): { agents: any[], capsules: any[] } => {
   const vaultPath = process.env.SCOS_VAULT_PATH;
   if (vaultPath && fs.existsSync(vaultPath)) {
     try {
         const data = fs.readFileSync(vaultPath, 'utf-8');
         const parsed = SchemaValidator.parse(data);
-        return parsed.agents || [];
+        return {
+          agents: parsed.agents || [],
+          capsules: parsed.capsules || []
+        };
     } catch (e) {
         process.stderr.write(`Failed to read vault: ${e}\n`);
-        return [];
     }
   }
-  return [];
+  return { agents: [], capsules: [] };
 };
 
 function handleInitialize(request: JSONRPCRequest) {
@@ -135,6 +152,44 @@ function handleToolsList(request: JSONRPCRequest) {
             required: ["agent_name"],
             additionalProperties: false
           }
+        },
+        {
+          name: "list_capsules",
+          description: [
+             "PURPOSE: Lists all Context Capsules available in the currently accessible vault.",
+             "GUIDELINES: Invoke this to discover available knowledge capsules.",
+             "LIMITATIONS: Only returns capsules from the locally provided vault export.",
+             "PARAMETERS: None required."
+          ].join(" "),
+          inputSchema: {
+            $schema: "https://json-schema.org/draft/2020-12/schema",
+            type: "object",
+            properties: {},
+            required: [],
+            additionalProperties: false
+          }
+        },
+        {
+          name: "get_capsule",
+          description: [
+             "PURPOSE: Retrieves the complete Context Capsule for a given capsule id.",
+             "GUIDELINES: Use this to inspect the knowledge capsule's contents.",
+             "LIMITATIONS: Will fail if the capsule id is not found.",
+             "PARAMETERS: capsule_id — string, exactly matching the capsule's meta.id."
+          ].join(" "),
+          inputSchema: {
+            $schema: "https://json-schema.org/draft/2020-12/schema",
+            type: "object",
+            properties: {
+              capsule_id: {
+                type: "string",
+                maxLength: 256,
+                description: "The id of the capsule to retrieve."
+              }
+            },
+            required: ["capsule_id"],
+            additionalProperties: false
+          }
         }
       ]
     }
@@ -145,8 +200,8 @@ async function handleToolsCall(request: JSONRPCRequest) {
   const { name, arguments: args } = request.params || {};
 
   if (name === "list_vault_agents") {
-    const agents = getVaultAgents();
-    const names = agents.map((a: any) => ({
+    const vaultData = getVaultData();
+    const names = vaultData.agents.map((a: any) => ({
        name: a.identity?.name,
        designation: a.identity?.designation
     }));
@@ -165,47 +220,29 @@ async function handleToolsCall(request: JSONRPCRequest) {
 
   if (name === "get_agent_manifest") {
     if (!args || typeof args.agent_name !== 'string') {
-        sendResponse({
-            jsonrpc: "2.0",
-            id: request.id,
-            result: {
-              content: [{
-                type: "text",
-                text: JSON.stringify({
-                  error_code: "TOOL_FAULT_SERVER_TOOL_CONFIGURATION",
-                  fault_category: "SERVER_TOOL_CONFIGURATION",
-                  structured_detail: { violation: "MISSING_ARGUMENT", expected: "agent_name" },
-                  retry_viable: false,
-                  suggested_decomposition: null
-                })
-              }],
-              isError: true
-            }
-        });
+        sendSerfError(
+          request.id,
+          "SERVER_TOOL_CONFIGURATION",
+          "MISSING_ARGUMENT",
+          { expected: "agent_name" },
+          false,
+          null
+        );
         return;
     }
 
-    const agents = getVaultAgents();
-    const agent = agents.find((a: any) => a.identity?.name === args.agent_name);
+    const vaultData = getVaultData();
+    const agent = vaultData.agents.find((a: any) => a.identity?.name === args.agent_name);
 
     if (!agent) {
-         sendResponse({
-            jsonrpc: "2.0",
-            id: request.id,
-            result: {
-              content: [{
-                type: "text",
-                text: JSON.stringify({
-                  error_code: "TOOL_FAULT_SERVER_TOOL_CONFIGURATION",
-                  fault_category: "SERVER_TOOL_CONFIGURATION",
-                  structured_detail: { violation: "AGENT_NOT_FOUND", agent_name: args.agent_name },
-                  retry_viable: true,
-                  suggested_decomposition: "Use list_vault_agents to find valid agent names."
-                })
-              }],
-              isError: true
-            }
-        });
+        sendSerfError(
+          request.id,
+          "SERVER_TOOL_CONFIGURATION",
+          "AGENT_NOT_FOUND",
+          { agent_name: args.agent_name },
+          true,
+          "Use list_vault_agents to find valid agent names."
+        );
         return;
     }
 
@@ -216,6 +253,66 @@ async function handleToolsCall(request: JSONRPCRequest) {
         content: [{
           type: "text",
           text: JSON.stringify({ status: "SUCCESS", manifest: agent })
+        }]
+      }
+    });
+    return;
+  }
+
+  if (name === "list_capsules") {
+    const vaultData = getVaultData();
+    const names = vaultData.capsules.map((c: any) => ({
+       id: c.meta?.id,
+       title: c.meta?.title
+    }));
+    sendResponse({
+      jsonrpc: "2.0",
+      id: request.id,
+      result: {
+        content: [{
+          type: "text",
+          text: JSON.stringify({ status: "SUCCESS", capsules: names })
+        }]
+      }
+    });
+    return;
+  }
+
+  if (name === "get_capsule") {
+    if (!args || typeof args.capsule_id !== 'string') {
+        sendSerfError(
+          request.id,
+          "SERVER_TOOL_CONFIGURATION",
+          "MISSING_ARGUMENT",
+          { expected: "capsule_id" },
+          false,
+          null
+        );
+        return;
+    }
+
+    const vaultData = getVaultData();
+    const capsule = vaultData.capsules.find((c: any) => c.meta?.id === args.capsule_id);
+
+    if (!capsule) {
+        sendSerfError(
+          request.id,
+          "SERVER_TOOL_CONFIGURATION",
+          "CAPSULE_NOT_FOUND",
+          { capsule_id: args.capsule_id },
+          true,
+          "Use list_capsules to find valid capsule ids."
+        );
+        return;
+    }
+
+    sendResponse({
+      jsonrpc: "2.0",
+      id: request.id,
+      result: {
+        content: [{
+          type: "text",
+          text: JSON.stringify({ status: "SUCCESS", capsule: capsule })
         }]
       }
     });

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Settings, Upload, Save, Copy, Check, FileText, Image as ImageIcon, Terminal, Code, Crosshair, Zap, ArrowRight, Loader2, RotateCcw, Trash2, ChevronDown, BookTemplate } from 'lucide-react';
-import { PromptEngineConfig, GeneratedPrompt, TokenUsage, SovereignPrompt, ProvenanceIndexEntry } from '../types';
+import { PromptEngineConfig, PromptEngineType, GeneratedPrompt, SovereignPrompt, ProvenanceIndexEntry } from '../types';
 import { generateMetaPrompt } from '../services/geminiService';
 import { useToast } from '../contexts/ToastContext';
 import { useDialog } from '../contexts/DialogContext';
