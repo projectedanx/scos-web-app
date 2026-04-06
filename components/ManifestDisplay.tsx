@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, Activity, Zap, Lock, Terminal, Box, FileJson, GitBranch, Info, Copy, Check, X, Code, ChevronDown, ChevronRight, Anchor, Hash, Globe, FileText, Filter, Microscope, DollarSign, Network, BrainCircuit, Target, AlertOctagon, MessageSquareCode } from 'lucide-react';
+import { Shield, Activity, Zap, Lock, Terminal, Box, FileJson, GitBranch, Info, Copy, Check, X, Code, ChevronDown, ChevronRight, Anchor, Globe, FileText, Filter, Microscope, DollarSign, Layers, Network, BrainCircuit, Target, AlertOctagon, MessageSquareCode } from 'lucide-react';
 import { SovereignAgentManifest, AgentConstraint, AgentTool, InternalTool } from '../types';
 import { ConductorExportModal } from './ConductorExportModal';
 
