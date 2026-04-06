@@ -307,24 +307,32 @@ function App() {
      const files = e.target.files;
      if (!files || files.length === 0) return;
 
-     const results = await Promise.all(
-        Array.from(files).map(async (file) => {
-           if (!file.name.endsWith('.json')) return null;
+     const fileArray = Array.from(files);
+     const results: (SovereignAgentManifest | null | { error: boolean })[] = [];
+     const BATCH_SIZE = 200;
 
-           try {
-              const text = await file.text();
-              const json = JSON.parse(text);
+     for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
+        const batch = fileArray.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(
+           batch.map(async (file) => {
+              if (!file.name.endsWith('.json')) return null;
 
-              if (json.identity || json.name || json.tools) {
-                  return migrateLegacyAgent(json, file.name);
+              try {
+                 const text = await file.text();
+                 const json = JSON.parse(text);
+
+                 if (json.identity || json.name || json.tools) {
+                    return migrateLegacyAgent(json, file.name);
+                 }
+              } catch (e) {
+                 console.warn(`Failed to parse ${file.name}`, e);
+                 return { error: true };
               }
-           } catch (e) {
-              console.warn(`Failed to parse ${file.name}`, e);
-              return { error: true };
-           }
-           return null;
-        })
-     );
+              return null;
+           })
+        );
+        results.push(...batchResults);
+     }
 
      const newAgents = results.filter((r): r is SovereignAgentManifest => r !== null && !('error' in r));
      const errorCount = results.filter(r => r !== null && typeof r === 'object' && 'error' in r).length;
