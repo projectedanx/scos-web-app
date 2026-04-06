@@ -11,7 +11,7 @@ import { getFirebaseEnv } from "./envService";
 // 4. Enable Firestore Database (Start in Test Mode)
 // 5. Paste the config object below via environment variables.
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: getFirebaseEnv("API_KEY"),
   authDomain: getFirebaseEnv("AUTH_DOMAIN"),
   projectId: getFirebaseEnv("PROJECT_ID"),
@@ -34,6 +34,6 @@ export const functions = getFunctions(app);
  * @returns The resulting value.
  */
 export const isFirebaseConfigured = () => {
-  // Checks if the API Key has been provided and is not empty
-  return !!firebaseConfig.apiKey && firebaseConfig.apiKey.length > 0;
+  // Checks if the API Key has been changed from the default placeholder
+  return !!firebaseConfig.apiKey && firebaseConfig.apiKey.length > 0 && !firebaseConfig.apiKey.startsWith("AIzaSy...");
 };
