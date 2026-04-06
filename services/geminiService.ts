@@ -725,8 +725,6 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
       `${topic} security analysis`
     ];
 
-    console.log("Research Vectors:", queries);
-
     // --- STEP 2: Parallel Execution with Retry per Vector ---
     const searchPromises = queries.map(async (query) => {
       try {
