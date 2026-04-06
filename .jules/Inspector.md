@@ -9,3 +9,7 @@
 ## Inspector — CryptoService Boundary Interrogation
 **Edge Case:** The `hashContent`, `signData`, and `verifySignature` functions in `cryptoService.ts` lacked test coverage, creating vulnerabilities around deterministic hashing and the parsing of malformed or invalid hex strings when verifying ECDSA signatures.
 **Assertion:** Assailed the crypto validation logic with corrupted input objects, invalid ECDSA signature hashes, and malformed strings designed to crash the `Uint8Array` parser boundary. Mathematically verified that catch blocks degrade securely and simulated a Sabotage Check by mutating the signature algorithm to SHA-1 to prove the tests actively police the SHA-256 requirement.
+
+## Inspector — JSON Schema and Timeout Boundary Assertions for GeminiService
+**Edge Case:** The orchestrating LLM integration `services/geminiService.ts` lacked native unit test coverage for its structural validation logic (e.g. `validateAgentManifest`, `validateResearchPlan`) and asynchronous timeout boundaries via `AbortController`.
+**Assertion:** Wrote a test suite in `services/__tests__/geminiService.test.ts` utilizing native mocks for `global.fetch` to bombard the integration logic with malformed schemas, missing arrays, truncated JSON structures, and unresolvable network states to mathematically verify the fallback triggers, error boundaries, and self-repairing functions executed properly under stress.

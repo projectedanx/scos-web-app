@@ -438,3 +438,41 @@ sequenceDiagram
 
     Mapper-->>UI: TriangulationResult (SemanticNodes & Usage)
 ```
+
+## 14. Sovereign Retry System (Exponential Backoff & Fallback)
+
+The `retryService.ts` implements a resilient execution wrapper (`executeWithRetry`) designed to handle transient failures, specifically rate limiting (429) and server overloads (5xx). It operates via an exponential backoff loop and supports graceful degradation through a fallback mechanism.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Caller as Calling Function
+    participant Retry as executeWithRetry()
+    participant Target as Target Operation (e.g., API)
+    participant Fallback as Fallback Mechanism
+
+    Caller->>Retry: Execute Operation
+
+    loop Max Retries (e.g., 3)
+        Retry->>Target: Attempt Execution
+
+        alt Execution Success
+            Target-->>Retry: Success Response
+            Retry-->>Caller: Return Result
+        else Transient Failure (429, 5xx, Network)
+            Target-->>Retry: Error Response
+            Retry->>Retry: Check shouldRetry() predicate
+            Retry->>Retry: Delay (initialDelay * backoffFactor^attempt)
+        end
+    end
+
+    alt Retry Exhausted / Non-Retryable
+        Retry->>Fallback: Check for Fallback Config
+        alt Fallback Exists
+            Fallback-->>Retry: Return Fallback Result
+            Retry-->>Caller: Graceful Degradation Result
+        else No Fallback
+            Retry-->>Caller: Throw Final Error (e.g., RateLimitError)
+        end
+    end
+```

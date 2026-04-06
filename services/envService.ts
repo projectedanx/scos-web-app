@@ -29,3 +29,23 @@ export const getGeminiApiKey = (): string | undefined => {
 
   return undefined;
 };
+
+/**
+ * Retrieves a Firebase configuration value from available environment sources.
+ * Supports Vite's import.meta.env and standard process.env.
+ *
+ * @param key - The key of the Firebase config (e.g., 'API_KEY', 'PROJECT_ID').
+ * @returns The value if found, otherwise an empty string.
+ */
+export const getFirebaseEnv = (key: string): string => {
+  const viteKey = `VITE_FIREBASE_${key}`;
+  const envValue = (import.meta as any).env?.[viteKey];
+  if (envValue) return envValue;
+
+  if (typeof process !== 'undefined' && process.env) {
+    const procValue = process.env[viteKey];
+    if (procValue) return procValue;
+  }
+
+  return "";
+};

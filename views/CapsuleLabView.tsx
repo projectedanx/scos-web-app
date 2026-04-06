@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, Loader2, FileText, Download, Code, Globe, Zap, ChevronRight, History, Eye, Save, FolderOpen, Trash2, Tag, Plus, X, Sparkles, Check, Edit3, Link, ChevronDown, ChevronUp, CheckCircle2, Upload, LayoutGrid, BoxSelect, Clock } from 'lucide-react';
+import { Database, Loader2, FileText, Download, Code, Globe, Zap, ChevronRight, Eye, Save, FolderOpen, Trash2, Tag, Plus, X, Sparkles, Check, Edit3, Link, ChevronDown, ChevronUp, CheckCircle2, Upload, LayoutGrid, BoxSelect, Clock } from 'lucide-react';
 import { distillCapsule, analyzeDocument } from '../services/geminiService';
 import { compileCapsuleHtml } from '../services/capsuleCompiler';
 import { ContextCapsule, TokenUsage, ProvenanceIndexEntry } from '../types';
