@@ -2,21 +2,22 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
+import { getFirebaseEnv } from "./envService";
 
 // --- FIREBASE CONFIGURATION ---
 // 1. Go to console.firebase.google.com
 // 2. Create a project -> Add Web App
 // 3. Enable Authentication (Google Provider)
 // 4. Enable Firestore Database (Start in Test Mode)
-// 5. Paste the config object below.
+// 5. Paste the config object below via environment variables.
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDiB9Hjsr5HWj4Hgmi5cmAmX4w3S6sH56I",
-  authDomain: "scos-17fbf.firebaseapp.com",
-  projectId: "scos-17fbf",
-  storageBucket: "scos-17fbf.firebasestorage.app",
-  messagingSenderId: "219202106059",
-  appId: "1:219202106059:web:9e7b52b98d821b7cbea14e"
+  apiKey: getFirebaseEnv("API_KEY"),
+  authDomain: getFirebaseEnv("AUTH_DOMAIN"),
+  projectId: getFirebaseEnv("PROJECT_ID"),
+  storageBucket: getFirebaseEnv("STORAGE_BUCKET"),
+  messagingSenderId: getFirebaseEnv("MESSAGING_SENDER_ID"),
+  appId: getFirebaseEnv("APP_ID")
 };
 
 // Initialize Firebase
@@ -33,6 +34,6 @@ export const functions = getFunctions(app);
  * @returns The resulting value.
  */
 export const isFirebaseConfigured = () => {
-  // Checks if the API Key has been changed from the default placeholder
-  return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("AIzaSy...");
+  // Checks if the API Key has been provided and is not empty
+  return !!firebaseConfig.apiKey && firebaseConfig.apiKey.length > 0;
 };
