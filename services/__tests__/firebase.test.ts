@@ -1,5 +1,5 @@
 // Set up environment BEFORE importing the module to bypass `firebase/auth` initialization errors
-process.env.VITE_FIREBASE_API_KEY = "test"; // a dummy valid key for initialization
+process.env.VITE_FIREBASE_API_KEY = "AIzaSyValidKeyThatIsNotPlaceholder-1234567890"; // a dummy valid key for initialization
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
