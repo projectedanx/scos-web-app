@@ -405,12 +405,21 @@ function App() {
         
         const operations: Promise<void>[] = [];
 
+        // Helper to avoid intermediate array allocations during mapping
+        const buildSet = <T, U>(arr: T[], mapFn: (val: T) => U): Set<U> => {
+          const set = new Set<U>();
+          for (let i = 0; i < arr.length; i++) {
+            set.add(mapFn(arr[i]));
+          }
+          return set;
+        };
+
         // Create Sets for O(1) lookups
-        const existingAgentNames = new Set(vault.map(p => p.identity.name));
-        const existingCapsuleIds = new Set(capsules.map(p => p.meta.id));
-        const existingPromptIds = new Set(prompts.map(prev => prev.id));
-        const existingContractIds = new Set(contracts.map(prev => prev.id));
-        const existingProvenanceHashes = new Set(provenanceIndex.map(prev => prev.hash));
+        const existingAgentNames = buildSet(vault, p => p.identity.name);
+        const existingCapsuleIds = buildSet(capsules, p => p.meta.id);
+        const existingPromptIds = buildSet(prompts, prev => prev.id);
+        const existingContractIds = buildSet(contracts, prev => prev.id);
+        const existingProvenanceHashes = buildSet(provenanceIndex, prev => prev.hash);
 
         // 1. Agents
         const newAgents = (data.agents as SovereignAgentManifest[]).filter(

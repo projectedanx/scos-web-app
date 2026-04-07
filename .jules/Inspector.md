@@ -17,3 +17,7 @@
 ## Inspector — Crypto Service Test Improvement
 **Edge Case:** Test the success path of generateCommanderKeys explicitly to verify it interfaces with the cryptography API (subtle) correctly.
 **Assertion:** Mocked the crypto.subtle API to intercept generateKey and exportKey calls, then verified the correct ECDSA P-256 algorithms, parameters, and that keys are successfully returned.
+
+## Inspector — Firestore Error Handling Tests
+**Edge Case:** saveAgentToCloud missing test coverage for Firebase firestore rejection/errors
+**Assertion:** Pass invalid `uid` empty string into getCollectionRef which forces a native `Invalid collection reference` Firebase error. Then assert that `handleFirestoreError` intercepts the failure, emits `firestore-error` window event, logs to console, and constructs a JSON error payload containing context path.
