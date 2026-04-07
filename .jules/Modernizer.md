@@ -1,3 +1,9 @@
+## Modernizer — Extracted handleFirestoreError Duplicate
+
+**Learning:** Exact code duplications (like `handleFirestoreError`, `OperationType`, `FirestoreErrorInfo` in `contexts/AuthContext.tsx` and `services/firestoreService.ts`) can be safely extracted into a common utility file (`services/firestoreErrorHandler.ts`) to improve maintainability and adherence to DRY principles. Also, never add `.ts` extensions in imports in standard TypeScript environments unless using explicit `nodenext` module resolution, as it leads to TS2691 errors.
+
+**Action:** Extracted the duplicated error handling logic into a new utility file and updated the dependent modules to import it. Verified with `npx tsc --noEmit` and `node --experimental-strip-types --test`. Reverted the `.ts` extension mistake.
+
 ## Modernizer — Loose Logical OR Fallbacks Evolution
 **Learning:** Legacy loose logical OR (`||`) fallbacks are pervasive in parsing code that maps deep object configurations or properties, introducing risks of false-falsy overrides (e.g. valid empty strings or `0` values being discarded). Replacing them with the strict nullish coalescing operator (`??`) ensures that only explicit `null` or `undefined` triggers the default fallback. A single-file constraint is strictly enforced to prevent cascading scope failures across the broader codebase. Additionally, utilizing native environment execution flags (`--experimental-strip-types`) bypasses missing dependencies and honors the directive to adapt to the existing stack without bootstrapping foreign packages.
 **Action:** When updating syntax in isolated modules, strictly verify the AST modification preserves all closure scopes and logical intents (e.g., leaving boolean flow control checks like `if (!length || !otherLength)` intact) while explicitly evading dependency modifications in `package.json` or lockfiles when validating changes with native test tools.
