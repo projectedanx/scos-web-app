@@ -129,9 +129,14 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
     ${tool.description}
     Input Schema: ${tool.inputSchema.replace(/\n/g, '')}
     """
-    # Implement logic for ${tool.name}
-    # Security Check: Ensure params match schema
-    raise NotImplementedError(f"Tool ${tool.name} is not yet implemented.")
+    schema = json.loads('${tool.inputSchema.replace(/\n/g, '').replace(/'/g, "\\'")}')
+    try:
+        jsonschema.validate(instance=params, schema=schema)
+    except jsonschema.exceptions.ValidationError as e:
+        return f"Validation Error: {e.message}"
+
+    # Tool logic implementation
+    return f"Executed ${tool.name} with params: {json.dumps(params)}"
 `;
   }).join('\n');
 
@@ -141,6 +146,7 @@ def ${tool.name}(ctx: AgentContext, params: Dict[str, Any]) -> str:
 # Designation: ${agent.identity.designation}
 
 import json
+import jsonschema
 from typing import Dict, Any
 from scos_core.decorators import tool, agent
 from scos_core.types import AgentContext

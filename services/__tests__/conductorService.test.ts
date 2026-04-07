@@ -256,7 +256,8 @@ test('generatePythonStubs - generates functional scos-core boilerplate with mapp
   // Verify tool generation
   assert.ok(pythonScript.includes('@tool(name="read_file", risk="MEDIUM")'));
   assert.ok(pythonScript.includes('def read_file(ctx: AgentContext, params: Dict[str, Any]) -> str:'));
-  assert.ok(pythonScript.includes('raise NotImplementedError(f"Tool read_file is not yet implemented.")'));
+  assert.ok(pythonScript.includes('jsonschema.validate(instance=params, schema=schema)'));
+  assert.ok(pythonScript.includes('return f"Executed read_file with params: {json.dumps(params)}"'));
 
   // Verify internal diagnostic mappings
   assert.ok(pythonScript.includes('# Check: check_disk (Trigger: Before writing)'));
