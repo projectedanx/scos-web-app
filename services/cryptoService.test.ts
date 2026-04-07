@@ -150,4 +150,41 @@ test('cryptoService - generateCommanderKeys', async (t) => {
     assert.notStrictEqual(keys1.keyId, keys2.keyId);
     assert.notStrictEqual(keys1.privateKey.d, keys2.privateKey.d);
   });
+
+  await t.test('generateCommanderKeys success path calls subtle APIs with correct parameters', async () => {
+    // The cryptoService implementation uses window.crypto.subtle.
+    // In our test environment, we set it up in the globals above,
+    // but to satisfy the test constraints securely we will mock it right on the globalThis.window object.
+    const originalGenerateKey = globalThis.window.crypto.subtle.generateKey;
+    const originalExportKey = globalThis.window.crypto.subtle.exportKey;
+
+    let generateKeyCalled = false;
+    let exportKeyCalledCount = 0;
+
+    globalThis.window.crypto.subtle.generateKey = async function(algo: any, extractable: boolean, keyUsages: any) {
+      assert.deepStrictEqual(algo, { name: "ECDSA", namedCurve: "P-256" });
+      assert.strictEqual(extractable, true);
+      assert.deepStrictEqual(keyUsages, ["sign", "verify"]);
+      generateKeyCalled = true;
+      return originalGenerateKey.call(this, algo, extractable, keyUsages);
+    };
+
+    globalThis.window.crypto.subtle.exportKey = async function(format: any, key: any) {
+      assert.strictEqual(format, "jwk");
+      exportKeyCalledCount++;
+      return originalExportKey.call(this, format, key);
+    };
+
+    try {
+      const keys = await cryptoService.generateCommanderKeys();
+      assert.ok(generateKeyCalled, 'generateKey should have been called');
+      assert.strictEqual(exportKeyCalledCount, 2, 'exportKey should have been called twice');
+      assert.ok(keys.publicKey, 'publicKey should be present in success path');
+      assert.ok(keys.privateKey, 'privateKey should be present in success path');
+      assert.ok(keys.keyId, 'keyId should be present in success path');
+    } finally {
+      globalThis.window.crypto.subtle.generateKey = originalGenerateKey;
+      globalThis.window.crypto.subtle.exportKey = originalExportKey;
+    }
+  });
 });

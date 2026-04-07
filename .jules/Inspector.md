@@ -13,3 +13,7 @@
 ## Inspector — JSON Schema and Timeout Boundary Assertions for GeminiService
 **Edge Case:** The orchestrating LLM integration `services/geminiService.ts` lacked native unit test coverage for its structural validation logic (e.g. `validateAgentManifest`, `validateResearchPlan`) and asynchronous timeout boundaries via `AbortController`.
 **Assertion:** Wrote a test suite in `services/__tests__/geminiService.test.ts` utilizing native mocks for `global.fetch` to bombard the integration logic with malformed schemas, missing arrays, truncated JSON structures, and unresolvable network states to mathematically verify the fallback triggers, error boundaries, and self-repairing functions executed properly under stress.
+
+## Inspector — Crypto Service Test Improvement
+**Edge Case:** Test the success path of generateCommanderKeys explicitly to verify it interfaces with the cryptography API (subtle) correctly.
+**Assertion:** Mocked the crypto.subtle API to intercept generateKey and exportKey calls, then verified the correct ECDSA P-256 algorithms, parameters, and that keys are successfully returned.
