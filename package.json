@@ -6,14 +6,17 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "mcp:word-mapper": "tsx word-mapper-mcp.ts"
   },
   "dependencies": {
     "@google/genai": "~1.48.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "firebase": "~12.11.0",
     "lucide-react": "~0.562.0",
     "react": "~19.2.3",
-    "react-dom": "~19.2.3"
+    "react-dom": "~19.2.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "~22.14.0",
