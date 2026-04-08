@@ -21,3 +21,7 @@
 ## Inspector — Firestore Error Handling Tests
 **Edge Case:** saveAgentToCloud missing test coverage for Firebase firestore rejection/errors
 **Assertion:** Pass invalid `uid` empty string into getCollectionRef which forces a native `Invalid collection reference` Firebase error. Then assert that `handleFirestoreError` intercepts the failure, emits `firestore-error` window event, logs to console, and constructs a JSON error payload containing context path.
+
+## Inspector — Word Mapper Service Boundary Interrogation
+**Edge Case:** The `services/wordMapperService.ts` orchestration module lacked test coverage entirely, leaving external network requests (`api.datamuse.com`, `api.conceptnet.io`, `en.wikipedia.org`) vulnerable to timeouts, 500 errors, schema pollution, and missing arrays inside the `triangulateConcepts` schema validation fallback layer untested.
+**Assertion:** Wrote comprehensive unit tests simulating `AbortController` timeouts and malformed HTTP 500 payloads via native `global.fetch` interception, and bombarded the native deterministic `SchemaValidator.parse` logic with corrupted nested array schemas and missing types. Mathematically verified that concurrent fetch methods gracefully degrade and the schema parser enforces strict output shapes without crashing the host orchestration layer.
