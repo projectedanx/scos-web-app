@@ -99,10 +99,15 @@ test('cryptoService - signature lifecycle', async (t) => {
     const malformedHex2 = 'not-a-hex-string!!!';
     const isValid2 = await cryptoService.verifySignature(dummyData, malformedHex2, keys.publicKey);
 
+    // Empty hex string will cause .match(/.{1,2}/g)! to return null, triggering a TypeError on .map()
+    const emptyHex = '';
+    const isValid3 = await cryptoService.verifySignature(dummyData, emptyHex, keys.publicKey);
+
     console.error = origError;
 
     assert.strictEqual(isValid, false, 'Malformed hex must be caught and fail gracefully');
     assert.strictEqual(isValid2, false, 'Malformed hex must be caught and fail gracefully');
+    assert.strictEqual(isValid3, false, 'Empty hex must be caught and fail gracefully');
   });
 
   await t.test('verifySignature fails when using a different public key', async () => {

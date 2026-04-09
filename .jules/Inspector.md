@@ -25,3 +25,7 @@
 ## Inspector — Word Mapper Service Boundary Interrogation
 **Edge Case:** The `services/wordMapperService.ts` orchestration module lacked test coverage entirely, leaving external network requests (`api.datamuse.com`, `api.conceptnet.io`, `en.wikipedia.org`) vulnerable to timeouts, 500 errors, schema pollution, and missing arrays inside the `triangulateConcepts` schema validation fallback layer untested.
 **Assertion:** Wrote comprehensive unit tests simulating `AbortController` timeouts and malformed HTTP 500 payloads via native `global.fetch` interception, and bombarded the native deterministic `SchemaValidator.parse` logic with corrupted nested array schemas and missing types. Mathematically verified that concurrent fetch methods gracefully degrade and the schema parser enforces strict output shapes without crashing the host orchestration layer.
+
+## Inspector — CryptoService Empty String Catch Block Interrogation
+**Edge Case:** The `catch` block in `verifySignature` within `cryptoService.ts` was unreachable by existing malformed hex tests. Passing an empty string causes `.match(/.{1,2}/g)!` to return `null`, which crashes `.map()` with a `TypeError` and hits the catch boundary.
+**Assertion:** Bombarded the function with an empty string `""` to explicitly trigger the internal array method crash. Mathematically verified the catch block executes and safely returns `false` by sabotaging the return value to `true` and ensuring the test suite caught the failure.
