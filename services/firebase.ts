@@ -21,12 +21,19 @@ export const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app;
+export let auth: any = null;
+export let db: any = null;
+export let functions: any = null;
 
-// Export Services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const functions = getFunctions(app);
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  functions = getFunctions(app);
+} catch (e) {
+  console.warn("Firebase initialization skipped (offline mode or invalid config):", e);
+}
 
 // Helper to check if config is missing (Offline Mode)
 /**

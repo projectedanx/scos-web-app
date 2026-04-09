@@ -11,6 +11,7 @@ from firebase_admin import credentials, firestore
 import google.generativeai as genai
 from ecdsa import VerifyingKey, NIST256p
 from ecdsa.util import sigdecode_der
+from pydantic import BaseModel
 
 if not firebase_admin._apps:
     try:
@@ -95,6 +96,11 @@ class ToolExecutor:
                 return f"Executed {tool_name} with payload: {json.dumps(payload)}"
         return f"Tool {tool_name} not found in manifest."
 
+class SwarmResponse(BaseModel):
+    thought: str
+    tool_name: str
+    tool_payload: dict
+
 def execute_swarm_task(db_client, task_id: str, data: dict):
     agent_id = data.get('agentId')
     user_id = data.get('userId', 'anonymous')
@@ -109,25 +115,44 @@ def execute_swarm_task(db_client, task_id: str, data: dict):
 
     executor = ToolExecutor(manifest.get("tools", []))
 
-    try:
-        model_id = "gemini-2.5-pro"
-        model = genai.GenerativeModel(model_id)
+    model_id = "gemini-2.5-pro"
+    model = genai.GenerativeModel(model_id)
+    system_instruction = manifest.get("identity", {}).get("primeDirective", "")
+    prompt = f"System: {system_instruction}\nCommand: {command}\nPayload: {json.dumps(payload)}\nOutput strict JSON matching the SwarmResponse schema."
 
-        system_instruction = manifest.get("identity", {}).get("primeDirective", "")
+    attempts = 0
+    max_attempts = 3
+    last_error = None
 
-        prompt = f"System: {system_instruction}\nCommand: {command}\nPayload: {json.dumps(payload)}"
+    while attempts < max_attempts:
+        try:
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                    response_schema=SwarmResponse
+                ),
+                request_options={"timeout": 15.0}
+            )
 
-        response = model.generate_content(prompt)
-        ai_response = response.text
+            structured_data = SwarmResponse.model_validate_json(response.text)
+            ai_response = structured_data.thought
+            extracted_tool = structured_data.tool_name
+            extracted_payload = structured_data.tool_payload
 
-        tool_result = executor.execute(command, payload)
+            tool_result = executor.execute(extracted_tool, extracted_payload)
 
-        return {
-            "status": "COMPLETED",
-            "result": f"AI: {ai_response} | Tool Output: {tool_result}"
-        }
-    except Exception as e:
-        return {"status": "FAILED", "error": str(e)}
+            return {
+                "status": "COMPLETED",
+                "result": f"AI: {ai_response} | Tool Output: {tool_result}"
+            }
+        except Exception as e:
+            last_error = e
+            attempts += 1
+            import time
+            time.sleep(1)
+
+    return {"status": "FAILED", "error": f"Failed after {max_attempts} attempts. Last error: {str(last_error)}"}
 
 def listen_to_queue():
     if not db:
