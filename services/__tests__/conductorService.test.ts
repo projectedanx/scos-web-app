@@ -145,6 +145,12 @@ test('safeParseSchema - empty string returns fallback schema', () => {
   assert.deepStrictEqual(result, { type: "object", properties: {}, description: "Schema parsing failed." });
 });
 
+test('safeParseSchema - null falsy fallback check', () => {
+  const payload = 'null';
+  const result = safeParseSchema(payload);
+  assert.deepStrictEqual(result, { type: "object", properties: {}, description: "Schema parsing failed." });
+});
+
 test('safeParseSchema - filters prototype pollution keys', () => {
   const payload = '{"normal": "value", "__proto__": {"polluted": true}, "constructor": {"polluted": true}, "prototype": {"polluted": true}}';
   const result = safeParseSchema(payload);
