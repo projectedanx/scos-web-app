@@ -43,7 +43,11 @@ const secureJSONParse = (jsonStr: string): any => {
  */
 export const safeParseSchema = (schemaStr: string): any => {
   try {
-    return secureJSONParse(schemaStr);
+    const parsed = secureJSONParse(schemaStr);
+    if (!parsed) {
+      throw new Error("Parsed schema is falsy (e.g. 'null')");
+    }
+    return parsed;
   } catch (error: unknown) {
     return { type: "object", properties: {}, description: "Schema parsing failed." };
   }
