@@ -52,23 +52,23 @@ The core innovation of SCOS is the replacement of fragile textual personas with 
 
 ### $E = \langle G, G^-, C, T, H \rangle$
 
-1.  **$G$ (Goal Orientation - The Strategist):**
+1. **$G$ (Goal Orientation - The Strategist):**
     - Establishes the teleological anchor, defining the invariant, non-negotiable objectives of the agent.
     - Embeds the overarching purpose directly into the embedding space as a strict target vector.
 
-2.  **$G^-$ (Anti-Goals - The Immunologist):**
+2. **$G^-$ (Anti-Goals - The Immunologist):**
     - Operating via "Anionic Architecture," this vector defines the immunological boundary or "Lattice of Refusal".
     - Dictates the negative space topology—actions the agent is strictly forbidden from executing.
 
-3.  **$C$ (Communication Style - The Linguist):**
+3. **$C$ (Communication Style - The Linguist):**
     - Enforces the "Epistemic Signature," compelling the agent to utilize explicit epistemic markers (e.g., distinguishing between "suggests" and "is").
     - Calibrates trust and prevents confident hallucinations.
 
-4.  **$T$ (Tooling Constraints & Output Fidelity - The Engineer):**
+4. **$T$ (Tooling Constraints & Output Fidelity - The Engineer):**
     - Establishes the Thermodynamic Envelope, enforcing strict schemas (e.g., JSON, Pydantic).
     - Defines risk-graded access to external APIs, physically limiting the agent's capabilities to prevent Function Creep.
 
-5.  **$H$ (History - The Historian):**
+5. **$H$ (History - The Historian):**
     - Introduces an evolutionary memory via the "Symbolic Scar Registry".
     - Encodes past algorithmic trauma and logical failures as 1D homological loops ($\beta_1$) injected into the agent's genesis block, immunizing it against historical recursion.
 
@@ -84,17 +84,17 @@ If the similarity falls below the critical threshold of sovereignty ($\cos(\thet
 
 To prevent **Token Collapse** (loss of instruction adherence in long contexts), SCOS agents enforce a strict loop:
 
-1.  **Phase 1: THINK (Hidden)**
+1. **Phase 1: THINK (Hidden)**
     - **Input:** User Query + Epistemic Matrix.
     - **Action:** Allocate `ThinkingBudget`. Identify ambiguity, edge cases, and required tools.
     - **Output:** `<thinking>` trace (hidden from final user output).
 
-2.  **Phase 2: WRITE (Synthesis)**
+2. **Phase 2: WRITE (Synthesis)**
     - **Input:** `<thinking>` trace.
     - **Action:** Draft the response or plan in the defined **Tone** ($C$).
     - **Output:** Draft Artifact.
 
-3.  **Phase 3: CODE (Execution)**
+3. **Phase 3: CODE (Execution)**
     - **Input:** Draft Artifact.
     - **Action:** Call Tools ($T$) to execute the plan. Verify against **Anti-Goals** ($G$).
     - **Output:** Final Result.
@@ -105,10 +105,10 @@ To prevent **Token Collapse** (loss of instruction adherence in long contexts), 
 
 ### The Chain of Trust
 
-1.  **Key Gen:** Keys are generated in the browser using `window.crypto.subtle` (ECDSA P-256).
-2.  **Signing:** Every Manifest created in the Forge is hashed and signed.
-3.  **Attestation:** When the Python Swarm loads an agent, it verifies the signature against the User's Public Key (stored in Firestore).
-4.  **Immutability:** If the Manifest JSON is altered in transit (e.g., a hacker changes the Primary Goal), the signature verification fails, and the Swarm refuses to boot the agent.
+1. **Key Gen:** Keys are generated in the browser using `window.crypto.subtle` (ECDSA P-256).
+2. **Signing:** Every Manifest created in the Forge is hashed and signed.
+3. **Attestation:** When the Python Swarm loads an agent, it verifies the signature against the User's Public Key (stored in Firestore).
+4. **Immutability:** If the Manifest JSON is altered in transit (e.g., a hacker changes the Primary Goal), the signature verification fails, and the Swarm refuses to boot the agent.
 
 ```mermaid
 sequenceDiagram
@@ -199,10 +199,10 @@ The efficacy of PDL is quantified via the **Decorator Quality Score (DQS)**, mea
 
 The **Petzold Sequence** serves as the chronometric governor of the SCOS, treating time as a physical boundary. It executes across four deterministic phases:
 
-1.  **SYNDICATE:** Employs HTTP ETags and "304 Not Modified" logic to detect upstream state changes.
-2.  **EMBED:** Converts sanitized text and UTC-coerced metadata into dense and sparse vectors.
-3.  **UPDATE:** Executes idempotent upserts in the vector database via cryptographic IDs (SHA-256 mapping).
-4.  **PRUNE:** Removes obsolete vectors via Autophagic Composting (TTL mapping) to maintain latent space fidelity.
+1. **SYNDICATE:** Employs HTTP ETags and "304 Not Modified" logic to detect upstream state changes.
+2. **EMBED:** Converts sanitized text and UTC-coerced metadata into dense and sparse vectors.
+3. **UPDATE:** Executes idempotent upserts in the vector database via cryptographic IDs (SHA-256 mapping).
+4. **PRUNE:** Removes obsolete vectors via Autophagic Composting (TTL mapping) to maintain latent space fidelity.
 
 ### Fused Semantic-Temporal Scoring
 
@@ -301,7 +301,52 @@ sequenceDiagram
     end
 ```
 
-## 11. Conductor Compatibility Boundary (MCP/Swarm Interface)
+## 11. React View & Context State Architecture
+
+The frontend micro-architecture leverages a modular React Container structure, isolating state into specialized Contexts rather than a global store, and routing via `ViewMode` enumerations.
+
+```mermaid
+C4Container
+  title React View & Context Topology
+
+  Container_Boundary(react_app, "SCOS React Client") {
+    Container(app_tsx, "App.tsx", "React", "Primary View Router & State Orchestrator")
+
+    Container_Boundary(contexts, "Modular Contexts") {
+      Container(auth_context, "AuthContext", "React Context", "Manages Firebase Auth & User State")
+      Container(dialog_context, "DialogContext", "React Context", "Manages Modal Overlays")
+      Container(toast_context, "ToastContext", "React Context", "Manages Ephemeral Notifications")
+    }
+
+    Container_Boundary(views, "View Modules") {
+      Container(dashboard_view, "DashboardView", "React Component", "Telemetry & Navigation")
+      Container(agent_forge, "AgentForgeView", "React Component", "Agent Fabrication")
+      Container(capsule_lab, "CapsuleLabView", "React Component", "Knowledge Distillation")
+      Container(word_mapper, "WordMapperView", "React Component", "Semantic Triangulation")
+    }
+
+    Container_Boundary(services, "Service Adapters") {
+      Container(firestore_svc, "firestoreService", "TS", "Cloud DB Sync")
+      Container(crypto_svc, "cryptoService", "TS", "Local ECDSA Signing")
+      Container(gemini_svc, "geminiService", "TS", "LLM Inference")
+    }
+  }
+
+  Rel(app_tsx, auth_context, "Consumes")
+  Rel(app_tsx, dialog_context, "Consumes")
+  Rel(app_tsx, toast_context, "Consumes")
+
+  Rel(app_tsx, dashboard_view, "Renders via ViewMode")
+  Rel(app_tsx, agent_forge, "Renders via ViewMode")
+  Rel(app_tsx, capsule_lab, "Renders via ViewMode")
+  Rel(app_tsx, word_mapper, "Renders via ViewMode")
+
+  Rel(agent_forge, crypto_svc, "Calls to Sign Manifests")
+  Rel(agent_forge, gemini_svc, "Calls for Council Synthesis")
+  Rel(app_tsx, firestore_svc, "Calls for Vault Sync")
+```
+
+## 12. Conductor Compatibility Boundary (MCP/Swarm Interface)
 
 The `conductorService.ts` acts as a crucial trust and execution boundary. It transforms the local JSON manifests (SCOS) into external Model Context Protocol (MCP) or Swarm-compatible schema interfaces, enabling the offline vault to deploy live agents.
 
