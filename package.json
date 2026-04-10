@@ -7,7 +7,8 @@
     "build": "vite build",
     "dev": "vite",
     "preview": "vite preview",
-    "mcp:word-mapper": "tsx word-mapper-mcp.ts"
+    "mcp:word-mapper": "tsx word-mapper-mcp.ts",
+    "mcp:prompt-forge": "tsx prompt-forge-mcp.ts"
   },
   "dependencies": {
     "@google/genai": "~1.48.0",
