@@ -29,3 +29,7 @@
 ## Inspector — CryptoService Empty String Catch Block Interrogation
 **Edge Case:** The `catch` block in `verifySignature` within `cryptoService.ts` was unreachable by existing malformed hex tests. Passing an empty string causes `.match(/.{1,2}/g)!` to return `null`, which crashes `.map()` with a `TypeError` and hits the catch boundary.
 **Assertion:** Bombarded the function with an empty string `""` to explicitly trigger the internal array method crash. Mathematically verified the catch block executes and safely returns `false` by sabotaging the return value to `true` and ensuring the test suite caught the failure.
+
+## Inspector — Falsy JSON and Truncation Resilience Coverage
+**Edge Case:** The JSON parser fallback `repairJson` logic lacked coverage for parsing `null` payloads directly (which circumvent standard try/catch logic) and also required assertions to guarantee that prototype pollution strips and string truncations are correctly repaired and validated structurally before downstream logic.
+**Assertion:** Interrogated `geminiService.ts` with newly engineered mocked tests. Bombarded `repairJson` by passing malformed and truncated arrays and manifests, verifying closure algorithms function as expected. Submitted `null` explicitly, confirming it throws an error or fails validation instead of resolving quietly. Added Sabotage check by verifying an irreversibly malformed structure fails exactly as intended.
