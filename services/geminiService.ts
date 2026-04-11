@@ -555,6 +555,9 @@ const sumUsage = (u1: TokenUsage, u2: TokenUsage): TokenUsage => ({
  * Secure JSON parsing shielding against Prototype Pollution.
  */
 const secureJSONParse = (jsonStr: string): any => {
+  if (!jsonStr || jsonStr === 'null') {
+    throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
+  }
   return JSON.parse(jsonStr, (key, value) => {
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
       return undefined;
