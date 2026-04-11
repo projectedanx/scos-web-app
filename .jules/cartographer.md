@@ -1,2 +1,2 @@
-Learning: Mapped the React Frontend Micro-Architecture via C4Container, capturing the strict separation of concerns between `App.tsx` (router/state orchestrator), modular React contexts (Auth, Toast, Dialog), view modules (e.g., AgentForgeView), and localized service adapters.
-Action: Utilize the new React View & Context Topology diagram to ensure future frontend changes do not pollute global state and respect context boundaries.
+Learning: The `capsule-compiler-mcp.ts` file establishes a critical Model Context Protocol (MCP) trust boundary, leveraging Zod schemas to compile structured knowledge payloads into immutable HTML artifacts.
+Action: Document all future MCP tool boundaries using a standardized C4Context topology to explicitly visualize the payload transition between external client transports and local generation services.

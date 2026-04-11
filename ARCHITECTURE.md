@@ -559,3 +559,27 @@ sequenceDiagram
         end
     end
 ```
+
+## 15. Capsule Compiler MCP Infrastructure Boundary
+
+The `capsule-compiler-mcp.ts` script provides a native TypeScript JSON-RPC 2.0 stdio server implementation. It acts as the bridge that allows external systems to compile structured Context Capsules into immutable HTML artifacts using strictly typed Zod schemas.
+
+```mermaid
+C4Context
+  title Capsule Compiler MCP Boundary
+
+  Person(external_agent, "External AI Agent", "Consumes the compile tool to generate artifacts.")
+
+  System_Boundary(mcp_server_env, "MCP Execution Environment (Node.js)") {
+    System(capsule_compiler_mcp, "capsule-compiler-mcp.ts", "Exposes the compile_capsule_html tool and validates payloads using Zod schemas.")
+    System(capsule_compiler_svc, "capsuleCompiler.ts", "Performs the actual HTML generation logic.")
+  }
+
+  System_Ext(mcp_client, "MCP Client Transport", "Stdio communication channel.")
+
+  Rel(external_agent, mcp_client, "Sends JSON-RPC ContextCapsule payload")
+  Rel(mcp_client, capsule_compiler_mcp, "Routes to tool endpoint via stdio")
+  Rel(capsule_compiler_mcp, capsule_compiler_svc, "Passes valid ContextCapsule to")
+  Rel(capsule_compiler_svc, capsule_compiler_mcp, "Returns rendered HTML artifact")
+  Rel(capsule_compiler_mcp, mcp_client, "Sends JSON-RPC Response (HTML or Error)")
+```
