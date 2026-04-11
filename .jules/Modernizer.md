@@ -1,3 +1,3 @@
-## Modernizer — Pruning Unnecessary Console Logging
-**Learning:** Legacy console.log statements from active development and testing, such as the `console.log("Sovereign Handshake Complete: Cloud Profile Linked.");` in `contexts/AuthContext.tsx`, clutter the runtime output and introduce unnecessary noise to the production console. Identifying and removing these specific debugging logs improves code health, maintains a clean terminal output, and helps isolate genuine operational messages.
-**Action:** Consistently search for and remove isolated console.log debugging artifacts, particularly those with hardcoded, verbose strings, explicitly ensuring that actual application flow and error handling (such as `console.error`) remain intact. Always write changes via raw string scripts (or AST modifications) and verify using native compilation testing (`npx tsc --noEmit`).
+## Modernizer — Pruning Unnecessary Console Logging & Agnostic Nullish Coalescing
+**Learning:** Legacy `console.log` statements clutter runtime outputs, and loose logical OR (`||`) fallbacks risk false-falsy bugs during initialization.
+**Action:** Consistently remove isolated, hardcoded console debugging artifacts while keeping error handling intact, and verify object property fallbacks/array maps, migrating `||` to `??` to guarantee type-safety.
