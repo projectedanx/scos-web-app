@@ -44,23 +44,23 @@ import {
 // --- Legacy Migration Utility (Preserved) ---
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest => {
-  const identity = data.identity || {
-      name: data.name || filename.replace('.json', ''),
-      designation: data.designation || "Legacy Entity",
-      primeDirective: data.primeDirective || "Directive undefined during import.",
-      corePhilosophy: data.corePhilosophy || "Philosophy undefined during import."
+  const identity = data.identity ?? {
+      name: data.name ?? filename.replace('.json', ''),
+      designation: data.designation ?? "Legacy Entity",
+      primeDirective: data.primeDirective ?? "Directive undefined during import.",
+      corePhilosophy: data.corePhilosophy ?? "Philosophy undefined during import."
   };
-  const protocol = data.protocol || {
+  const protocol = data.protocol ?? {
       standard: "DRP-MULTI-AGENT-PROTOCOL-2025",
       role: "SPECIALIST",
       communicationScheme: "AGENT_PACKET_V1"
   };
-  const epistemicPolicy = data.epistemicPolicy || {
+  const epistemicPolicy = data.epistemicPolicy ?? {
       readScopes: ["legacy_read"],
       writeScopes: [],
       contextKeys: []
   };
-  const budget = data.budget || {
+  const budget = data.budget ?? {
       tokenBudget: 0,
       driftAllowance: 0.1 
   };
@@ -70,10 +70,10 @@ const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest
   const abilities = Array.isArray(data.abilities) ? data.abilities : [];
   const anchors = Array.isArray(data.anchors) ? data.anchors : [];
   const constraints = Array.isArray(data.constraints) ? data.constraints : [];
-  const provenance = data.provenance || undefined;
-  const epistemicMatrix = data.epistemicMatrix || {
+  const provenance = data.provenance ?? undefined;
+  const epistemicMatrix = data.epistemicMatrix ?? {
     goals: {
-        primary: identity.primeDirective || "Undefined Goal",
+        primary: identity.primeDirective ?? "Undefined Goal",
         secondary: [],
         antiGoals: []
     },
@@ -114,7 +114,7 @@ const migrateLegacyAgent = (data: any, filename: string): SovereignAgentManifest
       abilities,
       anchors,
       constraints,
-      architecturalNotes: data.architecturalNotes || "Imported via Batch Loader.",
+      architecturalNotes: data.architecturalNotes ?? "Imported via Batch Loader.",
       provenance
   };
 };
@@ -430,7 +430,7 @@ function App() {
 
         // 2. Capsules
 
-        const newCapsules = (data.capsules as ContextCapsule[] || []).filter(
+        const newCapsules = (data.capsules as ContextCapsule[] ?? []).filter(
             c => !existingCapsuleIds.has(c.meta.id)
         );
         setCapsules(prev => [...prev, ...newCapsules]);
@@ -438,7 +438,7 @@ function App() {
 
         // 3. Prompts
 
-        const newPrompts = (data.prompts as SovereignPrompt[] || []).filter(
+        const newPrompts = (data.prompts as SovereignPrompt[] ?? []).filter(
             p => !existingPromptIds.has(p.id)
         );
         setPrompts(prev => [...prev, ...newPrompts]);
@@ -446,7 +446,7 @@ function App() {
 
         // 4. Contracts
 
-        const newContracts = (data.contracts as CognitiveContract[] || []).filter(
+        const newContracts = (data.contracts as CognitiveContract[] ?? []).filter(
             c => !existingContractIds.has(c.id)
         );
         setContracts(prev => [...prev, ...newContracts]);
@@ -454,7 +454,7 @@ function App() {
 
         // 5. Provenance Index
 
-        const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] || []).filter(
+        const newProvenance = (data.provenanceIndex as ProvenanceIndexEntry[] ?? []).filter(
             entry => !existingProvenanceHashes.has(entry.hash)
         );
         setProvenanceIndex(prev => [...prev, ...newProvenance]);
