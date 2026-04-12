@@ -1,11 +1,3 @@
-## Cortex — Zero Targets Compliance
-**Learning:** Deep discovery confirmed zero remaining non-deterministic hazards. Native legacy fetch integrations in wordMapperService.ts already leverage strict timeout boundaries inside try/finally blocks. Furthermore, all runtime JSON.parse endpoints utilize prototype pollution guards via a reviver function.
-**Action:** Stop immediately and execute the Category Fallback to generate a Compliance PR, as no legacy integrations remain that require upgrades.
-
-## Cortex — JSON.parse(null) Falsy Fallback Hazard
-**Learning:** Validating JSON inputs where a default object fallback is expected requires explicitly checking for falsy inputs like 'null' before using 'JSON.parse()'. Since 'JSON.parse(null)' returns 'null' without throwing an error, it will bypass standard try/catch fallback blocks and break downstream consumer types that expect an object.
-**Action:** Always check `if (!parsed)` after `JSON.parse` or `secureJSONParse` and explicitly throw or return the fallback object to ensure structural object schemas are maintained.
-
-## Cortex — Falsy JSON Parse Hardening
-**Learning:** Checking for falsy values *before* invoking `JSON.parse` is essential because `JSON.parse('null')` does not throw an error and returns `null`, bypassing standard error-handling logic designed to provide structural object fallbacks.
-**Action:** Enforce strict checks for empty or `'null'` strings before executing JSON parsing routines.
+## Cortex — Top-level Architect
+**Learning:** KORSAKOV must build a specific MCP server within SCOS based on the context. The context describes an architectural boundary between SCOS Vault manifests and a Swarm node, via Conductor/MCP layer, in `conductorService.ts`. I will build an MCP server that acts as a bridge to transform/validate SCOS Manifests, similar to the logic in `conductorService.ts`, or build `conductor-mcp.ts` to expose `validateConductorSchema`, `transformToConductor`, `generatePythonStubs`, etc.
+**Action:** Enforce strict JSON Schema Draft 2020-12 compliance using Zod (`.strict()`) for all inputs, and use CABP / SERF patterns.
