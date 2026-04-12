@@ -118,8 +118,8 @@ test('geminiService - repairJson successfully closes heavily truncated manifest 
 
   const result = await fabricateAgent('test', false);
   assert.strictEqual(result.data.identity.name, "Agent");
-  assert.deepStrictEqual(result.data.epistemicMatrix.primaryGoals, ["G1"]);
-  assert.deepStrictEqual(result.data.epistemicMatrix.antiGoals, ["AG1"]);
+  assert.deepStrictEqual(result.data.epistemicMatrix.goals.primary, ["G1"]);
+  assert.deepStrictEqual(result.data.epistemicMatrix.goals.antiGoals, ["AG1"]);
 });
 
 test('geminiService - handles null falsy payload bypassing try/catch', async (t) => {
