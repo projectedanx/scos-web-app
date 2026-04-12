@@ -1,35 +1,3 @@
-## Inspector — Capsule Compiler XSS & Null Boundary Interrogation
-**Edge Case:** The `capsuleCompiler.ts` module constructs HTML by heavily relying on nested optional chaining (`?.`) and loose coalescing (`??`) without comprehensive bounds testing for completely undefined payloads, missing deep nested arrays, or malicious XSS injection within title and content strings.
-**Assertion:** Bombarded the HTML generator with a completely null payload, simulated nested objects missing mandatory iteration arrays, and injected `<script>`, `<iframe>`, and special characters to mathematically prove the pure functions default to empty strings without crashing and the `escapeHtml` accurately neutralizes malicious tags.
-
-## Inspector — Capsule Compiler Key Concepts & Personas Interrogation
-**Edge Case:** The `renderPersonas` and `renderKeyConcepts` HTML generation functions in `capsuleCompiler.ts` completely lacked test coverage, leaving potential edge cases involving undefined arrays and missing literal string properties untested.
-**Assertion:** Targeted the generator pure functions with null array properties and explicit `undefined` object fields within the payload to mathematically verify that the implementation securely defaulted to empty strings rather than leaking "undefined" text or crashing the loop. Sabotaged the function boundary logic to prove the failure.
-
-## Inspector — CryptoService Boundary Interrogation
-**Edge Case:** The `hashContent`, `signData`, and `verifySignature` functions in `cryptoService.ts` lacked test coverage, creating vulnerabilities around deterministic hashing and the parsing of malformed or invalid hex strings when verifying ECDSA signatures.
-**Assertion:** Assailed the crypto validation logic with corrupted input objects, invalid ECDSA signature hashes, and malformed strings designed to crash the `Uint8Array` parser boundary. Mathematically verified that catch blocks degrade securely and simulated a Sabotage Check by mutating the signature algorithm to SHA-1 to prove the tests actively police the SHA-256 requirement.
-
-## Inspector — JSON Schema and Timeout Boundary Assertions for GeminiService
-**Edge Case:** The orchestrating LLM integration `services/geminiService.ts` lacked native unit test coverage for its structural validation logic (e.g. `validateAgentManifest`, `validateResearchPlan`) and asynchronous timeout boundaries via `AbortController`.
-**Assertion:** Wrote a test suite in `services/__tests__/geminiService.test.ts` utilizing native mocks for `global.fetch` to bombard the integration logic with malformed schemas, missing arrays, truncated JSON structures, and unresolvable network states to mathematically verify the fallback triggers, error boundaries, and self-repairing functions executed properly under stress.
-
-## Inspector — Crypto Service Test Improvement
-**Edge Case:** Test the success path of generateCommanderKeys explicitly to verify it interfaces with the cryptography API (subtle) correctly.
-**Assertion:** Mocked the crypto.subtle API to intercept generateKey and exportKey calls, then verified the correct ECDSA P-256 algorithms, parameters, and that keys are successfully returned.
-
-## Inspector — Firestore Error Handling Tests
-**Edge Case:** saveAgentToCloud missing test coverage for Firebase firestore rejection/errors
-**Assertion:** Pass invalid `uid` empty string into getCollectionRef which forces a native `Invalid collection reference` Firebase error. Then assert that `handleFirestoreError` intercepts the failure, emits `firestore-error` window event, logs to console, and constructs a JSON error payload containing context path.
-
-## Inspector — Word Mapper Service Boundary Interrogation
-**Edge Case:** The `services/wordMapperService.ts` orchestration module lacked test coverage entirely, leaving external network requests (`api.datamuse.com`, `api.conceptnet.io`, `en.wikipedia.org`) vulnerable to timeouts, 500 errors, schema pollution, and missing arrays inside the `triangulateConcepts` schema validation fallback layer untested.
-**Assertion:** Wrote comprehensive unit tests simulating `AbortController` timeouts and malformed HTTP 500 payloads via native `global.fetch` interception, and bombarded the native deterministic `SchemaValidator.parse` logic with corrupted nested array schemas and missing types. Mathematically verified that concurrent fetch methods gracefully degrade and the schema parser enforces strict output shapes without crashing the host orchestration layer.
-
-## Inspector — CryptoService Empty String Catch Block Interrogation
-**Edge Case:** The `catch` block in `verifySignature` within `cryptoService.ts` was unreachable by existing malformed hex tests. Passing an empty string causes `.match(/.{1,2}/g)!` to return `null`, which crashes `.map()` with a `TypeError` and hits the catch boundary.
-**Assertion:** Bombarded the function with an empty string `""` to explicitly trigger the internal array method crash. Mathematically verified the catch block executes and safely returns `false` by sabotaging the return value to `true` and ensuring the test suite caught the failure.
-
-## Inspector — Falsy JSON and Truncation Resilience Coverage
-**Edge Case:** The JSON parser fallback `repairJson` logic lacked coverage for parsing `null` payloads directly (which circumvent standard try/catch logic) and also required assertions to guarantee that prototype pollution strips and string truncations are correctly repaired and validated structurally before downstream logic.
-**Assertion:** Interrogated `geminiService.ts` with newly engineered mocked tests. Bombarded `repairJson` by passing malformed and truncated arrays and manifests, verifying closure algorithms function as expected. Submitted `null` explicitly, confirming it throws an error or fails validation instead of resolving quietly. Added Sabotage check by verifying an irreversibly malformed structure fails exactly as intended.
+## Inspector — Firestore Service Boundary Interrogation
+**Edge Case:** Batch write operations (`batchSaveAgentsToCloud`, `batchSaveCapsulesToCloud`, `batchSavePromptsToCloud`, `batchSaveContractsToCloud`, `batchSaveProvenanceToCloud`) and synchronous API exception boundaries (`syncAgents`) lacked test coverage for empty states or simulated asynchronous error boundaries within the try/catch logic.
+**Assertion:** Wrote boundary assertions validating that empty payload arrays (`[]`) are processed securely without crashing or throwing unnecessary Firebase validation errors, and verified synchronous path validation errors in `syncAgents` properly bubble up through native firestore API bindings.
