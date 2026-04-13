@@ -9,6 +9,7 @@
     "mcp:prompt-forge": "tsx prompt-forge-mcp.ts",
     "mcp:word-mapper": "tsx word-mapper-mcp.ts",
     "mcp:capsule-compiler": "tsx capsule-compiler-mcp.ts",
+    "mcp:conductor": "tsx conductor-mcp.ts",
     "preview": "vite preview"
   },
   "dependencies": {
