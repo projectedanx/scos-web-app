@@ -1,1 +1,1 @@
-Instability: Incomplete MCP integrations lack rigorous JSON Schema validation. | Fortification: Implemented KORSAKOV-compliant `capsule-compiler-mcp.ts` with explicit `.strict()`, `.describe()`, unbounded string boundaries bounded via `.max()`, numeric boundaries via `.min()` and `.max()`, and SERF error handling.
+Instability: Unimported root throwaway script `setup.sh` cluttering the repository hallway | Fortification: Swept `setup.sh` to enforce strict root hygiene
