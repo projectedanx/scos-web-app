@@ -567,61 +567,6 @@ const secureJSONParse = (jsonStr: string): any => {
 };
 
 /**
- * Attempts to repair truncated JSON by closing open strings, arrays, and objects.
- */
-function repairJson(jsonString: string): any {
-  try {
-    return secureJSONParse(jsonString);
-  } catch (e) {
-    let repaired = jsonString.trim();
-    
-    // Check state at end of string
-    let inString = false;
-    let escaped = false;
-    let openBraces = 0;
-    let openBrackets = 0;
-
-    for (let i = 0; i < repaired.length; i++) {
-      const char = repaired[i];
-      if (inString) {
-        if (escaped) escaped = false;
-        else if (char === '\\') escaped = true;
-        else if (char === '"') inString = false;
-      } else {
-        if (char === '"') inString = true;
-        else if (char === '{') openBraces++;
-        else if (char === '}') openBraces--;
-        else if (char === '[') openBrackets++;
-        else if (char === ']') openBrackets--;
-      }
-    }
-
-    // Close string if open
-    if (inString) {
-      repaired += '"';
-    }
-
-    // Close arrays and objects
-    while (openBrackets > 0) {
-      repaired += ']';
-      openBrackets--;
-    }
-    while (openBraces > 0) {
-      repaired += '}';
-      openBraces--;
-    }
-
-    try {
-      return secureJSONParse(repaired);
-    } catch (finalError) {
-       console.error("JSON Repair Failed", finalError);
-       // Throw original error to preserve context if repair fails
-       throw e; 
-    }
-  }
-}
-
-/**
  * Structural Validation
  */
 function validateResearchPlan(data: any): { queries: string[] } {
@@ -716,7 +661,11 @@ export const researchTopic = async (topic: string): Promise<GenAIResult<string>>
 
     let planData;
     try {
-      planData = validateResearchPlan(repairJson(planResponse.text || "{}"));
+      const parsed = secureJSONParse(planResponse.text || "{}");
+      if (!parsed) {
+         throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
+      }
+      planData = validateResearchPlan(parsed);
     } catch (e) {
       console.warn("Research Plan Validation Failed", e);
       planData = { queries: [] };
@@ -898,7 +847,11 @@ export const fabricateAgent = async (
           throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
         }
 
-        const data = validateAgentManifest(repairJson(resultText));
+        const parsed = secureJSONParse(resultText);
+        if (!parsed) {
+           throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
+        }
+        const data = validateAgentManifest(parsed);
         return { data, usage: accumulatedUsage };
 
       } catch (error: any) {
@@ -1040,7 +993,11 @@ export const councilSynthesis = async (
         throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
       }
 
-      const data = validateAgentManifest(repairJson(resultText));
+      const parsed = secureJSONParse(resultText);
+      if (!parsed) {
+         throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
+      }
+      const data = validateAgentManifest(parsed);
       return { data, usage: accumulatedUsage };
 
     } catch (error: any) {
@@ -1175,7 +1132,11 @@ export const councilFinalize = async (
         throw new Error("ERR_VOID_MANIFEST: The cognitive engine returned no data.");
       }
 
-      const data = validateAgentManifest(repairJson(resultText));
+      const parsed = secureJSONParse(resultText);
+      if (!parsed) {
+         throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
+      }
+      const data = validateAgentManifest(parsed);
       return { data, usage: accumulatedUsage };
 
     } catch (error: unknown) {
@@ -1256,7 +1217,11 @@ export const distillCapsule = async (context: string): Promise<GenAIResult<Conte
       throw new Error("ERR_VOID_CAPSULE: The cognitive engine returned no data.");
     }
 
-    const capsule = validateContextCapsule(repairJson(resultText));
+    const parsed = secureJSONParse(resultText);
+    if (!parsed) {
+       throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
+    }
+    const capsule = validateContextCapsule(parsed);
     if (!capsule.meta.created_at) {
         capsule.meta.created_at = Date.now();
     }
