@@ -8,7 +8,8 @@ import base64
 import hashlib
 import firebase_admin
 from firebase_admin import credentials, firestore
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from ecdsa import VerifyingKey, NIST256p
 from ecdsa.util import sigdecode_der
 from pydantic import BaseModel
@@ -23,9 +24,10 @@ db = firestore.client() if firebase_admin._apps else None
 
 api_key = os.environ.get("GEMINI_API_KEY")
 if api_key:
-    genai.configure(api_key=api_key)
+    client = genai.Client(api_key=api_key, http_options={'timeout': 15.0})
 else:
     print("GEMINI_API_KEY missing.")
+    client = None
 
 def verify_manifest(manifest_data: dict, public_key_pem: str) -> bool:
     """
@@ -115,8 +117,7 @@ def execute_swarm_task(db_client, task_id: str, data: dict):
 
     executor = ToolExecutor(manifest.get("tools", []))
 
-    model_id = "gemini-2.5-pro"
-    model = genai.GenerativeModel(model_id)
+    model_id = "gemini-1.5-pro"
     system_instruction = manifest.get("identity", {}).get("primeDirective", "")
     prompt = f"System: {system_instruction}\nCommand: {command}\nPayload: {json.dumps(payload)}\nOutput strict JSON matching the SwarmResponse schema."
 
@@ -126,16 +127,21 @@ def execute_swarm_task(db_client, task_id: str, data: dict):
 
     while attempts < max_attempts:
         try:
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
+            if not client:
+                raise Exception("GenAI client not initialized")
+
+            response = client.models.generate_content(
+                model=model_id,
+                contents=prompt,
+                config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=SwarmResponse
-                ),
-                request_options={"timeout": 15.0}
+                    response_schema=SwarmResponse,
+                    system_instruction=system_instruction
+                )
             )
 
-            structured_data = SwarmResponse.model_validate_json(response.text)
+            structured_data = response.parsed if hasattr(response, 'parsed') and response.parsed else SwarmResponse.model_validate_json(response.text)
+
             ai_response = structured_data.thought
             extracted_tool = structured_data.tool_name
             extracted_payload = structured_data.tool_payload

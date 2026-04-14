@@ -1,6 +1,8 @@
 // KORSAKOV: PHASE_3_EXECUTION. Persona suspended. Type-system active.
 // Native TypeScript JSON-RPC 2.0 stdio server implementation.
 
+import { secureJSONParse } from "./utils/json.js";
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -17,14 +19,7 @@ const server = new McpServer({
 });
 
 // Helper to securely parse the manifest string
-const secureJSONParse = (jsonStr: string): any => {
-  return JSON.parse(jsonStr, (key, value) => {
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      return undefined;
-    }
-    return value;
-  });
-};
+
 
 // KORSAKOV: 6-component rubric: Purpose✓ Guidelines✓ Limitations✓ Params✓ Length✓
 server.registerTool(
