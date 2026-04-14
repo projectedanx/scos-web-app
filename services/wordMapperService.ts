@@ -81,7 +81,7 @@ async function fetchConceptNet(seed: string): Promise<string[]> {
       const data = await response.json();
       
       // Extract the 'end' label (the connected concept)
-      return (data.edges || [])
+      return (data.edges ?? [])
         .filter((edge: ConceptNetEdge) => edge.weight > 1.0 && edge.start.language === 'en' && edge.end.language === 'en')
         .map((edge: ConceptNetEdge) => edge.end.label)
         .filter((label: string) => label.toLowerCase() !== seed.toLowerCase());
@@ -279,9 +279,9 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
       { operationName: `Triangulation(${strategy})` }
     );
 
-    const resultData = (response.data as any) || {};
-    const text = resultData.text || "{\"nodes\": []}";
-    const usageMetadata = resultData.usage || {};
+    const resultData = (response.data as any) ?? {};
+    const text = resultData.text || "{\"nodes\": []}"; // Only upgrade the others to avoid bug logic in text evaluation
+    const usageMetadata = resultData.usage ?? {};
 
     // Native Deterministic Schema Validator (mimicking Zod/Pydantic)
     const SchemaValidator = {
@@ -316,9 +316,9 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
     const { nodes } = SchemaValidator.parse(text);
 
     const usage: TokenUsage = {
-      promptTokens: usageMetadata.promptTokenCount || 0,
-      completionTokens: usageMetadata.candidatesTokenCount || 0,
-      totalTokens: usageMetadata.totalTokenCount || 0
+      promptTokens: usageMetadata.promptTokenCount ?? 0,
+      completionTokens: usageMetadata.candidatesTokenCount ?? 0,
+      totalTokens: usageMetadata.totalTokenCount ?? 0
     };
 
     return { nodes, usage };
