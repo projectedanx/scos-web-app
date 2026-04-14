@@ -1,0 +1,14 @@
+{
+  "tool": "list_contracts",
+  "cfdi": 0.05,
+  "rot_risk": "LOW",
+  "betti_1": false,
+  "recommendation": "Schema is minimal. Description length within bounds. Emit."
+}
+{
+  "tool": "get_contract",
+  "cfdi": 0.08,
+  "rot_risk": "LOW",
+  "betti_1": false,
+  "recommendation": "Schema bounds parameter strictly. Error fallback adheres to SERF."
+}
