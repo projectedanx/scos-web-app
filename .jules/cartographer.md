@@ -1,5 +1,2 @@
-## Cartographer — MCP Ecosystem Atlas
-
-**Learning:** SCOS implements a robust Multi-Server MCP integration pattern, isolating distinct functional domains (Vault access, Prompt Forging, Word Mapping, Capsule Compilation, and Conductor Schema generation) into separate Node.js scripts serving JSON-RPC over stdio.
-
-**Action:** When making future architectural modifications or adding new capabilities, ensure changes are explicitly mapped within the appropriate domain boundary in `docs/MCP_ECOSYSTEM_ATLAS.md` using the C4/Sequence diagram conventions established.
+Learning: Discovered complex but undocumented Firestore relational schemas nested within `firebase-blueprint.json` and NoSQL collection definitions. Identified the `swarm_queue` implementation acting as a critical trust boundary bridging the React frontend and Python background workers.
+Action: Generated `docs/DATA_MODEL.md` to visually map the undocumented schema topography and message queue event flow using Mermaid `erDiagram` and `sequenceDiagram`.
