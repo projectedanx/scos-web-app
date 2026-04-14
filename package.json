@@ -10,6 +10,7 @@
     "mcp:word-mapper": "tsx word-mapper-mcp.ts",
     "mcp:capsule-compiler": "tsx capsule-compiler-mcp.ts",
     "mcp:conductor": "tsx conductor-mcp.ts",
+    "mcp:contracts": "tsx contracts-mcp.ts",
     "preview": "vite preview"
   },
   "dependencies": {
