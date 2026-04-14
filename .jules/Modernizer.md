@@ -1,3 +1,3 @@
-## Modernizer — Pruning Unnecessary Console Logging & Agnostic Nullish Coalescing
-**Learning:** Legacy `console.log` statements clutter runtime outputs, and loose logical OR (`||`) fallbacks risk false-falsy bugs during initialization.
-**Action:** Consistently remove isolated, hardcoded console debugging artifacts while keeping error handling intact, and verify object property fallbacks/array maps, migrating `||` to `??` to guarantee type-safety.
+## Modernizer — Agnostic Nullish Coalescing in wordMapperService
+**Learning:** Loose logical OR (`||`) fallbacks on token counts and response data risk false-falsy bugs if a value is legitimately `0` or `""`.
+**Action:** Replaced loose `||` with strict nullish coalescing (`??`) to enforce strict null-checks and guarantee type-safety without masking valid falsy values.
