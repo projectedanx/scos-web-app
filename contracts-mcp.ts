@@ -1,6 +1,8 @@
 // KORSAKOV: PHASE_3_EXECUTION. Persona suspended. Type-system active.
 // Native TypeScript JSON-RPC 2.0 stdio server implementation.
 
+import { secureJSONParse } from "./utils/json.js";
+
 import * as fs from "fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -11,18 +13,6 @@ const server = new McpServer({
   version: "2026.4.1",
 });
 
-const secureJSONParse = (jsonStr: string): any => {
-  const parsed = JSON.parse(jsonStr, (key, value) => {
-    if (key === "__proto__" || key === "constructor" || key === "prototype") {
-      return undefined;
-    }
-    return value;
-  });
-  if (!parsed) {
-    return null;
-  }
-  return parsed;
-};
 
 const getVaultData = (): { contracts: any[] } => {
   const vaultPath = process.env.SCOS_VAULT_PATH;

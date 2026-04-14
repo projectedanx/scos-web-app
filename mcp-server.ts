@@ -1,6 +1,8 @@
 // KORSAKOV: PHASE_3_EXECUTION. Persona suspended. Type-system active.
 // Native JSON-RPC 2.0 stdio server implementation.
 
+import { secureJSONParse } from "./utils/json.js";
+
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -78,7 +80,8 @@ const getVaultData = (): { agents: any[], capsules: any[] } => {
   if (vaultPath && fs.existsSync(vaultPath)) {
     try {
         const data = fs.readFileSync(vaultPath, 'utf-8');
-        const parsed = SchemaValidator.parse(data);
+        const parsed = secureJSONParse(data);
+        if (!parsed) return { agents: [], capsules: [] };
         return {
           agents: parsed.agents || [],
           capsules: parsed.capsules || []
@@ -332,8 +335,8 @@ process.stdin.on('data', (chunk) => {
   for (const line of lines) {
     if (!line.trim()) continue;
     try {
-      const request: JSONRPCRequest = SchemaValidator.parse(line);
-
+      const request: JSONRPCRequest = secureJSONParse(line);
+      if (!request) continue;
       if (request.method === "initialize") {
         handleInitialize(request);
       } else if (request.method === "notifications/initialized") {

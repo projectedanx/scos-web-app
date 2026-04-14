@@ -1,3 +1,4 @@
+import { secureJSONParse } from "../utils/json.js";
 
 import type { SovereignAgentManifest } from '../types';
 
@@ -25,17 +26,7 @@ export interface ConductorSkillManifest {
 }
 
 
-/**
- * Safely parse JSON while preventing Prototype Pollution.
- */
-const secureJSONParse = (jsonStr: string): any => {
-  return JSON.parse(jsonStr, (key, value) => {
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      return undefined;
-    }
-    return value;
-  });
-};
+
 
 /**
  * Parses the stringified JSON schema from the manifest into an object.

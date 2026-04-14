@@ -1,3 +1,4 @@
+import { secureJSONParse } from "../utils/json.js";
 
 import { GoogleGenAI, Schema, Type } from "@google/genai";
 import { SemanticNode } from "../views/WordMapperView";
@@ -284,36 +285,22 @@ export async function triangulateConcepts(seeds: string[], strategy: MapStrategy
     const usageMetadata = resultData.usage || {};
 
     // Native Deterministic Schema Validator (mimicking Zod/Pydantic)
-    const SchemaValidator = {
-      parse: (jsonStr: string): { nodes: SemanticNode[] } => {
-        // Strict Structural JSON parsing shielding against Prototype Pollution
-        const parsed = JSON.parse(jsonStr, (key, value) => {
-          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-            return undefined;
-          }
-          return value;
-        });
 
-        if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.nodes)) {
-          throw new Error("ERR_STRUCTURAL_VALIDATION: Response missing 'nodes' array schema.");
-        }
-
-        const validNodes = parsed.nodes.filter((n: any) =>
-          n && typeof n === 'object' &&
-          typeof n.concept === 'string' &&
-          typeof n.type === 'string' &&
-          typeof n.dimension === 'string' &&
-          typeof n.definition === 'string'
-        ).map((node: any) => ({
-          ...node,
-          id: crypto.randomUUID()
-        }));
-
-        return { nodes: validNodes };
-      }
-    };
-
-    const { nodes } = SchemaValidator.parse(text);
+        const parsed = secureJSONParse(text);
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.nodes)) {
+      throw new Error("ERR_STRUCTURAL_VALIDATION: Response missing 'nodes' array schema.");
+    }
+    const validNodes = parsed.nodes.filter((n: any) =>
+      n && typeof n === 'object' &&
+      typeof n.concept === 'string' &&
+      typeof n.type === 'string' &&
+      typeof n.dimension === 'string' &&
+      typeof n.definition === 'string'
+    ).map((node: any) => ({
+      ...node,
+      id: crypto.randomUUID()
+    }));
+    const nodes = validNodes;
 
     const usage: TokenUsage = {
       promptTokens: usageMetadata.promptTokenCount || 0,

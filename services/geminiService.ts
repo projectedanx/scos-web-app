@@ -1,3 +1,4 @@
+import { secureJSONParse } from "../utils/json.js";
 
 import { GoogleGenAI, Type, Schema, Chat, GenerateContentResponse } from "@google/genai";
 import { SovereignAgentManifest, ContextCapsule, TokenUsage, PromptEngineConfig, CouncilMemberType, CouncilFeedback, CouncilSessionLog, ScarEntry } from "../types";
@@ -551,20 +552,7 @@ const sumUsage = (u1: TokenUsage, u2: TokenUsage): TokenUsage => ({
   totalTokens: u1.totalTokens + u2.totalTokens
 });
 
-/**
- * Secure JSON parsing shielding against Prototype Pollution.
- */
-const secureJSONParse = (jsonStr: string): any => {
-  if (!jsonStr || jsonStr === 'null') {
-    throw new Error("ERR_STRUCTURAL_VALIDATION: Parsed schema is falsy (e.g. 'null')");
-  }
-  return JSON.parse(jsonStr, (key, value) => {
-    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-      return undefined;
-    }
-    return value;
-  });
-};
+
 
 /**
  * Structural Validation
@@ -1359,7 +1347,7 @@ export const analyzeDocument = async (context: string): Promise<GenAIResult<Cont
     const text = response.text || JSON.stringify({ sentiment: 'COMPLEX', topics: ['Unanalyzed'] });
     
     return {
-        data: validateAnalysisResult(secureJSONParse(text)),
+        data: validateAnalysisResult(secureJSONParse(text) || { sentiment: 'COMPLEX', topics: ['Unanalyzed'] }),
         usage: getUsage(response)
     };
   } catch (e) {
