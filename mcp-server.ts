@@ -83,8 +83,8 @@ const getVaultData = (): { agents: any[], capsules: any[] } => {
         const parsed = secureJSONParse(data);
         if (!parsed) return { agents: [], capsules: [] };
         return {
-          agents: parsed.agents || [],
-          capsules: parsed.capsules || []
+          agents: parsed.agents ?? [],
+          capsules: parsed.capsules ?? []
         };
     } catch (e) {
         process.stderr.write(`Failed to read vault: ${e}\n`);
@@ -200,7 +200,7 @@ function handleToolsList(request: JSONRPCRequest) {
 }
 
 async function handleToolsCall(request: JSONRPCRequest) {
-  const { name, arguments: args } = request.params || {};
+  const { name, arguments: args } = request.params ?? {};
 
   if (name === "list_vault_agents") {
     const vaultData = getVaultData();
@@ -330,7 +330,7 @@ let buffer = '';
 process.stdin.on('data', (chunk) => {
   buffer += chunk.toString();
   const lines = buffer.split('\n');
-  buffer = lines.pop() || '';
+  buffer = lines.pop() ?? '';
 
   for (const line of lines) {
     if (!line.trim()) continue;
