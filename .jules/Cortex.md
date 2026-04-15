@@ -5,3 +5,7 @@
 ## Cortex — Deterministic Shell Upgrade
 **Learning:** Legacy Python SDKs (like `google.generativeai`) allow raw JSON extraction but don't natively enforce strict Pydantic return types in `response.parsed`. By upgrading to `google.genai`, we can pass structural schemas directly via `types.GenerateContentConfig` and eliminate manual string parsing while explicitly enforcing network timeouts.
 **Action:** When migrating AI SDKs, enforce a deterministic boundary by migrating to the latest schema-aware native SDK, standardizing `secureJSONParse` across the TS codebase, and ensuring `if (!parsed)` explicit falsy fallbacks are present before continuing execution.
+
+## Cortex — Deterministic JSON Plumbing in MCP
+**Learning:** Reimplementing heuristic schema validation mechanisms directly inside specific boundary servers (like `SchemaValidator.parse` in `mcp-server.ts`) breaks the DRY principle, misses the globally enforced prototype pollution checks, and risks downstream runtime crashes.
+**Action:** Always import centralized, robust determinisitic parsers (e.g. `secureJSONParse` from `utils/json.js`) in execution boundaries and rely on their native explicitly enforced falsy and prototype pollution checks.

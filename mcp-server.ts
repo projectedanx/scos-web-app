@@ -9,12 +9,7 @@ import * as path from 'path';
 // --- Native Schema Validator ---
 const SchemaValidator = {
   parse: (jsonStr: string): any => {
-    return JSON.parse(jsonStr, (key, value) => {
-      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-        return undefined;
-      }
-      return value;
-    });
+    return secureJSONParse(jsonStr);
   }
 };
 
