@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 MD041 -->
 +++ContextLock(anchor="SCOS_ARCHITECTURE", refresh_interval=2048)
 
 # 🏗️ SCOS Architecture: The Epistemic Bridge
@@ -582,4 +583,73 @@ C4Context
   Rel(capsule_compiler_mcp, capsule_compiler_svc, "Passes valid ContextCapsule to")
   Rel(capsule_compiler_svc, capsule_compiler_mcp, "Returns rendered HTML artifact")
   Rel(capsule_compiler_mcp, mcp_client, "Sends JSON-RPC Response (HTML or Error)")
+```
+
+## 16. Python Swarm Background Worker & Cryptographic Trust Boundary
+
+The SCOS application features a Python Swarm execution backend (`swarm/main.py`) that operates as a background worker, listening to the `swarm_queue` collection in Firestore to process asynchronous tasks. This layer implements cryptographic trust validation using ECDSA P-256 to verify sovereign agent manifests before executing LLM payloads via the Gemini API.
+
+```mermaid
+C4Container
+  title Python Swarm Execution Worker
+
+  Container_Boundary(swarm_env, "Python Swarm Background Node") {
+    Component(listener, "listen_to_queue", "Python", "Listens to swarm_queue in Firestore.")
+    Component(executor, "execute_swarm_task", "Python", "Orchestrates payload and model inference.")
+    Component(verifier, "verify_manifest", "Python", "ECDSA P-256 cryptographic verification.")
+    Component(tool_executor, "ToolExecutor", "Python", "Executes agent-defined tool calls.")
+  }
+
+  System_Ext(firestore, "Firestore DB", "Stores users, manifests, and swarm_queue.")
+  System_Ext(gemini, "Gemini API", "LLM Inference Endpoint.")
+
+  Rel(firestore, listener, "Triggers on_snapshot for PENDING tasks")
+  Rel(listener, executor, "Passes payload")
+  Rel(executor, firestore, "Fetches agent manifest")
+  Rel(executor, verifier, "Validates manifest signature using sovereignPublicKey")
+  Rel(executor, gemini, "Sends inference payload (SwarmResponse schema)")
+  Rel(gemini, executor, "Returns structured JSON thought & tool_payload")
+  Rel(executor, tool_executor, "Invokes designated tool")
+  Rel(executor, firestore, "Updates task status (COMPLETED/FAILED)")
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Firestore as Firestore (swarm_queue)
+    participant Listener as listen_to_queue()
+    participant Core as execute_swarm_task()
+    participant Crypto as verify_manifest()
+    participant Gemini as Gemini API
+
+    Firestore-->>Listener: on_snapshot (type: ADDED, status: PENDING)
+    Listener->>Firestore: update(status: THINKING)
+    Listener->>Core: execute_swarm_task(task_id, data)
+
+    rect rgb(30, 50, 30)
+    Note over Core, Crypto: Manifest Verification (ECDSA P-256)
+    Core->>Firestore: get() Manifest & User PublicKey
+    Core->>Crypto: verify_manifest(data, public_key_pem)
+    alt Invalid Signature
+        Crypto-->>Core: false
+        Core-->>Listener: return {status: FAILED}
+    else Valid Signature
+        Crypto-->>Core: true
+    end
+    end
+
+    rect rgb(50, 30, 30)
+    Note over Core, Gemini: Inference Loop with Strict Schema
+    Core->>Gemini: generate_content(schema=SwarmResponse, timeout=15.0)
+    alt 429 / Exception
+        Gemini-->>Core: Error
+        Core->>Core: Sleep & Retry (max 3)
+    else Success
+        Gemini-->>Core: Structured JSON response
+    end
+    end
+
+    Core->>Core: execute() tool call
+    Core-->>Listener: return {status: COMPLETED, result}
+    Listener->>Firestore: update(status: COMPLETED)
 ```
