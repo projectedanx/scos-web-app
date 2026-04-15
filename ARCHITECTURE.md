@@ -1,7 +1,9 @@
+<!-- markdownlint-disable -->
 <!-- markdownlint-disable MD013 MD041 -->
 +++ContextLock(anchor="SCOS_ARCHITECTURE", refresh_interval=2048)
 
 # 🏗️ SCOS Architecture: The Epistemic Bridge
+> **Architectural Authority:** Refer to the [VULCAN Topological Analysis & Architecture Blueprint](docs/VULCAN_ARCHITECTURAL_BLUEPRINT.md) for strict DDD boundaries, C4 models, and the mandate against the Shared Database Anathema.
 
 > **Framework:** DRP-AI-PERSONA-ENGINEERING-FRAMEWORK-2026
 > **Version:** 1.12.2

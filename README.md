@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 
 +++ContextLock(anchor="SCOS_README", refresh_interval=2048)
 
@@ -105,3 +106,7 @@ SCOS is designed to be the **Architect** for the **Gemini Conductor** ecosystem.
 
 ---
 *Built for the Sovereign Cognitive OS.*
+
+## Documentation
+
+- [VULCAN Topological Analysis & Architecture Blueprint](docs/VULCAN_ARCHITECTURAL_BLUEPRINT.md): Structural foundation, ADRs, and DDD Context Map.
