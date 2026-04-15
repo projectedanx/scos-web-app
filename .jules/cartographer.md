@@ -1,2 +1,4 @@
 Learning: Discovered complex but undocumented Firestore relational schemas nested within `firebase-blueprint.json` and NoSQL collection definitions. Identified the `swarm_queue` implementation acting as a critical trust boundary bridging the React frontend and Python background workers.
 Action: Generated `docs/DATA_MODEL.md` to visually map the undocumented schema topography and message queue event flow using Mermaid `erDiagram` and `sequenceDiagram`.
+Learning: The `swarm/main.py` execution node operates as an offline background worker processing `swarm_queue` tasks from Firestore and implements cryptographic trust validation via ECDSA P-256 before invoking external Gemini LLM APIs.
+Action: Append `C4Container` and `sequenceDiagram` to `ARCHITECTURE.md` to map the `swarm/main.py` execution layer and cryptographic trust boundary.
