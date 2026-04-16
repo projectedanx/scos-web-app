@@ -6,13 +6,6 @@ import { secureJSONParse } from "./utils/json.js";
 import * as fs from 'fs';
 import * as path from 'path';
 
-// --- Native Schema Validator ---
-const SchemaValidator = {
-  parse: (jsonStr: string): any => {
-    return secureJSONParse(jsonStr);
-  }
-};
-
 // --- JSON-RPC 2.0 Types ---
 interface JSONRPCRequest {
   jsonrpc: "2.0";

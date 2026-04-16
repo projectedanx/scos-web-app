@@ -9,3 +9,7 @@
 ## Cortex — Deterministic JSON Plumbing in MCP
 **Learning:** Reimplementing heuristic schema validation mechanisms directly inside specific boundary servers (like `SchemaValidator.parse` in `mcp-server.ts`) breaks the DRY principle, misses the globally enforced prototype pollution checks, and risks downstream runtime crashes.
 **Action:** Always import centralized, robust determinisitic parsers (e.g. `secureJSONParse` from `utils/json.js`) in execution boundaries and rely on their native explicitly enforced falsy and prototype pollution checks.
+
+## Cortex — Dependency Migration
+**Learning:** When Python codebase integrates the `google.genai` SDK natively without corresponding lock file updates, `ModuleNotFoundError` will occur downstream. Replacing `google.generativeai` with `google-genai` resolves this deterministic boundary gap.
+**Action:** Always verify requirements.txt explicitly reflects the structural schema bindings of the core modules utilized.
