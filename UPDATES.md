@@ -101,3 +101,13 @@
 *   **Word Mapper:** Tactical semantic engine using Datamuse/ConceptNet.
 *   **Capsule Lab:** HTML artifact minting for portable context.
 *   **Registry:** Provenance indexing for all vectors.
+
+---
+
+## v1.12.5: Identity Foundry & Epistemic Matrix
+**Focus:** Documentation Rigor and Causal Modeling.
+
+### 📝 Sovereign Agent Manifest: AXIOM v1.0
+*   **Axiom Framework:** Added the definitive technical documentation agent manifest (`AXIOM-v1.0-SOVEREIGN.md`) operating under the `DCCD` (Draft-Conditioned Constrained Decoding) paradigm.
+*   **Anionic Architecture:** Integrated strict negative limits on vague terminology to reduce Interpretive Fracture.
+*   **Symbolic Scar Registry:** Integrated a causal error map (`SSR`) to document failure topologies directly in context.
