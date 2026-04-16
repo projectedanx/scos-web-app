@@ -20,6 +20,7 @@ C4Context
     System(prompt_forge_mcp, "scos-prompt-forge-mcp", "Generates high-fidelity meta-prompts.")
     System(word_mapper_mcp, "scos-word-mapper-mcp", "Performs semantic concept triangulation.")
     System(capsule_compiler_mcp, "scos-capsule-compiler-mcp", "Compiles HTML.")
+    System(contracts_mcp, "scos-contracts-mcp", "Exposes Vault Contracts.")
   }
   System_Ext(gemini_api, "Google Gemini API", "LLM Generation endpoint.")
   System_Ext(concept_api, "ConceptNet / Datamuse", "External knowledge APIs.")
@@ -51,6 +52,10 @@ C4Container
   }
   Container_Boundary(conductor_boundary, "conductor-mcp.ts") {
     Component(export_schema, "export_conductor_schema", "Tool", "Exports.")
+  }
+  Container_Boundary(contracts_boundary, "contracts-mcp.ts") {
+    Component(list_contracts, "list_contracts", "Tool", "Lists all Cognitive Contracts.")
+    Component(get_contract, "get_contract", "Tool", "Retrieves complete Cognitive Contract artifact.")
   }
 ```
 
