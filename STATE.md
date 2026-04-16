@@ -67,3 +67,5 @@ The system is now aligning with the **Context.Locker** vision.
     *   **Export:** JSON exports now strip the `councilLog` to ensure the artifact is pure identity data.
 *   **Cognitive Contracts:** Implemented `ContractBuilderView` to define projects, goals, constraints, and assign Agent swarms.
 *   **Sovereign Co-Mind:** Implemented `CollaboratorView` (Co-Mind), a dedicated workspace where the AI has full visibility into the User's Vault.
+
+*   **Manifest Architecture:** Integrated AXIOM v1.0, the Sovereign Syntactician, setting the new baseline for DCCD-based Agentic Manifests and Semantic Drift reduction (`+++SemanticDriftMonitor`).
