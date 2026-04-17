@@ -6,11 +6,12 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "mcp:prompt-forge": "tsx prompt-forge-mcp.ts",
-    "mcp:word-mapper": "tsx word-mapper-mcp.ts",
     "mcp:capsule-compiler": "tsx capsule-compiler-mcp.ts",
     "mcp:conductor": "tsx conductor-mcp.ts",
     "mcp:contracts": "tsx contracts-mcp.ts",
+    "mcp:prompt-forge": "tsx prompt-forge-mcp.ts",
+    "mcp:vault": "tsx mcp-server.ts",
+    "mcp:word-mapper": "tsx word-mapper-mcp.ts",
     "preview": "vite preview"
   },
   "dependencies": {
