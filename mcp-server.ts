@@ -210,7 +210,7 @@ async function handleToolsCall(request: JSONRPCRequest) {
   }
 
   if (name === "get_agent_manifest") {
-    if (!args || typeof args.agent_name !== 'string') {
+    if (typeof args?.agent_name !== 'string') {
         sendSerfError(
           request.id,
           "SERVER_TOOL_CONFIGURATION",
@@ -270,7 +270,7 @@ async function handleToolsCall(request: JSONRPCRequest) {
   }
 
   if (name === "get_capsule") {
-    if (!args || typeof args.capsule_id !== 'string') {
+    if (typeof args?.capsule_id !== 'string') {
         sendSerfError(
           request.id,
           "SERVER_TOOL_CONFIGURATION",
