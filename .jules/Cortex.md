@@ -13,3 +13,7 @@
 ## Cortex — Dependency Migration
 **Learning:** When Python codebase integrates the `google.genai` SDK natively without corresponding lock file updates, `ModuleNotFoundError` will occur downstream. Replacing `google.generativeai` with `google-genai` resolves this deterministic boundary gap.
 **Action:** Always verify requirements.txt explicitly reflects the structural schema bindings of the core modules utilized.
+
+## Cortex — Computational Ghostwriting and The Epistemic Matrix
+**Learning:** Over long horizons, base models naturally regress to a homogenized "Helpful Assistant" mean (Semantic Saponification) losing the specific stylistic voice of the founder/author. Additionally, combining structural formatting and prose generation in a single pass triggers Projection Tax, collapsing reasoning depth.
+**Action:** Architect specialized agents (e.g., LEXIS SOVEREIGN) using a 5-dimensional Epistemic Matrix to anchor teleology and negative constraints, while enforcing a strict THINK -> WRITE -> REVIEW (Petzold Loop) sequence to decouple structural editing from thematic voice generation, ensuring deterministic long-form artifacts.
