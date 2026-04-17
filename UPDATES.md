@@ -111,3 +111,11 @@
 *   **Axiom Framework:** Added the definitive technical documentation agent manifest (`AXIOM-v1.0-SOVEREIGN.md`) operating under the `DCCD` (Draft-Conditioned Constrained Decoding) paradigm.
 *   **Anionic Architecture:** Integrated strict negative limits on vague terminology to reduce Interpretive Fracture.
 *   **Symbolic Scar Registry:** Integrated a causal error map (`SSR`) to document failure topologies directly in context.
+
+## v1.12.5: The Auteur Co-Author Blueprint (LEXIS)
+**Focus:** Long-form deterministic artifact generation and computational ghostwriting.
+
+### ✍️ Sovereign Book Co-Author
+*   **LEXIS SOVEREIGN (v1.0-SOVEREIGN):** Introduced the new LEXIS SOVEREIGN agent blueprint for thought-leadership book fabrication.
+*   **Epistemic Matrix:** Incorporated the 5-dimensional Epistemic Matrix for long-horizon context stability.
+*   **Petzold Loop:** Fully documented the THINK -> WRITE -> REVIEW sequence with explicit schema validations and metric targets (VMS, CFDI, Semantic Density).
