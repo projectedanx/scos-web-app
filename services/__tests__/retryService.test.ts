@@ -100,3 +100,59 @@ describe('executeWithRetry', () => {
     assert.strictEqual(result, 'fallback_function_value');
   });
 });
+
+  it('calculates backoff delay accurately', async () => {
+    let attempts = 0;
+    const delays: number[] = [];
+    const originalSetTimeout = global.setTimeout;
+
+    // Mock setTimeout to capture delays
+    (global as any).setTimeout = (cb: any, ms: number) => {
+        delays.push(ms);
+        cb();
+    };
+
+    const fn = async () => {
+      attempts++;
+      throw new Error('500 Server Error');
+    };
+
+    await assert.rejects(
+        executeWithRetry(fn, {
+            retries: 2,
+            initialDelay: 50,
+            backoffFactor: 2,
+        })
+    );
+
+    global.setTimeout = originalSetTimeout;
+    assert.deepStrictEqual(delays, [50, 100]);
+  });
+
+  it('exhausts retries and throws generic error when no fallback and no 429', async () => {
+    let attempts = 0;
+    const fn = async () => {
+      attempts++;
+      throw new Error('500 Server Error');
+    };
+
+    await assert.rejects(
+      async () => executeWithRetry(fn, { retries: 1, initialDelay: 1 }),
+      /500 Server Error/
+    );
+    assert.strictEqual(attempts, 2);
+  });
+
+  it('handles non-Error objects being thrown', async () => {
+      let attempts = 0;
+      const fn = async () => {
+          attempts++;
+          throw "String Error 500";
+      };
+
+      await assert.rejects(
+          async () => executeWithRetry(fn, { retries: 1, initialDelay: 1 }),
+          (err: any) => err === "String Error 500"
+      );
+      assert.strictEqual(attempts, 2);
+  });

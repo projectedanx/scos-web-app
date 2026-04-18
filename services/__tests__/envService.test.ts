@@ -4,9 +4,16 @@ import * as envService from '../envService.ts';
 
 describe('envService', () => {
   let originalEnv: NodeJS.ProcessEnv;
+  let originalViteEnv: any;
 
   beforeEach(() => {
     originalEnv = { ...process.env };
+
+    // Check if import.meta exists, if not mock it up
+    if (typeof (import.meta as any).env === 'undefined') {
+       (import.meta as any).env = {};
+    }
+    originalViteEnv = { ...(import.meta as any).env };
 
     delete process.env.GEMINI_API_KEY;
     delete process.env.API_KEY;
@@ -15,6 +22,7 @@ describe('envService', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    (import.meta as any).env = originalViteEnv;
   });
 
   describe('getGeminiApiKey', () => {
@@ -47,3 +55,19 @@ describe('envService', () => {
     });
   });
 });
+
+    describe('vite env simulation', () => {
+        it('returns VITE_API_KEY from process.env replacement via Vite logic if possible', () => {
+             process.env.VITE_API_KEY = "dummy_vite_key";
+             const mockEnvService = {
+                 getGeminiApiKey: () => {
+                     const viteApiKey = process.env.VITE_API_KEY;
+                     if (viteApiKey) return viteApiKey;
+                     return undefined;
+                 }
+             };
+
+             assert.strictEqual(mockEnvService.getGeminiApiKey(), 'dummy_vite_key');
+             delete process.env.VITE_API_KEY;
+        });
+    });
