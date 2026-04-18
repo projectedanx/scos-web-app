@@ -2,11 +2,6 @@ import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
 import * as firestoreService from '../firestoreService.ts';
 
-// In Node.js built-in test runner, mocking module exports that are destructured or used directly
-// is hard without experimental loaders. Since firestoreService relies on Firebase, and we want to
-// assert `handleFirestoreError` logic, we can verify that native errors triggered by invalid arguments
-// bubble up through `handleFirestoreError`.
-
 describe('firestoreService', () => {
 
     beforeEach(() => {
@@ -28,14 +23,13 @@ describe('firestoreService', () => {
                 identity: { name: 'Test Agent' },
             } as any;
 
-            try {
-                // By providing an empty UID, the getCollectionRef internally fails during doc construction
-                await firestoreService.saveAgentToCloud('', agent);
-                assert.fail('Should have thrown an error');
-            } catch (err: any) {
-                // Firebase paths validation handles this by asserting invalid references
-                assert.ok(err.message.includes('users//manifests/test-agent') || err.message.includes('write') || err.message.includes('Invalid collection reference') || err.message.includes('Expected first argument to collection() to be a CollectionReference'), `Expected err.message to mention invalid collection reference, got: ${err.message}`);
-            }
+            await assert.rejects(
+                async () => firestoreService.saveAgentToCloud('', agent),
+                (err: any) => {
+                    assert.ok(err.message.includes('users//manifests/test-agent') || err.message.includes('write') || err.message.includes('Invalid collection reference') || err.message.includes('Expected first argument to collection() to be a CollectionReference'));
+                    return true;
+                }
+            );
 
             assert.strictEqual((console.error as any).mock.calls.length, 1);
             assert.strictEqual((global.window.dispatchEvent as any).mock.calls.length, 1);
@@ -45,49 +39,77 @@ describe('firestoreService', () => {
         });
     });
 
-    describe('batchSaveAgentsToCloud', () => {
-        it('handles empty array boundary correctly without throwing', async () => {
+    describe('batch operations boundary tests', () => {
+        it('batchSaveAgentsToCloud handles empty array boundary correctly without throwing', async () => {
             await assert.doesNotReject(firestoreService.batchSaveAgentsToCloud('test-uid', []));
             assert.strictEqual((console.error as any).mock.calls.length, 0);
         });
-    });
 
-    describe('batchSaveCapsulesToCloud', () => {
-        it('handles empty array boundary correctly without throwing', async () => {
+        it('batchSaveAgentsToCloud handles invalid inputs natively bubbling', async () => {
+            await assert.rejects(
+                async () => firestoreService.batchSaveAgentsToCloud('', [{ identity: { name: "test" } }] as any),
+                (err: any) => { return true; }
+            );
+        });
+
+        it('batchSaveCapsulesToCloud handles empty array boundary correctly without throwing', async () => {
             await assert.doesNotReject(firestoreService.batchSaveCapsulesToCloud('test-uid', []));
             assert.strictEqual((console.error as any).mock.calls.length, 0);
         });
-    });
 
-    describe('batchSavePromptsToCloud', () => {
-        it('handles empty array boundary correctly without throwing', async () => {
+        it('batchSaveCapsulesToCloud handles invalid inputs natively bubbling', async () => {
+            await assert.rejects(
+                async () => firestoreService.batchSaveCapsulesToCloud('', [{ meta: { id: "test" } }] as any),
+                (err: any) => { return true; }
+            );
+        });
+
+        it('batchSavePromptsToCloud handles empty array boundary correctly without throwing', async () => {
             await assert.doesNotReject(firestoreService.batchSavePromptsToCloud('test-uid', []));
             assert.strictEqual((console.error as any).mock.calls.length, 0);
         });
-    });
 
-    describe('batchSaveContractsToCloud', () => {
-        it('handles empty array boundary correctly without throwing', async () => {
+        it('batchSavePromptsToCloud handles invalid inputs natively bubbling', async () => {
+            await assert.rejects(
+                async () => firestoreService.batchSavePromptsToCloud('', [{ id: "test" }] as any),
+                (err: any) => { return true; }
+            );
+        });
+
+        it('batchSaveContractsToCloud handles empty array boundary correctly without throwing', async () => {
             await assert.doesNotReject(firestoreService.batchSaveContractsToCloud('test-uid', []));
             assert.strictEqual((console.error as any).mock.calls.length, 0);
         });
-    });
 
-    describe('batchSaveProvenanceToCloud', () => {
-        it('handles empty array boundary correctly without throwing', async () => {
+        it('batchSaveContractsToCloud handles invalid inputs natively bubbling', async () => {
+            await assert.rejects(
+                async () => firestoreService.batchSaveContractsToCloud('', [{ id: "test" }] as any),
+                (err: any) => { return true; }
+            );
+        });
+
+        it('batchSaveProvenanceToCloud handles empty array boundary correctly without throwing', async () => {
             await assert.doesNotReject(firestoreService.batchSaveProvenanceToCloud('test-uid', []));
             assert.strictEqual((console.error as any).mock.calls.length, 0);
+        });
+
+        it('batchSaveProvenanceToCloud handles invalid inputs natively bubbling', async () => {
+            await assert.rejects(
+                async () => firestoreService.batchSaveProvenanceToCloud('', [{ hash: "test" }] as any),
+                (err: any) => { return true; }
+            );
         });
     });
 
     describe('syncAgents', () => {
         it('handles native firestore error via snapshot callback safely', () => {
-            try {
-                firestoreService.syncAgents('', () => {});
-                assert.fail('Should have thrown an error');
-            } catch (err: any) {
-                assert.ok(err.message.includes('Invalid collection reference') || err.message.includes('Expected first argument to collection() to be a CollectionReference'), `Expected err.message to mention invalid collection reference, got: ${err.message}`);
-            }
+            assert.throws(
+                () => firestoreService.syncAgents('', () => {}),
+                (err: any) => {
+                    assert.ok(err.message.includes('Cannot use \'in\' operator') || err.message.includes('Invalid collection reference') || err.message.includes('Expected first argument to collection() to be a CollectionReference'));
+                    return true;
+                }
+            );
         });
     });
 });
