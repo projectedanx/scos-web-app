@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "dev": "vite",
     "mcp:agent-forge": "tsx agent-forge-mcp.ts",
     "mcp:capsule-compiler": "tsx capsule-compiler-mcp.ts",
