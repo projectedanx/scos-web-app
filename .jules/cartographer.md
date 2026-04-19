@@ -6,3 +6,5 @@ Learning: Discovered `contracts-mcp.ts` executing as an MCP server with `list_co
 Action: Update `docs/MCP_ECOSYSTEM_ATLAS.md` to map the `contracts-mcp.ts` architectural boundary and document its `list_contracts` and `get_contract` tools in the Component map.
 Learning: Discovered `secureProxy` Cloud Function in `functions/src/index.ts` acting as a secure boundary encapsulating the `GEMINI_API_KEY` via Google Cloud Secret Manager.
 Action: Generated `docs/SERVERLESS_TRUST_BOUNDARY.md` mapping the serverless proxy boundary and execution flow using Mermaid `C4Context` and `sequenceDiagram`.
+Learning: The SCOS Multi-Server MCP Ecosystem includes a conceptual 'scos-korsakov-mcp' server boundary that exposes the 'scars.yaml' file (Nitinol Archive / Symbolic Scar Registry), which was missing from the MCP Ecosystem Atlas topography.
+Action: Add 'scos-korsakov-mcp' to the C4Context and C4Container maps in docs/MCP_ECOSYSTEM_ATLAS.md.
