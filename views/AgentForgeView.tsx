@@ -8,6 +8,7 @@ import { ChatInterface } from '../components/ChatInterface';
 import { FabricationStatus, SovereignAgentManifest, ScarEntry, ManifestVersion, ProvenanceIndexEntry, TokenUsage, FabricationMode, CouncilMemberType, CouncilFeedback, CouncilSessionLog } from '../types';
 import { useDialog } from '../contexts/DialogContext';
 import { useToast } from '../contexts/ToastContext';
+import { secureJSONParse } from '../utils/json.js';
 
 interface AgentForgeViewProps {
   commanderKeys: CommanderKeyPair | null;
@@ -43,7 +44,7 @@ export const AgentForgeView: React.FC<AgentForgeViewProps> = ({
   const [versions, setVersions] = useState<ManifestVersion[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? (secureJSONParse(saved) || []) : [];
     } catch (e) {
       console.error("Failed to load forge history", e);
       return [];

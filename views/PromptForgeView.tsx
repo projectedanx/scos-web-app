@@ -5,6 +5,7 @@ import { PromptEngineConfig, PromptEngineType, GeneratedPrompt, SovereignPrompt,
 import { generateMetaPrompt } from '../services/geminiService';
 import { useToast } from '../contexts/ToastContext';
 import { useDialog } from '../contexts/DialogContext';
+import { secureJSONParse } from '../utils/json.js';
 
 // --- Default Sovereign Engines ---
 
@@ -161,9 +162,9 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
     try {
       const saved = localStorage.getItem(ENGINES_WIP_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
+        const parsed = secureJSONParse(saved);
         // Basic validation to ensure schema match or merge with defaults if needed
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (parsed && Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
       return DEFAULT_ENGINES;
     } catch {
@@ -181,7 +182,7 @@ export const PromptForgeView: React.FC<PromptForgeViewProps> = ({ onSavePrompt, 
   const [savedTemplates, setSavedTemplates] = useState<MetaPromptTemplate[]>(() => {
     try {
       const saved = localStorage.getItem(TEMPLATES_KEY);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? (secureJSONParse(saved) || []) : [];
     } catch {
       return [];
     }
