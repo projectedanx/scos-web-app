@@ -58,6 +58,9 @@ C4Container
     Component(list_contracts, "list_contracts", "Tool", "Lists all Cognitive Contracts.")
     Component(get_contract, "get_contract", "Tool", "Retrieves complete Cognitive Contract artifact.")
   }
+  Container_Boundary(korsakov_boundary, "scos-korsakov-mcp") {
+    Component(scars_yaml, "scars.yaml", "Artifact", "Nitinol Archive / Symbolic Scar Registry.")
+  }
 ```
 
 ## 3. The Execution Flow: Prompt Forge Generation
