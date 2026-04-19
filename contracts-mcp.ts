@@ -25,7 +25,7 @@ const getVaultData = (): { contracts: any[] } => {
         return { contracts: [] };
       }
       return {
-        contracts: parsed.contracts || [],
+        contracts: parsed.contracts ?? [],
       };
     } catch (e) {
       process.stderr.write(`Failed to read vault: ${e}\n`);
@@ -74,7 +74,7 @@ server.registerTool(
               fault_category: "GENERAL_PROGRAMMING",
               structured_detail: {
                 violation: "READ_FAILURE",
-                error_message: String(e.message || e),
+                error_message: String(e.message ?? e),
               },
               retry_viable: true,
               suggested_decomposition: null,
@@ -152,7 +152,7 @@ server.registerTool(
               fault_category: "GENERAL_PROGRAMMING",
               structured_detail: {
                 violation: "READ_FAILURE",
-                error_message: String(e.message || e),
+                error_message: String(e.message ?? e),
               },
               retry_viable: false,
               suggested_decomposition: null,
