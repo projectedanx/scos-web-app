@@ -21,7 +21,7 @@ C4Context
     System(word_mapper_mcp, "scos-word-mapper-mcp", "Performs semantic concept triangulation.")
     System(capsule_compiler_mcp, "scos-capsule-compiler-mcp", "Compiles HTML.")
     System(contracts_mcp, "scos-contracts-mcp", "Exposes Vault Contracts.")
-    System(korsakov_mcp, "scos-korsakov-mcp", "Exposes the scars.yaml Symbolic Scar Registry.")
+    System(korsakov_mcp, "scos-korsakov-mcp", "Sovereign Builder & Scar Registry.")
   }
   System_Ext(gemini_api, "Google Gemini API", "LLM Generation endpoint.")
   System_Ext(concept_api, "ConceptNet / Datamuse", "External knowledge APIs.")

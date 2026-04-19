@@ -1,20 +1,13 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { test, describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
 import * as envService from '../envService.ts';
 
-describe('envService', () => {
+// 1. We test the native process.env integration naturally.
+describe('envService (Native process.env paths)', () => {
   let originalEnv: NodeJS.ProcessEnv;
-  let originalViteEnv: any;
 
   beforeEach(() => {
     originalEnv = { ...process.env };
-
-    // Check if import.meta exists, if not mock it up
-    if (typeof (import.meta as any).env === 'undefined') {
-       (import.meta as any).env = {};
-    }
-    originalViteEnv = { ...(import.meta as any).env };
-
     delete process.env.GEMINI_API_KEY;
     delete process.env.API_KEY;
     delete process.env.VITE_FIREBASE_TEST_KEY;
@@ -22,52 +15,56 @@ describe('envService', () => {
 
   afterEach(() => {
     process.env = originalEnv;
-    (import.meta as any).env = originalViteEnv;
   });
 
-  describe('getGeminiApiKey', () => {
-    it('returns GEMINI_API_KEY from process.env if import.meta.env keys are missing', () => {
-      process.env.GEMINI_API_KEY = 'proc-gemini-key';
-      process.env.API_KEY = 'proc-api-key';
+  it('handles missing import.meta gracefully for GEMINI_API_KEY', () => {
+      process.env.GEMINI_API_KEY = 'proc-gemini';
+      assert.strictEqual(envService.getGeminiApiKey(), 'proc-gemini');
+  });
 
-      assert.strictEqual(envService.getGeminiApiKey(), 'proc-gemini-key');
-    });
+  it('handles API_KEY fallback', () => {
+      process.env.API_KEY = 'proc-api';
+      assert.strictEqual(envService.getGeminiApiKey(), 'proc-api');
+  });
 
-    it('returns API_KEY from process.env if GEMINI_API_KEY is missing', () => {
-      process.env.API_KEY = 'proc-api-key';
+  it('handles missing import.meta gracefully for FIREBASE_ENV', () => {
+      process.env.VITE_FIREBASE_TEST_KEY = 'proc-firebase';
+      assert.strictEqual(envService.getFirebaseEnv('TEST_KEY'), 'proc-firebase');
+  });
 
-      assert.strictEqual(envService.getGeminiApiKey(), 'proc-api-key');
-    });
-
-    it('returns undefined if no keys are found', () => {
+  it('handles empty fallback', () => {
       assert.strictEqual(envService.getGeminiApiKey(), undefined);
-    });
-  });
-
-  describe('getFirebaseEnv', () => {
-    it('retrieves VITE_FIREBASE_ variables from process.env if import.meta.env is missing', () => {
-      process.env.VITE_FIREBASE_TEST_KEY = 'proc-test-value';
-      assert.strictEqual(envService.getFirebaseEnv('TEST_KEY'), 'proc-test-value');
-    });
-
-    it('returns empty string if key is not found', () => {
-      assert.strictEqual(envService.getFirebaseEnv('NON_EXISTENT_KEY'), '');
-    });
+      assert.strictEqual(envService.getFirebaseEnv('MISSING'), '');
   });
 });
 
-    describe('vite env simulation', () => {
-        it('returns VITE_API_KEY from process.env replacement via Vite logic if possible', () => {
-             process.env.VITE_API_KEY = "dummy_vite_key";
-             const mockEnvService = {
-                 getGeminiApiKey: () => {
-                     const viteApiKey = process.env.VITE_API_KEY;
-                     if (viteApiKey) return viteApiKey;
-                     return undefined;
-                 }
-             };
+describe('envService (import.meta mocking via globalThis)', () => {
+    let originalEnv: NodeJS.ProcessEnv;
 
-             assert.strictEqual(mockEnvService.getGeminiApiKey(), 'dummy_vite_key');
-             delete process.env.VITE_API_KEY;
-        });
+    beforeEach(() => {
+        originalEnv = { ...process.env };
+        delete process.env.GEMINI_API_KEY;
+        delete process.env.API_KEY;
+        delete process.env.VITE_FIREBASE_TEST_KEY;
     });
+
+    afterEach(() => {
+        process.env = originalEnv;
+        delete (globalThis as any).__MOCK_IMPORT_META_ENV;
+    });
+
+    it('returns VITE_API_KEY from simulated import.meta.env natively', () => {
+        (globalThis as any).__MOCK_IMPORT_META_ENV = { VITE_API_KEY: 'vite-1' };
+        assert.strictEqual(envService.getGeminiApiKey(), 'vite-1');
+    });
+
+    it('returns GEMINI_API_KEY from simulated import.meta.env natively', () => {
+        (globalThis as any).__MOCK_IMPORT_META_ENV = { GEMINI_API_KEY: 'gemini-1' };
+        assert.strictEqual(envService.getGeminiApiKey(), 'gemini-1');
+    });
+
+    it('returns VITE_FIREBASE_ from simulated import.meta.env natively', () => {
+        (globalThis as any).__MOCK_IMPORT_META_ENV = { VITE_FIREBASE_TEST_KEY: 'fb-1' };
+        assert.strictEqual(envService.getFirebaseEnv('TEST_KEY'), 'fb-1');
+    });
+});

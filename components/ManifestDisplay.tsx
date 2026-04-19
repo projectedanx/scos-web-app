@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Shield, Activity, Zap, Lock, Terminal, Box, FileJson, GitBranch, Info, Copy, Check, X, Code, ChevronDown, ChevronRight, Anchor, Hash, Globe, FileText, Filter, Microscope, DollarSign, Layers, Network, BrainCircuit, Target, AlertOctagon, MessageSquareCode } from 'lucide-react';
 import { SovereignAgentManifest, AgentConstraint, AgentTool } from '../types';
 import { ConductorExportModal } from './ConductorExportModal';
+import { secureJSONParse } from '../utils/json.js';
 
 interface ManifestDisplayProps {
   manifest: SovereignAgentManifest;
@@ -786,7 +787,8 @@ export const ManifestDisplay: React.FC<ManifestDisplayProps> = ({ manifest }) =>
                             <pre className="text-xs font-mono text-sovereign/90 whitespace-pre-wrap">
                                 {(() => {
                                     try {
-                                        return JSON.stringify(JSON.parse(selectedTool.inputSchema), null, 2);
+                                        const parsed = secureJSONParse(selectedTool.inputSchema);
+                                        return parsed ? JSON.stringify(parsed, null, 2) : selectedTool.inputSchema;
                                     } catch {
                                         return selectedTool.inputSchema;
                                     }
