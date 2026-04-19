@@ -116,7 +116,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
   const handleSaveDraft = () => {
     if (!inputValue.trim() && !capsule) return;
 
-    const title = capsule?.meta.title || (inputValue.slice(0, 40).replace(/\n/g, ' ') + (inputValue.length > 40 ? '...' : '')) || "Empty Draft";
+    const title = capsule?.meta.title || (inputValue.trim() ? (inputValue.slice(0, 40).replace(/\n/g, ' ') + (inputValue.length > 40 ? '...' : '')) : "Empty Draft");
     
     const newDraft: CapsuleDraft = {
       id: crypto.randomUUID(),
@@ -305,7 +305,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${target.meta.id || 'capsule'}.html`;
+    a.download = `${target.meta.id ?? 'capsule'}.html`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -317,7 +317,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${target.meta.id || 'capsule'}.json`;
+    a.download = `${target.meta.id ?? 'capsule'}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -676,7 +676,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
                               <label className="text-[10px] text-zinc-500 font-mono uppercase mb-1 block">Worldview Ref</label>
                               <input 
                                   type="text" 
-                                  value={capsule.meta.worldview_ref || ''}
+                                  value={capsule.meta.worldview_ref ?? ''}
                                   onChange={(e) => handleMetaUpdate('worldview_ref', e.target.value)}
                                   placeholder="Optional..."
                                   className="w-full bg-zinc-950/50 border border-zinc-800 rounded px-3 py-2 text-xs text-zinc-400 focus:border-indigo-500 outline-none"
@@ -692,7 +692,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
                            </label>
                            <input 
                                type="text" 
-                               value={capsule.meta.research_date || ''}
+                               value={capsule.meta.research_date ?? ''}
                                onChange={(e) => handleMetaUpdate('research_date', e.target.value)}
                                placeholder="e.g. October 2023 or 2024-05-12"
                                className="w-full bg-indigo-950/20 border border-indigo-500/30 rounded px-3 py-2 text-xs text-indigo-200 focus:border-indigo-500 outline-none placeholder:text-indigo-500/50"
