@@ -6,6 +6,7 @@ import { compileCapsuleHtml } from '../services/capsuleCompiler';
 import { ContextCapsule, TokenUsage, ProvenanceIndexEntry } from '../types';
 import { useDialog } from '../contexts/DialogContext';
 import { useToast } from '../contexts/ToastContext';
+import { secureJSONParse } from '../utils/json.js';
 
 interface CapsuleDraft {
   id: string;
@@ -72,7 +73,7 @@ export const CapsuleLabView: React.FC<CapsuleLabViewProps> = ({
   const [drafts, setDrafts] = useState<CapsuleDraft[]>(() => {
     try {
       const saved = localStorage.getItem(DRAFTS_KEY);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? (secureJSONParse(saved) || []) : [];
     } catch {
       return [];
     }
