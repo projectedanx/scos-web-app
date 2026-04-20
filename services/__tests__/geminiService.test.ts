@@ -3,7 +3,7 @@ import assert from 'node:assert';
 
 process.env.VITE_FIREBASE_GEMINI_API_KEY = 'dummy-key';
 
-import { fabricateAgent, researchTopic, analyzeDocument, distillCapsule } from '../geminiService.ts';
+import { fabricateAgent, researchTopic, analyzeDocument, distillCapsule, generateMetaPrompt, createDiscoveryChat } from '../geminiService.ts';
 
 const mockFetchResponse = (jsonPayload: any, ok = true) => {
   return async () => ({
@@ -48,10 +48,8 @@ test('geminiService - validateResearchPlan missing queries array', async (t) => 
 });
 
 test('geminiService - abort controller cancels slow requests', async (t) => {
-  // Override the timeout strictly for this test using a mock to prevent a 15-second hang
   const fastTimeoutMs = 100;
 
-  // We mock fetch to hang indefinitely. It will be aborted when the signal fires.
   t.mock.method(global, 'fetch', async (url: RequestInfo | URL, options?: RequestInit) => {
     return new Promise((resolve, reject) => {
       if (options?.signal) {
@@ -61,11 +59,9 @@ test('geminiService - abort controller cancels slow requests', async (t) => {
     });
   });
 
-  // Since executeWithRetry has fallback for analyzeDocument, it will catch the abort and use fallback
   const result = await analyzeDocument('test');
   assert.strictEqual(result.data.sentiment, 'COMPLEX');
 
-  // fabricateAgent doesn't have a fallback function, it will exhaust retries and throw
   await assert.rejects(
     async () => fabricateAgent('test', false),
     /AbortError|ERR_MAX_RETRIES/
@@ -73,7 +69,7 @@ test('geminiService - abort controller cancels slow requests', async (t) => {
 });
 
 test('geminiService - distillCapsule validates output', async (t) => {
-  const malformedCapsule = { meta: { id: 'test' } }; // missing sections
+  const malformedCapsule = { meta: { id: 'test' } };
 
   t.mock.method(global, 'fetch', mockFetchResponse({
     candidates: [{
@@ -89,7 +85,6 @@ test('geminiService - distillCapsule validates output', async (t) => {
   );
 });
 
-// THE BOUNDARY INTERROGATION: JSON Parser
 test('geminiService - handles null falsy payload bypassing try/catch', async (t) => {
   t.mock.method(global, 'fetch', mockFetchResponse({
     candidates: [{
@@ -119,3 +114,20 @@ test('geminiService - secureJSONParse strips prototype pollution payloads', asyn
   assert.strictEqual(Object.prototype.hasOwnProperty.call(result.data, "__proto__"), false);
 });
 
+test('geminiService - generateMetaPrompt handles null intent securely', async (t) => {
+  t.mock.method(global, 'fetch', mockFetchResponse({
+    candidates: [{
+      content: { parts: [{ text: "Generated Meta Prompt" }] },
+      finishReason: 'STOP'
+    }],
+    usageMetadata: {}
+  }));
+
+  const result = await generateMetaPrompt('', { knowledgeContext: '', metaSystemPrompt: '' } as any);
+  assert.strictEqual(result.data, 'Generated Meta Prompt');
+});
+
+test('geminiService - createDiscoveryChat creates valid chat object', async (t) => {
+    const chat = createDiscoveryChat('context', true);
+    assert.ok(chat);
+});

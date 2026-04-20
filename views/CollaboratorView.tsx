@@ -5,6 +5,7 @@ import { ChatMessage, SovereignAgentManifest, ContextCapsule, SovereignPrompt, T
 import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
 import { useDialog } from '../contexts/DialogContext';
 import { getGeminiApiKey } from '../services/envService';
+import { secureJSONParse } from '../utils/json.js';
 
 interface CollaboratorViewProps {
   agents: SovereignAgentManifest[];
@@ -23,7 +24,7 @@ export const CollaboratorView: React.FC<CollaboratorViewProps> = ({ agents, caps
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? (secureJSONParse(saved) || []) : [];
     } catch {
       return [];
     }

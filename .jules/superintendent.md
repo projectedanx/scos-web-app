@@ -3,3 +3,6 @@ Instability: Vulnerable vite <=6.4.1 (GHSA-p9ff-h696-f583) allowing arbitrary fi
 Instability: Leaky dependency constraint ^ in package.json for vite | Fortification: Hardened package.json to use strict ~ constraints
 Instability: Leaky pipes detected in `swarm/requirements.txt` with unpinned dependencies (`firebase-admin`, `google-generativeai`, `pydantic`, `ecdsa`). | Fortification: Pinned dependencies using strict minor/patch (`~=`) constraints.
 - **Instability**: The `package.json` scripts block was poorly formatted, un-alphabetized, and missing an essential execution entry (`mcp:vault`) for the root `mcp-server.ts` manifest script. | **Fortification**: Alphabetized the script entries in `package.json` and pinned `"mcp:vault": "tsx mcp-server.ts"` to ensure explicit script registration and eliminate the hallway trash syndrome.
+- **Instability**: Build pipeline lacked pre-compilation type resiliency. | **Fortification**: Applied Track G Fallback by patching package.json build script with tsc --noEmit.
+- **Instability**: No wildcard versions or unpinned dependencies detected.
+- **Fortification**: Executed Track G Fallback: applied localized resiliency patch by adding `"engines": {"node": ">=18"}` to `package.json` to enforce consistent environment and prevent drift.

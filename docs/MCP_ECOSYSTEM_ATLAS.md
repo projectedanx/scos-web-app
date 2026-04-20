@@ -21,6 +21,7 @@ C4Context
     System(word_mapper_mcp, "scos-word-mapper-mcp", "Performs semantic concept triangulation.")
     System(capsule_compiler_mcp, "scos-capsule-compiler-mcp", "Compiles HTML.")
     System(contracts_mcp, "scos-contracts-mcp", "Exposes Vault Contracts.")
+    System(korsakov_mcp, "scos-korsakov-mcp", "Sovereign Builder & Scar Registry.")
   }
   System_Ext(gemini_api, "Google Gemini API", "LLM Generation endpoint.")
   System_Ext(concept_api, "ConceptNet / Datamuse", "External knowledge APIs.")
@@ -56,6 +57,9 @@ C4Container
   Container_Boundary(contracts_boundary, "contracts-mcp.ts") {
     Component(list_contracts, "list_contracts", "Tool", "Lists all Cognitive Contracts.")
     Component(get_contract, "get_contract", "Tool", "Retrieves complete Cognitive Contract artifact.")
+  }
+  Container_Boundary(korsakov_boundary, "scos-korsakov-mcp") {
+    Component(scars_yaml, "scars.yaml", "Artifact", "Nitinol Archive / Symbolic Scar Registry.")
   }
 ```
 

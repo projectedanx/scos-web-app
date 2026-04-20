@@ -4,3 +4,7 @@ Learning: The `swarm/main.py` execution node operates as an offline background w
 Action: Append `C4Container` and `sequenceDiagram` to `ARCHITECTURE.md` to map the `swarm/main.py` execution layer and cryptographic trust boundary.
 Learning: Discovered `contracts-mcp.ts` executing as an MCP server with `list_contracts` and `get_contract` tools, integrating with the JSON-RPC stdio boundary but missing from the MCP System Atlas.
 Action: Update `docs/MCP_ECOSYSTEM_ATLAS.md` to map the `contracts-mcp.ts` architectural boundary and document its `list_contracts` and `get_contract` tools in the Component map.
+Learning: Discovered `secureProxy` Cloud Function in `functions/src/index.ts` acting as a secure boundary encapsulating the `GEMINI_API_KEY` via Google Cloud Secret Manager.
+Action: Generated `docs/SERVERLESS_TRUST_BOUNDARY.md` mapping the serverless proxy boundary and execution flow using Mermaid `C4Context` and `sequenceDiagram`.
+Learning: The SCOS Multi-Server MCP Ecosystem includes a conceptual 'scos-korsakov-mcp' server boundary that exposes the 'scars.yaml' file (Nitinol Archive / Symbolic Scar Registry), which was missing from the MCP Ecosystem Atlas topography.
+Action: Add 'scos-korsakov-mcp' to the C4Context and C4Container maps in docs/MCP_ECOSYSTEM_ATLAS.md.

@@ -17,3 +17,7 @@
 ## Cortex — Computational Ghostwriting and The Epistemic Matrix
 **Learning:** Over long horizons, base models naturally regress to a homogenized "Helpful Assistant" mean (Semantic Saponification) losing the specific stylistic voice of the founder/author. Additionally, combining structural formatting and prose generation in a single pass triggers Projection Tax, collapsing reasoning depth.
 **Action:** Architect specialized agents (e.g., LEXIS SOVEREIGN) using a 5-dimensional Epistemic Matrix to anchor teleology and negative constraints, while enforcing a strict THINK -> WRITE -> REVIEW (Petzold Loop) sequence to decouple structural editing from thematic voice generation, ensuring deterministic long-form artifacts.
+
+## Cortex — Category Fallback Compliance
+**Learning:** During the DISCOVER phase, structural enforcement mechanisms (like `secureJSONParse`), deterministic boundary wrappers (`invokeWithTimeout`), and modern schema-aware SDKs (`google.genai` in Python and JS) were already fully integrated across execution boundaries, resulting in zero legacy API targets to upgrade.
+**Action:** When the system has achieved the desired level of deterministic plumbing and no targets are found via the Stop-on-First cadence, execute a Category Fallback to a Compliance PR, closing the scheduled loop gracefully to maintain system heartbeat without introducing unnecessary changes.
