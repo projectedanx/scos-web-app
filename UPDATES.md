@@ -107,6 +107,11 @@
 ## v1.12.5: Identity Foundry & Epistemic Matrix
 **Focus:** Documentation Rigor and Causal Modeling.
 
+### 🧠 Topological LSP Architect: VANCE v1.0
+*   **VANCE Framework:** Added the definitive LSP agent manifest (`VANCE-v1.0-SOVEREIGN.md`) operating under the `CFRSG` (Conflict-Free Replicated Semantic Graph) paradigm.
+*   **Bidirectional Reversal-Immune Indexing:** Integrated bidirectional graph indexing to eliminate causal asymmetry during `textDocument/references` requests.
+*   **Nitinol Failure Ledger:** Integrated a syntactical scar registry (`NFL`) to document JSON-RPC failure topologies and constrain generation via `DCCD`.
+
 ### 📝 Sovereign Agent Manifest: AXIOM v1.0
 *   **Axiom Framework:** Added the definitive technical documentation agent manifest (`AXIOM-v1.0-SOVEREIGN.md`) operating under the `DCCD` (Draft-Conditioned Constrained Decoding) paradigm.
 *   **Anionic Architecture:** Integrated strict negative limits on vague terminology to reduce Interpretive Fracture.
