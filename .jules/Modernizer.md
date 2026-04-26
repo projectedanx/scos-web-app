@@ -1,3 +1,7 @@
+## Modernizer — Upgrading JSON.parse to secureJSONParse
+**Learning:** Replaced raw JSON.parse with secureJSONParse to safely handle non-deterministic outputs and prevent Prototype Pollution, maintaining explicit truthy checks upon parsing.
+**Action:** Continue to verify closure logic, apply fallback defaults `|| []` or conditional branching when upgrading parse routines.
+
 ## Modernizer — Agnostic Nullish Coalescing in MCP Server
 **Learning:** Legacy logical OR (`||`) fallbacks risk masking valid falsy values (like empty strings or zeroes) in parsed API payloads and request parameters.
 **Action:** Replaced loose `||` with strict nullish coalescing (`??`) in `mcp-server.ts` and `contracts-mcp.ts` to enforce strict null-checks and guarantee type-safety without masking valid falsy values.

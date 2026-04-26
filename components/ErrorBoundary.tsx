@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { secureJSONParse } from '../utils/json';
 
 interface Props {
   children?: ReactNode;
@@ -59,8 +60,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
       try {
         if (this.state.error?.message) {
-          const parsed = JSON.parse(this.state.error.message);
-          if (parsed.error && parsed.operationType) {
+          const parsed = secureJSONParse(this.state.error.message);
+          if (parsed && parsed.error && parsed.operationType) {
             isFirestoreError = true;
             errorMessage = `Firestore Permission Denied during ${parsed.operationType} operation on path: ${parsed.path || 'unknown'}. Please check your Firebase Security Rules.`;
           }
