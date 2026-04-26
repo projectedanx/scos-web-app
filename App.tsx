@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Shield, HardDrive, Key, ChevronLeft, Trash2, Download, Cloud, LogOut, WifiOff, FolderInput, FileUp, Loader2 } from 'lucide-react';
 import { generateCommanderKeys, CommanderKeyPair } from './services/cryptoService';
+import { secureJSONParse } from './utils/json';
 import { SovereignAgentManifest, SovereignVault, ProvenanceIndexEntry, ViewMode, ScarEntry, SovereignPrompt, ContextCapsule, CognitiveContract } from './types';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AgentForgeView } from './views/AgentForgeView';
@@ -155,8 +156,10 @@ function App() {
     const initKeys = async () => {
       const stored = localStorage.getItem('sovereign_cmdr_keys');
       if (stored) {
-        const parsedKeys = JSON.parse(stored);
-        setCommanderKeys(parsedKeys);
+        const parsedKeys = secureJSONParse(stored);
+        if (parsedKeys) {
+          setCommanderKeys(parsedKeys);
+        }
         if (user) syncSovereignProfile(parsedKeys);
       } else {
         const keys = await generateCommanderKeys();
@@ -173,10 +176,14 @@ function App() {
     if (!user) {
       // Fallback to LocalStorage if offline/logged out
       try {
-        setVault(JSON.parse(localStorage.getItem('sovereign_vault_agents') ?? '[]'));
-        setCapsules(JSON.parse(localStorage.getItem('sovereign_capsules_db') ?? '[]'));
-        setPrompts(JSON.parse(localStorage.getItem('sovereign_prompts_db') ?? '[]'));
-        setContracts(JSON.parse(localStorage.getItem('sovereign_contracts_db') ?? '[]'));
+        const parsedVault = secureJSONParse(localStorage.getItem('sovereign_vault_agents') ?? '[]');
+        setVault(parsedVault || []);
+        const parsedCapsules = secureJSONParse(localStorage.getItem('sovereign_capsules_db') ?? '[]');
+        setCapsules(parsedCapsules || []);
+        const parsedPrompts = secureJSONParse(localStorage.getItem('sovereign_prompts_db') ?? '[]');
+        setPrompts(parsedPrompts || []);
+        const parsedContracts = secureJSONParse(localStorage.getItem('sovereign_contracts_db') ?? '[]');
+        setContracts(parsedContracts || []);
         // We don't typically persist provenance index in LS for offline mode due to size, but could if needed.
       } catch (e) {
         console.warn("Failed to load local storage fallback", e);
@@ -319,9 +326,9 @@ function App() {
 
               try {
                  const text = await file.text();
-                 const json = JSON.parse(text);
+                 const json = secureJSONParse(text);
 
-                 if (json.identity || json.name || json.tools) {
+                 if (json && (json.identity || json.name || json.tools)) {
                     return migrateLegacyAgent(json, file.name);
                  }
               } catch (e) {
@@ -400,8 +407,8 @@ function App() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        const data = JSON.parse(event.target?.result as string);
-        if (!data.metadata || !Array.isArray(data.agents)) throw new Error("Invalid Vault");
+        const data = secureJSONParse(event.target?.result as string);
+        if (!data || !data.metadata || !Array.isArray(data.agents)) throw new Error("Invalid Vault");
         
         const operations: Promise<void>[] = [];
 
