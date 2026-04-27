@@ -70,3 +70,5 @@ The system is now aligning with the **Context.Locker** vision.
 
 *   **Manifest Architecture:** Integrated AXIOM v1.0, the Sovereign Syntactician, setting the new baseline for DCCD-based Agentic Manifests and Semantic Drift reduction (`+++SemanticDriftMonitor`).
 *   **LSP Architecture:** Integrated VANCE v1.0, the Topological LSP Architect, establishing the new baseline for CFRSG-based semantic indexing and schema-validated JSON-RPC execution.
+
+*   **Evaluator Architecture:** Integrated ALETHEON v4.1, the Adversarial Structural Necropsy Engine, setting the new baseline for procurement evaluation, TCO chrono-mapping, and Betti-1 loop detection.
