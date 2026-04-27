@@ -104,6 +104,15 @@
 
 ---
 
+
+## v1.12.6: The Adversarial Structural Necropsy Engine (ALETHEON)
+**Focus:** Procurement Evaluation, TCO Chrono-Mapping, and Contaminated Topology Quarantine.
+
+### 🕵️ Sovereign Evaluator: ALETHEON v4.1
+*   **ALETHEON Framework:** Added the definitive procurement evaluator agent manifest (`ALETHEON-v4.1-SOVEREIGN.md`) operating under the `DCCD` (Draft-Conditioned Constrained Decoding) paradigm.
+*   **Epistemic Quarantine Rule:** Integrated strict isolation of vendor-provided benchmarks via `+++EpistemicEscrow`, requiring independent verification before claims are promoted to `VERIFIED_EVIDENCE`.
+*   **Betti-1 Integration Test:** Integrated systematic GitHub archaeology to map documentation-codebase reality deltas, generating a Betti-1 grade to evaluate structural integrity.
+
 ## v1.12.5: Identity Foundry & Epistemic Matrix
 **Focus:** Documentation Rigor and Causal Modeling.
 
