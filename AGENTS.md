@@ -541,8 +541,8 @@ const agentConfig = {
 const agent = new AssistantAgent(agentConfig);
 
 // API endpoint
-export async function POST(req) {
-  const { query, user_id, collection: collectionName } = req.body;
+export async function POST(req: Request) {
+  const { query, user_id, collection: collectionName } = await req.json();
 
   const result = await agent.run({
     task: `Answer this query: ${query}`,
