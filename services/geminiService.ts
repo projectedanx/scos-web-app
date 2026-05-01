@@ -541,9 +541,9 @@ export interface GenAIResult<T> {
 }
 
 const getUsage = (resp: any): TokenUsage => ({
-  promptTokens: resp.usageMetadata?.promptTokenCount || 0,
-  completionTokens: resp.usageMetadata?.candidatesTokenCount || 0,
-  totalTokens: resp.usageMetadata?.totalTokenCount || 0
+  promptTokens: resp.usageMetadata?.promptTokenCount ?? 0,
+  completionTokens: resp.usageMetadata?.candidatesTokenCount ?? 0,
+  totalTokens: resp.usageMetadata?.totalTokenCount ?? 0
 });
 
 const sumUsage = (u1: TokenUsage, u2: TokenUsage): TokenUsage => ({
