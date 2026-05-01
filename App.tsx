@@ -15,6 +15,7 @@ import { PromptForgeView } from './views/PromptForgeView';
 import { PromptLibraryView } from './views/PromptLibraryView'; 
 import { CollaboratorView } from './views/CollaboratorView';
 import { ContractBuilderView } from './views/ContractBuilderView';
+import { WorldviewView } from './views/WorldviewView';
 import { PublicGatewayView } from './views/PublicGatewayView'; 
 import { useAuth } from './contexts/AuthContext';
 import { useToast } from './contexts/ToastContext';
@@ -765,6 +766,10 @@ function App() {
                onDeleteContract={handleDeleteContract}
                onRegisterProvenance={handleRegisterProvenance}
             />
+         )}
+
+         {viewMode === ViewMode.WORLDVIEW && (
+            <WorldviewView vault={{ metadata: { commanderName: 'Local', designation: 'Commander', lastSync: Date.now(), version: '1.0' }, agents: vault, capsules, contracts, provenanceIndex }} />
          )}
 
          {viewMode === ViewMode.DASHBOARD && (

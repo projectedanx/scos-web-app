@@ -94,7 +94,7 @@
 **1. Public Landing Pages**
 
 - [ ] **Random Loading:** Landing page that surfaces random "Public" Capsules from the ecosystem.
-- [ ] **Sovereign World Views:** A "About" section visualizing the user's ontological map.
+- [x] **Sovereign World Views:** A \"About\" section visualizing the user's ontological map (via Justified Uncertainty Report).
 
 **2. Connector Labs**
 
