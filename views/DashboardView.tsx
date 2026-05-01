@@ -17,7 +17,7 @@ import {
   HardDrive,
   Coins,
   FileLock
-} from 'lucide-react';
+, Eye} from 'lucide-react';
 import { SovereignAgentManifest, ProvenanceIndexEntry, ViewMode } from '../types';
 import { CommanderKeyPair } from '../services/cryptoService';
 
@@ -267,6 +267,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                        </div>
                     </div>
                     <HardDrive className="w-4 h-4 text-zinc-600 group-hover:text-blue-500" />
+                 </button>
+                               <button
+                   onClick={() => onNavigate(ViewMode.WORLDVIEW)}
+                   className="w-full flex items-center justify-between p-3 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-indigo-500/50 rounded group transition-all"
+                 >
+                    <div className="flex items-center gap-3">
+                       <div className="p-2 bg-indigo-500/10 rounded text-indigo-500 group-hover:scale-110 transition-transform">
+                          <Network className="w-4 h-4" />
+                       </div>
+                       <div className="text-left">
+                          <div className="text-sm font-bold text-zinc-200 group-hover:text-white">Synthesize Worldview</div>
+                          <div className="text-[10px] text-zinc-500 font-mono">Justified Uncertainty Report</div>
+                       </div>
+                    </div>
+                    <Eye className="w-4 h-4 text-zinc-600 group-hover:text-indigo-500" />
                  </button>
               </div>
            </div>
