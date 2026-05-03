@@ -107,6 +107,19 @@ SCOS is designed to be the **Architect** for the **Gemini Conductor** ecosystem.
 ---
 *Built for the Sovereign Cognitive OS.*
 
+
+## 🌌 Project Epistemic Symbiosis: Human-AI Causal Emergence
+
+As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we have integrated the **PROJECT_EPISTEMIC_SYMBIOSIS** framework. This introduces the inversion strategy designed to establish a causal chain of control over generative processes, maximizing the unique value of both Human and AI.
+
+### Key Innovations:
+1. **The Strategy of Inversion:** The human acts solely as the *Deterministic Architect*, providing structured boundaries, goals, and constraints. The AI acts as the *Stochastic Explorer & Synthesizer*, operating within those boundaries.
+2. **Architectural Grounding Agent:** Ingests human intent and translates it into explicit constraints and goals.
+3. **Combinatorial Synthesis Engine:** Acts as a rapid prototyper generating solutions within bounded constraints.
+4. **Provenance & Drift Watchdog:** Dynamically de-weights outputs that violate anti-goals or drift from the source intent.
+
+*For complete implementation details, strategic breakdowns, and execution plans, refer to the `PROJECT_EPISTEMIC_SYMBIOSIS` directory.*
+
 ## Documentation
 
 - [VULCAN Topological Analysis & Architecture Blueprint](docs/VULCAN_ARCHITECTURAL_BLUEPRINT.md): Structural foundation, ADRs, and DDD Context Map.
