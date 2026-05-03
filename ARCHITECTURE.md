@@ -655,3 +655,34 @@ sequenceDiagram
     Core-->>Listener: return {status: COMPLETED, result}
     Listener->>Firestore: update(status: COMPLETED)
 ```
+
+
+## 17. Epistemic Symbiosis Workflow
+
+The `PROJECT_EPISTEMIC_SYMBIOSIS` framework implements the "Strategy of Inversion," establishing a causal chain of control over generative processes.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Human as Deterministic Architect
+    participant AGA as Architectural Grounding Agent
+    participant CSE as Combinatorial Synthesis Engine
+    participant PDW as Provenance & Drift Watchdog
+
+    Human->>AGA: Provide Teleological Intent & Axiomatic Grounding
+    AGA->>AGA: Translate to PD&T constraints & Epistemic Matrix
+    AGA->>CSE: Pass Bounded Constraints
+
+    loop Exploration Phase
+        CSE->>CSE: Generate High-Velocity Combinatorial Solutions
+        CSE->>PDW: Submit Draft Solution
+        PDW->>PDW: Evaluate against Anti-Goals ($G^-$) and Drift metrics
+        alt Solution Valid
+            PDW-->>CSE: Approve (High Provenance Score)
+        else Solution Invalid
+            PDW-->>CSE: Reject (De-weight / Quarantine)
+        end
+    end
+
+    CSE-->>Human: Present Synthesized, Bounded Solutions
+```
