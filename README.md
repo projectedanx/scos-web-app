@@ -110,3 +110,15 @@ SCOS is designed to be the **Architect** for the **Gemini Conductor** ecosystem.
 ## Documentation
 
 - [VULCAN Topological Analysis & Architecture Blueprint](docs/VULCAN_ARCHITECTURAL_BLUEPRINT.md): Structural foundation, ADRs, and DDD Context Map.
+
+## 🌌 Project Aurelius: Causal Cognitive Engine Integration
+
+As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we have integrated the **META_ARCHITECT_INTELLIGENCE_PROJECT_AURELIUS** framework. This introduces the "Unified Meta-Prompting API" designed to establish a causal chain of control over generative processes.
+
+### Key Innovations:
+1. **Geometric Cognition (Phase 1):** Moves beyond associative text prompts to structural PD&T (Prompt Dimensioning & Tolerancing) directives. SCOS Agents can now define and navigate "Non-Euclidean Latent Spaces" and modulate "Phantom Dimensions" to enforce geometric adherence in generated outputs.
+2. **Plausibility Oracle (Phase 2):** Introduces a dynamic adversarial feedback loop. A real-time physics and differentiable ray-tracing simulation acts as the Oracle, providing quantitative validation (UIQI, PSNR) against generated architectures, forcing agentic auto-optimization toward physical reality.
+3. **Cross-Modal Perceptual Fusion (Phase 3):** Bridges the gap between abstract generation and physical hardware by explicitly targeting multispectral imaging and Quantum Dot Technology rendering parameters, ensuring absolute fidelity at the display level.
+4. **Dynamic Provenance Tracing:** A rigorous, real-time tracking engine calculating the mathematical influence of source data, allowing the system to enact "Attribution Amplification" and combat "Semantic Drift" securely within the local client.
+
+*For complete implementation details, strategic breakdowns, and prototype APIs, refer to the `META_ARCHITECT_INTELLIGENCE_PROJECT_AURELIUS` directory.*
