@@ -135,3 +135,21 @@ As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we hav
 4. **Dynamic Provenance Tracing:** A rigorous, real-time tracking engine calculating the mathematical influence of source data, allowing the system to enact "Attribution Amplification" and combat "Semantic Drift" securely within the local client.
 
 *For complete implementation details, strategic breakdowns, and prototype APIs, refer to the `META_ARCHITECT_INTELLIGENCE_PROJECT_AURELIUS` directory.*
+
+## 🌌 Project Epistemic Inversion: Human-AI Symbiosis
+
+As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we have integrated the **PROJECT_EPISTEMIC_INVERSION** strategy. This implements a strict division of cognitive labor to achieve causal emergence, capitalizing on what neither human nor AI can provide alone.
+
+### The Value Proposition
+* **Human Unique Value:** Teleological Intent, Axiomatic Grounding, and Paraconsistent Tension Tolerance. Humans define the absolute invariants ($G$) and the immunological boundaries ($G^-$).
+* **AI Unique Value:** High-Velocity Combinatorics, Non-Euclidean Latent Navigation, and Dynamic Provenance Tracing. AI enforces structural rules across vast token horizons.
+
+### The Strategy of Inversion
+Instead of relying on ambiguous "Vibe Coding," we invert the dynamic:
+* The **Human** acts strictly as the *Deterministic Architect*, providing structured boundaries, goals, and constraints.
+* The **AI** acts as the *Stochastic Explorer & Synthesizer*, operating strictly within those boundaries.
+
+### Emergent Agentic Features
+1. **Architectural Grounding Agent:** Translates human intent into explicit, machine-readable constraints (DCCD schemas).
+2. **Combinatorial Synthesis Engine:** Acts as a rapid prototyper generating solutions within the bounded possibility space.
+3. **Provenance & Drift Watchdog:** Monitors the SSI (Semantic Saponification Index) and CFDI in real-time, dynamically halting or reverting outputs that violate anti-goals or drift from the source intent.

@@ -686,3 +686,18 @@ sequenceDiagram
 
     CSE-->>Human: Present Synthesized, Bounded Solutions
 ```
+
+## 🌌 Epistemic Inversion & Symbiotic Agents
+
+The architecture has been expanded to support the **Epistemic Inversion Strategy**, moving away from standard prompt engineering toward a symbiotic causal chain of control.
+
+### The Emergent Triad
+1. **Architectural Grounding Agent:**
+   - **Role:** The Anchor.
+   - **Function:** Ingests human teleological intent and translates it into strict EPISTEMIC_MATRIX vectors and DCCD schemas. It ensures the AI operates within a defined semantic geometry, preventing initial misalignment.
+2. **Combinatorial Synthesis Engine:**
+   - **Role:** The Explorer.
+   - **Function:** An autonomous sub-agent that takes the bounded constraints and utilizes a Graph-of-Thoughts approach to generate a wide array of potential solutions, testing them against predefined invariants.
+3. **Provenance & Drift Watchdog:**
+   - **Role:** The Immune System.
+   - **Function:** Actively monitors the Generation process. It tracks the Semantic Saponification Index (SSI) and Confidence-Fidelity Divergence Index (CFDI). If an output violates the $G^-$ (Anti-Goals) or drifts from the original intent, it triggers an `EpistemicEscrow` halt and forces a context refresh.
