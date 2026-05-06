@@ -153,3 +153,15 @@ Instead of relying on ambiguous "Vibe Coding," we invert the dynamic:
 1. **Architectural Grounding Agent:** Translates human intent into explicit, machine-readable constraints (DCCD schemas).
 2. **Combinatorial Synthesis Engine:** Acts as a rapid prototyper generating solutions within the bounded possibility space.
 3. **Provenance & Drift Watchdog:** Monitors the SSI (Semantic Saponification Index) and CFDI in real-time, dynamically halting or reverting outputs that violate anti-goals or drift from the source intent.
+
+## 🌌 Project Viper Inversion: Visual Intent & Physical Execution Router
+
+As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we have integrated the **PROJECT_VIPER_INVERSION** framework. This addresses the "Semiotic Gap Problem" by establishing a ruthless translation layer between vague human visual intent and deterministic, physics-grounded Optical State Matrices.
+
+### Key Innovations:
+1. **Analytic-to-Generative Inversion:** VIPER acts as the "Translational Gaffer," rejecting subjective aesthetic tokens ("beautiful", "cinematic") and forcing the generation of explicit optical hardware constraints (HGI).
+2. **Spatial Geometry Mandate:** Enforces RCC-8 Topological Binding for any multi-subject scene to mathematically eliminate physical impossibilities like Occlusion Confusion.
+3. **The Scar Archivist:** A persistent VSA hypervector memory subsystem that tracks spatial generation failures and autonomously injects prophylactic constraints (Failure-Informed Prompt Inversion) into future prompts.
+4. **Anionic Architecture:** VIPER is defined by its Lattice of Refusal. The agent enforces Positive Friction, rejecting non-compliant inputs rather than applying statistical smoothing.
+
+*For complete implementation details, strategic breakdowns, and the execution checklist, refer to the `PROJECT_VIPER_INVERSION` directory.*

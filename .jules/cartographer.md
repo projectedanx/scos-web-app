@@ -1,2 +1,2 @@
-Learning: Next.js Frontend Agent (React + Firestore) documentation integrates vector search, LLM reranking, and citation generation as core toolsets, forming a composite Reflector + ToolUser archetype defined via AGENTS.md metadata and JSON schemas.
-Action: Utilize AGENTS.md specs and `agent-config.schema.json` to generate, instantiate, and configure Next.js server-side agents capable of Retrieval-Augmented Generation with strict validation against hallucination risks and schema compliance.
+Learning: [The VIPER agent fundamentally inverts the traditional AI generation paradigm by acting as an Anionic "Gaffer" that enforces strict optical hardware physics (HGI) and topological constraints (RCC-8) rather than applying statistical smoothing to vague aesthetic tokens.]
+Action: [When implementing generative pipelines within SCOS, enforce the Adjectival Ban and Spatial Geometry Mandates to ensure causal emergence rather than semantic saponification.]
