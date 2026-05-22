@@ -3,7 +3,12 @@
 
 # ⚡ System Updates Log
 
-## v1.12.8: The Epistemic Symbiosis Framework (Current)
+## v1.13.0: RAG Agent Endpoint Integration (Current)
+- **Added:** `RagAgentView` interface to interact with the `nextjs-frontend-rag-agent` blueprint.
+- **Added:** Real-time retrieval telemetry, including vector search MS, re-ranking time MS, and total latency.
+- **Added:** Citation mapping and confidence scoring UI for verifiable generation.
+
+## v1.12.8: The Epistemic Symbiosis Framework
 **Focus:** Human-AI Value Partitioning and the Strategy of Inversion.
 
 ### 🧠 Epistemic Symbiosis

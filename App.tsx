@@ -9,6 +9,7 @@ import { AgentForgeView } from './views/AgentForgeView';
 import { CapsuleLabView } from './views/CapsuleLabView';
 import { RegistryView } from './views/RegistryView';
 import { AgentLibraryView } from './views/AgentLibraryView';
+import { RagAgentView } from './views/RagAgentView';
 import { WordMapperView, WordMapperState } from './views/WordMapperView';
 import { DashboardView } from './views/DashboardView';
 import { PromptForgeView } from './views/PromptForgeView';
@@ -792,6 +793,10 @@ function App() {
                onSelectAgent={handleSelectAgent} 
                onMapAgent={handleMapAgent}
             />
+         )}
+
+         {viewMode === ViewMode.RAG_AGENT && (
+            <RagAgentView />
          )}
       </div>
     </div>

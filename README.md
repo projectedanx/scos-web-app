@@ -21,6 +21,7 @@ By adopting the **DRP-2026 Framework**, we move beyond superficial "masks" (pers
 3.  **The Prompt Library:** A sovereign registry for saving, organizing, and linking prompts to specific Agents in your Vault.
 4.  **The Capsule Lab:** Distills unstructured research into **Context Capsules**—immutable, portable knowledge artifacts (JSON + HTML) used to ground agents.
 5.  **The Word Mapper:** A **Tactical Semantic Engine** that triangulates concepts to generate Worldview Ontologies and Anti-Pattern arrays.
+6.  **The RAG Agent Endpoint:** A dedicated interface for the `nextjs-frontend-rag-agent`, featuring vector-based retrieval, LLM re-ranking, and grounded generation with inline citations.
 
 ## 🛡️ Core Architecture
 
