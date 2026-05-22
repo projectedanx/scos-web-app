@@ -138,6 +138,24 @@ analogical reasoning across orthogonal semantic fields with JSD < 0.20 post-bind
 
 ---
 
+---
+
+### PAT-011 · Betti-1 Loop Detection
+
+**Type**: Dependency Topology | **AT Score**: 0.94
+**Definition**: Time to detect circular import cycle in module graph (ms).
+**Mechanism**: Applies to static imports only; dynamic require() calls require runtime tracing.
+**Threshold**: < 200ms for graphs up to 100k nodes via DFS with visited-set.
+
+---
+
+### PAT-012 · Nitinol Failure Ledger Immunity
+
+**Type**: Structural Immunity | **AT Score**: 0.93
+**Definition**: A syntactical scar registry that encodes past JSON-RPC malformation events as hard negative training constraints.
+**Mechanism**: Enforces schema validity via Draft-Conditioned Constrained Decoder (DCCD) at the token generation boundary, preventing structurally malformed output.
+**PDL Activators**: `+++DCCDSchemaGuard(schema="LSP_3.17", enforcement="draft_conditioned")`
+
 ## SECTION II — PDL v1.0 DECORATOR REGISTRY (Cognitive Bytecode Functions)
 
 | Decorator | Layer | Primary Remediation | Key Parameter |
