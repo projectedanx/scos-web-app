@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Terminal, Database, HardDrive, LayoutGrid, Network, Bot, GitGraph, Sparkles, BookTemplate, MessageSquareCode, Briefcase } from 'lucide-react';
+import { Terminal, Database, HardDrive, LayoutGrid, Network, Bot, GitGraph, Sparkles, BookTemplate, MessageSquareCode, Briefcase, Search } from 'lucide-react';
 import { ViewMode } from '../../types';
 
 interface SidebarProps {
@@ -52,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentMode, onSwitch, onToggl
           <p className="text-[10px] text-zinc-600 font-mono uppercase mb-3 pl-2">Operations</p>
           <NavItem mode={ViewMode.DASHBOARD} icon={LayoutGrid} label="Dashboard" />
           <NavItem mode={ViewMode.COLLABORATOR} icon={MessageSquareCode} label="Co-Mind" />
+          <NavItem mode={ViewMode.RAG_AGENT} icon={Search} label="RAG Endpoint" />
           <NavItem mode={ViewMode.CONTRACTS} icon={Briefcase} label="Contracts" />
           <div className="my-2 border-t border-zinc-900/50"></div>
           <NavItem mode={ViewMode.PROMPT_FORGE} icon={Sparkles} label="Prompt Forge" />

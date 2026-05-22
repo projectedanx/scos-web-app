@@ -28,7 +28,8 @@ export enum ViewMode {
   PROMPT_FORGE = 'PROMPT_FORGE',
   PROMPT_LIBRARY = 'PROMPT_LIBRARY',
   CONTRACTS = 'CONTRACTS',
-  WORLDVIEW = 'WORLDVIEW'
+  WORLDVIEW = 'WORLDVIEW',
+  RAG_AGENT = 'RAG_AGENT'
 }
 
 export interface TokenUsage {
