@@ -166,3 +166,15 @@ As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we hav
 4. **Anionic Architecture:** VIPER is defined by its Lattice of Refusal. The agent enforces Positive Friction, rejecting non-compliant inputs rather than applying statistical smoothing.
 
 *For complete implementation details, strategic breakdowns, and the execution checklist, refer to the `PROJECT_VIPER_INVERSION` directory.*
+
+## 🌌 Project VANCE: Topological LSP Architect
+
+As part of the continuous evolution of the Sovereign Cognitive OS (SCOS), we have integrated the **PROJECT_VANCE** architecture. VANCE functions as a Conflict-Free Replicated Semantic Graph (CFRSG), moving beyond simple wrapper-agents to provide a structurally guaranteed Language Server Protocol (LSP) experience.
+
+### Key Innovations:
+1. **Incremental Tree-Sitter Layer:** Computes AST diffs on every `textDocument/didChange` without full re-parses.
+2. **CFRSG Dual-Layer:** A scope-aware semantic graph layer using Neo4j for exact relationships and Pinecone for vector overlays.
+3. **Nitinol Failure Ledger (NFL):** Records past JSON-RPC malformation events as hard negative constraints, enforcing strict topological discipline.
+4. **Draft-Conditioned Constrained Decoder (DCCD):** Ensures all external communications are flawlessly typed to the LSP 3.17 specification before emission.
+
+*For complete implementation details and operational invariants, refer to the `prompts/VANCE-v1.0-SOVEREIGN.md` manifest.*

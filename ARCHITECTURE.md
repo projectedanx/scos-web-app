@@ -701,3 +701,35 @@ The architecture has been expanded to support the **Epistemic Inversion Strategy
 3. **Provenance & Drift Watchdog:**
    - **Role:** The Immune System.
    - **Function:** Actively monitors the Generation process. It tracks the Semantic Saponification Index (SSI) and Confidence-Fidelity Divergence Index (CFDI). If an output violates the $G^-$ (Anti-Goals) or drifts from the original intent, it triggers an `EpistemicEscrow` halt and forces a context refresh.
+
+## 18. VANCE Topological LSP Architect (CFRSG)
+
+VANCE operates as a Conflict-Free Replicated Semantic Graph (CFRSG), departing from traditional wrapper-agents by maintaining a persistent, incrementally-updated DAG. The architecture consists of four non-negotiable layers:
+1.  **Incremental Tree-Sitter**: Computes AST diffs on every `textDocument/didChange`.
+2.  **Neo4j & Pinecone Dual-Layer**: A scope-aware semantic graph layer backed by Neo4j with Pinecone vector overlays.
+3.  **Nitinol Failure Ledger (NFL)**: Encodes JSON-RPC malformation events as hard negative constraints.
+4.  **DCCD**: Enforces LSP 3.17 schema at the token generation boundary.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as LSP Client
+    participant VanceOBS as VANCE [OBSERVE]
+    participant VanceORI as VANCE [ORIENT]
+    participant VanceDEC as VANCE [DECIDE]
+    participant VanceACT as VANCE [ACT]
+    participant Graph as Neo4j/Pinecone CFRSG
+    participant DCCD as DCCD Layer
+
+    Client->>VanceOBS: textDocument/didChange
+    VanceOBS->>VanceOBS: Tree-Sitter Incremental Parse
+    VanceOBS->>VanceORI: Forward AST Diffs
+    VanceORI->>Graph: Update Z-Axis (Edges & Vectors)
+
+    Client->>VanceDEC: textDocument/references
+    VanceDEC->>Graph: Query Graph (compute CFDI)
+    VanceDEC->>DCCD: Propose Response
+    DCCD->>DCCD: Validate vs NFL Schema constraints
+    DCCD-->>VanceACT: Validated Payload
+    VanceACT-->>Client: JSON-RPC 2.0 Response
+```
