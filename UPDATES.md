@@ -3,7 +3,12 @@
 
 # ⚡ System Updates Log
 
-## v1.13.0: RAG Agent Endpoint Integration (Current)
+## v1.14.0: Human-AI Infomorphisms Protocol (Current)
+- **Added:** `docs/adr/12-human-ai-infomorphisms.md` detailing the Human-AI Symbiosis Protocol, outlining the high-surprisal value and infomorphism refactoring for reliable emergence.
+- **Added:** `docs/adr/12-human-ai-infomorphisms-checklist.md` as an implementation checklist for the ADR 12 Protocol.
+- **Lessons Learned:** The rigorous adoption of "infomorphisms" correctly structures Human-AI mappings but demands significantly higher upfront cognitive overhead to define programmatic constraints and datums.
+
+## v1.13.0: RAG Agent Endpoint Integration
 - **Added:** `RagAgentView` interface to interact with the `nextjs-frontend-rag-agent` blueprint.
 - **Added:** Real-time retrieval telemetry, including vector search MS, re-ranking time MS, and total latency.
 - **Added:** Citation mapping and confidence scoring UI for verifiable generation.
